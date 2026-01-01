@@ -48,7 +48,7 @@ Blend65 exists for developers who want:
 ## Target Architecture
 
 ### **Universal Core Language**
-```blend
+```
 // This code works on ANY 6502 target
 var lives: byte = 3
 var score: word = 0
@@ -63,7 +63,7 @@ end while
 ```
 
 ### **Target-Specific Hardware**
-```blend
+```
 // Commodore 64
 import setSpritePosition, enableSprite from c64:sprites
 import setBackgroundColor from c64:vic
@@ -142,7 +142,7 @@ Source
 
 ## Example: Cross-Target Game
 
-```blend
+```
 module Game.Main
 
 // Universal 6502 code

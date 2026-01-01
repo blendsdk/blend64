@@ -80,7 +80,7 @@ blend65 --target=atari2600 game.blend → game.bin (Atari 2600)
 
 A program is a set of modules. Each file declares exactly one module.
 
-```blend
+```
 module Game.Main
 
 import joystickLeft, joystickRight from target:input
@@ -103,7 +103,7 @@ qualified_name ::= ident { "." ident }*
 
 Imports resolve based on the selected compilation target:
 
-```blend
+```
 // These imports resolve differently per target:
 import setSpritePosition from target:sprites
 import setBackgroundColor from target:video
@@ -133,7 +133,7 @@ machine_id      ::= "c64" | "x16" | "vic20" | "atari2600" | ...
 
 Only exported symbols may be imported by other modules.
 
-```blend
+```
 export const SCREEN_W: byte = 40
 export function main(): void
     // ...
@@ -163,7 +163,7 @@ Optional (target-dependent):
 
 Arrays are fixed-capacity, compile-time sized, contiguous memory.
 
-```blend
+```
 var spriteX: byte[8]
 var screenLine: byte[40]
 var tiles: byte[256]
@@ -175,7 +175,7 @@ Size must be a compile-time constant. Target-specific memory constraints apply.
 
 Records compile to a **flat layout** in target memory.
 
-```blend
+```
 type Player extends HasPos, HasVel
     hp: byte
     flags: byte
@@ -204,17 +204,17 @@ Valid targets depend on installed target definitions.
 ### 4.2 Target-specific imports
 
 **Universal pattern:**
-```blend
+```
 import functionName from target:module
 ```
 
 **Target-specific pattern:**
-```blend
+```
 import functionName from machine:module
 ```
 
 **Examples:**
-```blend
+```
 // Works on targets that have sprites
 import setSpritePosition from target:sprites
 
@@ -257,7 +257,7 @@ Different targets provide different hardware modules:
 ### 5.1 Function-based hardware access
 
 Instead of raw register manipulation:
-```blend
+```
 // OLD (not supported):
 io var VIC_SPRITE0_X: byte @ $D000
 VIC_SPRITE0_X = playerX
@@ -270,7 +270,7 @@ setSpritePosition(0, playerX, playerY)
 ### 5.2 Zero-overhead inlining
 
 Hardware functions compile to optimal register sequences:
-```blend
+```
 // Source:
 setSpritePosition(0, 160, 100)
 
@@ -293,7 +293,7 @@ Every variable is static. Storage is expressed via **storage prefix** and option
 
 ### 6.1 Declarations
 
-```blend
+```
 zp   var frame: byte
 ram  var bulletsX: byte[8]
 data var palette: byte[16] = [ 0x00, 0x06, 0x0E, 0x0B ]
@@ -331,7 +331,7 @@ Standard precedence hierarchy applies universally.
 Universal control flow constructs work on all 6502 targets.
 
 ### 8.1 If/While/For
-```blend
+```
 if condition then
     // ...
 end if
@@ -346,7 +346,7 @@ next
 ```
 
 ### 8.2 Match statement
-```blend
+```
 match joystickState
     case 1:  // Up
         playerY = playerY - 1
@@ -363,7 +363,7 @@ end match
 
 ### 9.1 Declaration
 
-```blend
+```
 function add(a: byte, b: byte): byte
     return a + b
 end function
@@ -405,7 +405,7 @@ When compiling with `--target=MACHINE`:
 
 Hardware functions have consistent signatures across targets when possible:
 
-```blend
+```
 // Sprite functions (where supported):
 function setSpritePosition(sprite: byte, x: word, y: byte): void
 function setSpriteColor(sprite: byte, color: byte): void
@@ -449,7 +449,7 @@ targets/MACHINE/
 ### 12.1 Entry point
 
 A program must export exactly one entry:
-```blend
+```
 export function main(): void
 ```
 
@@ -465,7 +465,7 @@ The compiler outputs target-appropriate binaries:
 
 ## 13. Example: Multi-Target Program
 
-```blend
+```
 module Game.Snake
 
 // Universal 6502 variables
