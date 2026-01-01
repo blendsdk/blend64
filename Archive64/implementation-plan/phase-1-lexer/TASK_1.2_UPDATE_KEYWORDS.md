@@ -1,10 +1,7 @@
 # Task 1.2: Update Keywords for Blend64
 
-**Task ID:** 1.2_UPDATE_KEYWORDS
-**Phase:** Phase 1 - Lexer Adaptation
-**Estimated Time:** 1-2 hours
-**Dependencies:** Task 1.1 (Token Types)
-**Context Requirement:** ~12K tokens
+**Task ID:** 1.2_UPDATE_KEYWORDS **Phase:** Phase 1 - Lexer Adaptation **Estimated Time:** 1-2 hours **Dependencies:**
+Task 1.1 (Token Types) **Context Requirement:** ~12K tokens
 
 ---
 
@@ -17,38 +14,44 @@ Update the keyword set in blend-lexer.ts to recognize Blend64 keywords and remov
 ## Context
 
 **What you're modifying:**
-- `packages/lexer/src/blend-lexer.ts` - Keyword definitions
+
+-   `packages/lexer/src/blend-lexer.ts` - Keyword definitions
 
 **Why this change is needed:**
-- Blend64 has different syntax than Blend (no classes, different control flow)
-- New storage classes need keyword recognition
-- Blend64 uses different statement terminators (`end function` vs `}`)
+
+-   Blend64 has different syntax than Blend (no classes, different control flow)
+-   New storage classes need keyword recognition
+-   Blend64 uses different statement terminators (`end function` vs `}`)
 
 **What changes from original Blend:**
-- Remove OOP keywords (`class`, `new`, `this`, `extends`, etc.)
-- Remove exception keywords (`try`, `catch`, `throw`)
-- Add storage class keywords (`zp`, `ram`, `data`, `io`)
-- Add Blend64 control keywords (`hotloop`, `then`, `end`)
+
+-   Remove OOP keywords (`class`, `new`, `this`, `extends`, etc.)
+-   Remove exception keywords (`try`, `catch`, `throw`)
+-   Add storage class keywords (`zp`, `ram`, `data`, `io`)
+-   Add Blend64 control keywords (`hotloop`, `then`, `end`)
 
 ---
 
 ## Input Files
 
 **Required from blend-lang:**
-- `/Users/gevik/workdir/blend-lang/packages/lexer/src/blend-lexer.ts` - Keyword definitions
+
+-   `/Users/gevik/workdir/blend-lang/packages/lexer/src/blend-lexer.ts` - Keyword definitions
 
 **Reference documents:**
-- `research/blend64-spec.md` - Section 2.2 (Imports), Section 7 (Statements)
-- `research/blend64-diff-from-blend.md` - Section 7 (Classes), Section 9 (Control flow)
+
+-   `research/blend64-spec.md` - Section 2.2 (Imports), Section 7 (Statements)
+-   `research/blend64-diff-from-blend.md` - Section 7 (Classes), Section 9 (Control flow)
 
 ---
 
 ## Task Instructions
 
 ### Step 1: Copy the source file
-```bash
+
+````bash
 cp /Users/gevik/workdir/blend-lang/packages/lexer/src/blend-lexer.ts packages/lexer/src/blend-lexer.ts
-```
+```js
 
 ### Step 2: Update the keyword set
 Find the keyword set definition and replace it with the Blend64 keyword set:
@@ -83,7 +86,7 @@ const BLEND64_KEYWORDS = new Set([
   // Literals
   'true', 'false', 'nothing'
 ]);
-```
+```js
 
 ### Step 3: Update the factory function
 Modify the `createBlendLexer` function to use the new keyword set:
@@ -99,7 +102,7 @@ export function createBlendLexer(options: LexerOptions = {}): Lexer {
     ...options,
   });
 }
-```
+```js
 
 ### Step 4: Update comments and exports
 Update the file header to reflect Blend64:
@@ -111,7 +114,7 @@ Update the file header to reflect Blend64:
  * This module provides a pre-configured lexer for the Blend64 language
  * with the correct keyword set and default options.
  */
-```
+```js
 
 ---
 
@@ -141,7 +144,7 @@ const BLEND_KEYWORDS = new Set([
   'let', 'null', 'undefined',
   // ...
 ]);
-```
+```js
 
 ### After:
 ```typescript
@@ -170,7 +173,7 @@ const BLEND64_KEYWORDS = new Set([
   // Literals
   'true', 'false', 'nothing'
 ]);
-```
+```js
 
 ---
 
@@ -201,7 +204,7 @@ tokens2.forEach(t => {
   if (t.type === 'IDENTIFIER') console.log('Identifier (not keyword):', t.lexeme);
 });
 "
-```
+```js
 
 **Expected results:**
 - `zp`, `hotloop`, `function`, `end` should be recognized as keywords
@@ -222,3 +225,4 @@ Continue with: `phase-1-lexer/TASK_1.3_FIX_OPERATOR_PRECEDENCE.md`
 - Problem: Keywords not recognized → Solution: Check keyword set is properly exported and used
 - Problem: Wrong tokens classified as keywords → Solution: Verify keyword set only contains Blend64 words
 - Problem: Factory function errors → Solution: Check function signature and default options are correct
+````

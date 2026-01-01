@@ -20,7 +20,7 @@ balance of programmer ergonomics and code generation efficiency.
 
 Instead of raw register manipulation:
 
-```
+````js
 // OLD: Assembly-like approach (rejected)
 io var VIC_SPRITE0_X: byte @ $D000
 io var VIC_SPRITE_X_MSB: byte @ $D010
@@ -31,11 +31,11 @@ if spriteX > 255 then
 else
   VIC_SPRITE_X_MSB = VIC_SPRITE_X_MSB and $FE
 end if
-```
+```js
 
 Use clean function calls:
 
-```
+```js
 // NEW: Function-based approach (approved)
 import setSpritePosition, setSpriteColor, enableSprite from c64:sprites
 import readJoystick from c64:input
@@ -44,7 +44,7 @@ setSpritePosition(0, spriteX, spriteY)  // Handles all register complexity
 setSpriteColor(0, WHITE)
 enableSprite(0)
 joyState = readJoystick(1)
-```
+```js
 
 ---
 
@@ -54,7 +54,7 @@ joyState = readJoystick(1)
 
 **C64 Hardware Modules:**
 
-```
+```js
 // c64:sprites - Sprite manipulation
 import setSpritePosition, setSpriteColor from c64:sprites
 import enableSprite, disableSprite from c64:sprites
@@ -72,44 +72,44 @@ import playNote, setVolume, stopSound from c64:sound
 
 // c64:memory - Memory operations
 import memcopy, memset, peek, poke from c64:memory
-```
+```js
 
 ### **2. Function Signatures**
 
 **Sprites:**
 
-```
+```js
 function setSpritePosition(sprite: byte, x: word, y: byte): void
 function setSpriteColor(sprite: byte, color: byte): void
 function enableSprite(sprite: byte): void
 function disableSprite(sprite: byte): void
 function setSpriteData(sprite: byte, dataBlock: byte): void
-```
+```js
 
 **Input:**
 
-```
+```js
 function readJoystick(port: byte): byte  // Returns bitfield
 function joystickUp(port: byte): boolean
 function joystickDown(port: byte): boolean
 function joystickLeft(port: byte): boolean
 function joystickRight(port: byte): boolean
 function joystickFire(port: byte): boolean
-```
+```js
 
 **Graphics:**
 
-```
+```js
 function setBackgroundColor(color: byte): void
 function setBorderColor(color: byte): void
 function clearScreen(character: byte): void
-```
+```js
 
 ### **3. Code Generation Strategy**
 
 **Inlining for Zero Overhead:**
 
-```
+```js
 // Source code:
 setSpritePosition(0, 160, 100)
 
@@ -120,7 +120,7 @@ LDA #0            ; X coordinate high byte (160 < 256)
 ; (MSB bit manipulation omitted - not needed)
 LDA #100          ; Y coordinate
 STA $D001         ; VIC_SPRITE0_Y
-```
+```js
 
 **Static Analysis for Optimization:**
 
@@ -162,43 +162,43 @@ STA $D001         ; VIC_SPRITE0_Y
 
 **Before (assembly-like):**
 
-```
+```js
 io var VIC_SPRITE_ENABLE: byte @ $D015
 io var VIC_SPRITE0_COLOR: byte @ $D027
 
 VIC_SPRITE_ENABLE = VIC_SPRITE_ENABLE or 1
 VIC_SPRITE0_COLOR = 7
-```
+```js
 
 **After (function-based):**
 
-```
+```js
 enableSprite(0)
 setSpriteColor(0, YELLOW)
-```
+```js
 
 ### **Input Handling**
 
 **Before:**
 
-```
+```js
 io var CIA1_PORT_A: byte @ $DC00
 joyRaw = not CIA1_PORT_A and $1F
 if joyRaw and $01 then // Check up bit
-```
+```js
 
 **After:**
 
-```
+```js
 if joystickUp(1) then
   // Much clearer intent
-```
+```js
 
 ### **Complex Operations**
 
 **Before:**
 
-```
+```js
 // Setting sprite position with MSB handling
 io var VIC_SPRITE0_X: byte @ $D000
 io var VIC_SPRITE_X_MSB: byte @ $D010
@@ -210,13 +210,13 @@ if spriteX > 255 then
 else
   VIC_SPRITE_X_MSB = VIC_SPRITE_X_MSB and $FE
 end if
-```
+```js
 
 **After:**
 
-```
+```js
 setSpritePosition(0, spriteX, spriteY)  // One call handles everything
-```
+```js
 
 ---
 
@@ -308,3 +308,4 @@ The function-based hardware API strikes the perfect balance for Blend64:
 -   **Future-proofs the language** with extensible module system
 
 This design ensures Blend64 code is both **pleasant to write** and **optimal to execute** on C64 hardware.
+````

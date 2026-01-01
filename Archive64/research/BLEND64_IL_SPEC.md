@@ -1,9 +1,7 @@
 # Blend64 v0.1 — Intermediate Representation (IL) Specification
 
-Status: Mandatory
-Audience: Compiler implementers
-Target: MOS 6502 / 6510 (Commodore 64)
-Compiler implementation language: TypeScript
+Status: Mandatory Audience: Compiler implementers Target: MOS 6502 / 6510 (Commodore 64) Compiler implementation
+language: TypeScript
 
 ---
 
@@ -14,12 +12,13 @@ This document defines the **single mandatory Intermediate Representation (IL)** 
 The IL is the **only representation** allowed between the **magic phase** and **6502 code emission**.
 
 Its goals are:
-- deterministic code generation
-- explicit memory access
-- explicit control flow
-- explicit cycle and size costs
-- provable reachability and dead-code elimination
-- maximum achievable FPS on real C64 hardware
+
+-   deterministic code generation
+-   explicit memory access
+-   explicit control flow
+-   explicit cycle and size costs
+-   provable reachability and dead-code elimination
+-   maximum achievable FPS on real C64 hardware
 
 The IL is **not portable**, **not executable**, and **not a runtime**.
 
@@ -28,20 +27,22 @@ The IL is **not portable**, **not executable**, and **not a runtime**.
 ## 2. Non-Negotiable Constraints
 
 The IL MUST:
-- be target-specific (6502/6510)
-- be ahead-of-time only
-- be fully static
-- be deterministic
-- expose addressing modes explicitly
-- preserve exact machine-level semantics
+
+-   be target-specific (6502/6510)
+-   be ahead-of-time only
+-   be fully static
+-   be deterministic
+-   expose addressing modes explicitly
+-   preserve exact machine-level semantics
 
 The IL MUST NOT:
-- resemble LLVM IR or SSA
-- abstract registers
-- imply stack frames
-- imply heap allocation
-- introduce runtime services
-- enable dynamic dispatch
+
+-   resemble LLVM IR or SSA
+-   abstract registers
+-   imply stack frames
+-   imply heap allocation
+-   introduce runtime services
+-   enable dynamic dispatch
 
 ---
 
@@ -53,7 +54,7 @@ Source → AST → Type Check → Magic Phase → **Blend64 IL** → Optimizatio
 
 ## 4. TypeScript Core Model
 
-```ts
+````ts
 interface ILProgram {
   entryFunction: string
   functions: ILFunction[]
@@ -94,7 +95,7 @@ interface ILMeta {
   absWrites: number
   clobbers: ("A" | "X" | "Y" | "P")[]
 }
-```
+```js
 
 ---
 
@@ -140,3 +141,4 @@ If a behavior is not explicitly represented in the IL, it is not allowed in Blen
 ---
 
 End of specification
+````

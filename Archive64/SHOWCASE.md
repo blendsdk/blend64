@@ -24,7 +24,7 @@ Blend64 is **assembler-plus**:
 Blend64 strings are fixed-capacity buffers: `string(N)`. Template strings exist, but are **restricted** and lower to
 static copies + formatting helpers **only if used**.
 
-```
+````js
 module Game.Hud
 
 import poke, memcpy from c64:mem
@@ -42,7 +42,7 @@ export function Hud_Draw(): void
     // Example helper: prints PETSCII to screen at row/col
     Screen_PrintString(0, 0, hudLine)
 end function
-```
+```js
 
 What this demonstrates:
 
@@ -56,7 +56,7 @@ What this demonstrates:
 
 You can name hardware registers explicitly using `io` plus pinned placement.
 
-```
+```js
 module C64.Vic
 
 io var VIC_BORDER: byte @ $D020
@@ -66,7 +66,7 @@ export function SetColors(border: byte, bg: byte): void
     VIC_BORDER = border
     VIC_BG0    = bg
 end function
-```
+```js
 
 What this demonstrates:
 
@@ -81,7 +81,7 @@ What this demonstrates:
 Toolchain or developer modules can wrap VIC-II sprite setup. The important part: **imports are explicit** and **unused
 code is not emitted**.
 
-```
+```js
 module Game.Player
 
 import Sprites_Enable, Sprites_SetPos, Sprites_SetPtr from c64:sprites
@@ -107,7 +107,7 @@ end function
 export function Player_Draw(): void
     Sprites_SetPos(playerSpriteId, playerX, playerY)
 end function
-```
+```js
 
 What this demonstrates:
 
@@ -120,7 +120,7 @@ What this demonstrates:
 
 For performance builds, Blend64 favors a canonical hot path where the compiler can apply aggressive heuristics.
 
-```
+```js
 module Game.Main
 
 import Hud_Draw from game:hud
@@ -140,7 +140,7 @@ export function main(): void
         Hud_Draw()
     }
 end function
-```
+```js
 
 What this demonstrates:
 
@@ -177,7 +177,7 @@ export function State_Tick(): void
             state = 0
     end match
 end function
-```
+```js
 
 What this demonstrates:
 
@@ -191,7 +191,7 @@ What this demonstrates:
 
 Tables are foundational in 6502 code: sine tables, sprite X positions, tile maps, etc.
 
-```
+```js
 module Game.Tables
 
 // 256-byte sine table
@@ -208,7 +208,7 @@ export function MoveSprites(): void
         spriteX[i] += 1
     next
 end function
-```
+```js
 
 What this demonstrates:
 
@@ -222,7 +222,7 @@ What this demonstrates:
 
 Records are flattened and laid out deterministically.
 
-```
+```js
 module Game.Types
 
 type Player
@@ -240,7 +240,7 @@ export function Player_Reset(): void
     p1.vx = 2
     p1.flags = 0
 end function
-```
+```js
 
 What this demonstrates:
 
@@ -253,7 +253,7 @@ What this demonstrates:
 
 Blend64 has no locals; temps are static. For safety and speed, the compiler must prevent IRQ/mainline temp aliasing.
 
-```
+```js
 module Game.Irq
 
 import Irq_InstallRaster, Irq_Enable from c64:irq
@@ -268,7 +268,7 @@ export function InitIrq(): void
     Irq_InstallRaster(RasterIrq, 50)
     Irq_Enable(true)
 end function
-```
+```js
 
 What this demonstrates:
 
@@ -298,7 +298,7 @@ This is central to Blend64’s philosophy:
 
 If you import a module but never call a function, it does not make it into the PRG.
 
-```
+```js
 module Game.Main
 
 import Debug_Print from c64:debug  // imported but never called
@@ -308,7 +308,7 @@ export function main(): void
         // ...
     }
 end function
-```
+```js
 
 In a conforming compiler:
 
@@ -321,7 +321,7 @@ In a conforming compiler:
 
 Blend64 encourages explicit module structure:
 
-```
+```js
 game/
   main.blend
   player.blend
@@ -335,7 +335,7 @@ c64/
   sprites.blend
   irq.blend
   input.blend
-```
+```js
 
 All `c64:*` modules are optional:
 
@@ -363,3 +363,4 @@ If a feature cannot be explained in terms of:
 -   cycle cost
 
 …then it does not belong in Blend64 v0.1.
+````

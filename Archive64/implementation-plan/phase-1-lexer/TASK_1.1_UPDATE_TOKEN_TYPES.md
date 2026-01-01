@@ -1,10 +1,7 @@
 # Task 1.1: Update Token Types for Blend64
 
-**Task ID:** 1.1_UPDATE_TOKEN_TYPES
-**Phase:** Phase 1 - Lexer Adaptation
-**Estimated Time:** 2-3 hours
-**Dependencies:** None (first task)
-**Context Requirement:** ~15K tokens
+**Task ID:** 1.1_UPDATE_TOKEN_TYPES **Phase:** Phase 1 - Lexer Adaptation **Estimated Time:** 2-3 hours
+**Dependencies:** None (first task) **Context Requirement:** ~15K tokens
 
 ---
 
@@ -17,38 +14,44 @@ Modify the TokenType enum in the Blend lexer to support Blend64 syntax requireme
 ## Context
 
 **What you're modifying:**
-- `packages/lexer/src/types.ts` - Token type definitions
+
+-   `packages/lexer/src/types.ts` - Token type definitions
 
 **Why this change is needed:**
-- Blend64 introduces storage classes (`zp`, `ram`, `data`, `const`, `io`)
-- New placement syntax (`@$D020`) requires `AT` and `DOLLAR` tokens
-- New control construct `hotloop` needs recognition
-- Some Blend operators are removed (null coalescing, optional chaining)
+
+-   Blend64 introduces storage classes (`zp`, `ram`, `data`, `const`, `io`)
+-   New placement syntax (`@$D020`) requires `AT` and `DOLLAR` tokens
+-   New control construct `hotloop` needs recognition
+-   Some Blend operators are removed (null coalescing, optional chaining)
 
 **What changes from original Blend:**
-- Add 6 new token types for Blend64 features
-- Remove 3 token types not used in Blend64
-- Keep all existing core tokens (identifiers, literals, operators)
+
+-   Add 6 new token types for Blend64 features
+-   Remove 3 token types not used in Blend64
+-   Keep all existing core tokens (identifiers, literals, operators)
 
 ---
 
 ## Input Files
 
 **Required from blend-lang:**
-- `/Users/gevik/workdir/blend-lang/packages/lexer/src/types.ts` - Token definitions
+
+-   `/Users/gevik/workdir/blend-lang/packages/lexer/src/types.ts` - Token definitions
 
 **Reference documents:**
-- `research/blend64-spec.md` - Section 4 (Storage Classes)
-- `research/blend64-diff-from-blend.md` - Section 2 (Types), Section 10 (Operators)
+
+-   `research/blend64-spec.md` - Section 4 (Storage Classes)
+-   `research/blend64-diff-from-blend.md` - Section 2 (Types), Section 10 (Operators)
 
 ---
 
 ## Task Instructions
 
 ### Step 1: Copy the source file
-```bash
+
+````bash
 cp /Users/gevik/workdir/blend-lang/packages/lexer/src/types.ts packages/lexer/src/types.ts
-```
+```js
 
 ### Step 2: Add new TokenType enum values
 Add these new tokens to the TokenType enum (in alphabetical order within logical groups):
@@ -64,7 +67,7 @@ HOTLOOP = 'HOTLOOP',          // control construct
 // Add after DOT in punctuation section:
 AT = 'AT',                    // @ for placement
 DOLLAR = 'DOLLAR',            // $ for hex addresses
-```
+```js
 
 ### Step 3: Remove unused tokens
 Remove these TokenType enum values (Blend64 doesn't use them):
@@ -74,7 +77,7 @@ Remove these TokenType enum values (Blend64 doesn't use them):
 QMARKQMARK = 'QMARKQMARK', // ?? (null coalescing)
 DOTDOTDOT = 'DOTDOTDOT',   // ... (spread/rest)
 NULL = 'NULL',             // null literal
-```
+```js
 
 ### Step 4: Update comments
 Update the file header comment to reflect Blend64:
@@ -90,7 +93,7 @@ Update the file header comment to reflect Blend64:
  * - Added HOTLOOP control construct
  * - Removed null coalescing and spread operators
  */
-```
+```js
 
 ---
 
@@ -129,7 +132,7 @@ export enum TokenType {
   BOOLEAN = 'BOOLEAN', // true/false
   NULL = 'NULL', // null
 }
-```
+```js
 
 ### After:
 ```typescript
@@ -162,7 +165,7 @@ export enum TokenType {
   BOOLEAN = 'BOOLEAN', // true/false
   // REMOVED: NULL
 }
-```
+```js
 
 ---
 
@@ -186,7 +189,7 @@ console.log('AT exists:', !!TokenType.AT);
 console.log('DOLLAR exists:', !!TokenType.DOLLAR);
 console.log('QMARKQMARK removed:', !TokenType.QMARKQMARK);
 "
-```
+```js
 
 **Expected results:**
 - TypeScript compiles without errors
@@ -207,3 +210,4 @@ Continue with: `phase-1-lexer/TASK_1.2_UPDATE_KEYWORDS.md`
 - Problem: TypeScript compilation errors → Solution: Check enum syntax and trailing commas
 - Problem: Enum values not found → Solution: Verify export is working and values are spelled correctly
 - Problem: Old tokens still exist → Solution: Double-check removal of QMARKQMARK, DOTDOTDOT, NULL
+````

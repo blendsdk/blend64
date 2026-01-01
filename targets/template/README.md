@@ -6,10 +6,10 @@ This directory contains template files for creating new Blend65 targets.
 
 ### Step 1: Copy Template Files
 
-```bash
+````bash
 cp -r targets/template targets/YOUR_MACHINE
 cd targets/YOUR_MACHINE
-```
+```js
 
 ### Step 2: Edit target.toml
 
@@ -35,7 +35,7 @@ Create module directories:
 ```bash
 mkdir modules
 # Then create .blend65 files for each hardware module
-```
+```js
 
 ### Step 5: Test and Validate
 
@@ -87,29 +87,29 @@ Future targets in design or planning phase.
 
 Keep function signatures consistent across targets when possible:
 
-```
+```js
 function setSpritePosition(sprite: byte, x: word, y: byte): void
 function readJoystick(port: byte): byte
 function setBackgroundColor(color: byte): void
-```
+```js
 
 ### Performance
 
 All hardware functions should inline to optimal register sequences:
 
-```
+```js
 // This should compile to direct register access
 setSpritePosition(0, 100, 50)
 // → LDA #100; STA $D000; LDA #50; STA $D001; etc.
-```
+```js
 
 ### Error Handling
 
 Invalid parameters should cause compile-time errors when possible:
 
-```
+```js
 setSpritePosition(8, 100, 50)  // Error: C64 only has sprites 0-7
-```
+```js
 
 ## Testing Checklist
 
@@ -144,3 +144,4 @@ When contributing a new target:
 3. Document all hardware-specific behavior
 4. Include sample programs demonstrating capabilities
 5. Update main documentation to mention new target
+````

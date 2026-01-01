@@ -1,55 +1,59 @@
 # Task 1.3: Fix Operator Precedence for Blend64
 
-**Task ID:** 1.3_FIX_OPERATOR_PRECEDENCE
-**Phase:** Phase 1 - Lexer Adaptation
-**Estimated Time:** 2-3 hours
-**Dependencies:** Task 1.1 (Token Types), Task 1.2 (Keywords)
-**Context Requirement:** ~15K tokens
+**Task ID:** 1.3_FIX_OPERATOR_PRECEDENCE **Phase:** Phase 1 - Lexer Adaptation **Estimated Time:** 2-3 hours
+**Dependencies:** Task 1.1 (Token Types), Task 1.2 (Keywords) **Context Requirement:** ~15K tokens
 
 ---
 
 ## Objective
 
-Update operator tokenization in lexer.ts to handle Blend64 operator changes, specifically fixing `^` precedence and removing unsupported operators.
+Update operator tokenization in lexer.ts to handle Blend64 operator changes, specifically fixing `^` precedence and
+removing unsupported operators.
 
 ---
 
 ## Context
 
 **What you're modifying:**
-- `packages/lexer/src/lexer.ts` - Operator tokenization logic
+
+-   `packages/lexer/src/lexer.ts` - Operator tokenization logic
 
 **Why this change is needed:**
-- Blend64 `^` is bitwise XOR, not exponentiation (major precedence change)
-- Blend64 removes `**` (exponentiation), `??` (null coalescing), `...` (spread)
-- Blend64 adds `@` and `$` tokens for placement syntax
-- Need to handle word-based logical operators (`and`, `or`, `not`)
+
+-   Blend64 `^` is bitwise XOR, not exponentiation (major precedence change)
+-   Blend64 removes `**` (exponentiation), `??` (null coalescing), `...` (spread)
+-   Blend64 adds `@` and `$` tokens for placement syntax
+-   Need to handle word-based logical operators (`and`, `or`, `not`)
 
 **What changes from original Blend:**
-- `^` token meaning changes from exponent to bitwise XOR
-- Remove multi-character operators: `**`, `??`, `...`
-- Add new single-character operators: `@`, `$`
-- Word operators handled by keyword system (already in Task 1.2)
+
+-   `^` token meaning changes from exponent to bitwise XOR
+-   Remove multi-character operators: `**`, `??`, `...`
+-   Add new single-character operators: `@`, `$`
+-   Word operators handled by keyword system (already in Task 1.2)
 
 ---
 
 ## Input Files
 
 **Required from blend-lang:**
-- `/Users/gevik/workdir/blend-lang/packages/lexer/src/lexer.ts` - Main lexer logic
+
+-   `/Users/gevik/workdir/blend-lang/packages/lexer/src/lexer.ts` - Main lexer logic
 
 **Reference documents:**
-- `research/blend64-spec.md` - Section 6 (Expressions and Operators)
-- `research/blend64-diff-from-blend.md` - Section 10 (Operators)
+
+-   `research/blend64-spec.md` - Section 6 (Expressions and Operators)
+-   `research/blend64-diff-from-blend.md` - Section 10 (Operators)
 
 ---
 
 ## Task Instructions
 
 ### Step 1: Copy the source file
-```bash
+
+````bash
 cp /Users/gevik/workdir/blend-lang/packages/lexer/src/lexer.ts packages/lexer/src/lexer.ts
-```
+```js
 
 ### Step 2: Remove unsupported 3-char operators
 In the `lexSymbol()` method, remove these cases from the 3-char operators section:
@@ -61,7 +65,7 @@ case '...':
   this.advance();
   this.advance();
   return this.makeToken(TokenType.DOTDOTDOT, '...', start, this.pos());
-```
+```js
 
 ### Step 3: Remove unsupported 2-char operators
 In the `lexSymbol()` method, remove these cases from the 2-char operators section:
@@ -76,7 +80,7 @@ case '**':
   this.advance();
   this.advance();
   return this.makeToken(TokenType.STARSTAR, '**', start, this.pos());
-```
+```js
 
 ### Step 4: Add new single-char operators
 In the 1-char operators section, add support for `@` and `$`:
@@ -87,7 +91,7 @@ case '@':
   return this.makeToken(TokenType.AT, '@', start, this.pos());
 case '$':
   return this.makeToken(TokenType.DOLLAR, '$', start, this.pos());
-```
+```js
 
 ### Step 5: Update operator comments
 Update the comment for the `^` operator to reflect its new meaning:
@@ -102,7 +106,7 @@ case '^': // XOR in Blend64 (not exponentiation)
   return this.makeToken(TokenType.CARET, '^', start, this.pos());
 case '~':
   return this.makeToken(TokenType.TILDE, '~', start, this.pos());
-```
+```js
 
 ### Step 6: Update file header comment
 Add a comment explaining Blend64 operator changes:
@@ -117,7 +121,7 @@ Add a comment explaining Blend64 operator changes:
  * - Added @ and $ for placement syntax
  * - Word operators (and, or, not) handled as keywords
  */
-```
+```js
 
 ---
 
@@ -153,7 +157,7 @@ case '**':
 case '^':
   return this.makeToken(TokenType.CARET, '^', start, this.pos());
 // (no @ or $ handling)
-```
+```js
 
 ### After:
 ```typescript
@@ -170,7 +174,7 @@ case '@':
   return this.makeToken(TokenType.AT, '@', start, this.pos());
 case '$':
   return this.makeToken(TokenType.DOLLAR, '$', start, this.pos());
-```
+```js
 
 ---
 
@@ -210,7 +214,7 @@ try {
   console.log('✓ ?? correctly rejected');
 }
 "
-```
+```js
 
 **Expected results:**
 - `@` → AT token
@@ -233,3 +237,4 @@ Continue with: `phase-1-lexer/TASK_1.4_ADD_STORAGE_SYNTAX.md`
 - Problem: New operators not recognized → Solution: Check case statements are in correct switch block
 - Problem: Old operators still work → Solution: Verify removal of cases and check for duplicates
 - Problem: Lexer crashes on removed operators → Solution: This is expected behavior; they should be illegal characters
+````

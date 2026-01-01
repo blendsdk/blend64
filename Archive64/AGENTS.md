@@ -1,8 +1,7 @@
 # AGENTS.md - Complete Project Context for AI Assistants
 
-**Blend64 Project** - Commodore 64 Game Development Language
-**Created:** January 1, 2026
-**Purpose:** Ensure complete project context for AI assistants on every new task
+**Blend64 Project** - Commodore 64 Game Development Language **Created:** January 1, 2026 **Purpose:** Ensure complete
+project context for AI assistants on every new task
 
 ---
 
@@ -10,7 +9,8 @@
 
 **Before starting ANY task in this project, you MUST read and understand this entire document.**
 
-This file provides complete context about the Blend64 project, its goals, current status, technical specifications, and implementation approach. Without this context, you cannot successfully contribute to the project.
+This file provides complete context about the Blend64 project, its goals, current status, technical specifications, and
+implementation approach. Without this context, you cannot successfully contribute to the project.
 
 ---
 
@@ -32,30 +32,33 @@ This file provides complete context about the Blend64 project, its goals, curren
 
 ### What is Blend64?
 
-**Blend64** is an **assembler-plus, ahead-of-time compiled language** designed specifically for **high-performance Commodore 64 game development**.
+**Blend64** is an **assembler-plus, ahead-of-time compiled language** designed specifically for **high-performance
+Commodore 64 game development**.
 
 ### Core Design Goals
 
-- **Ahead-of-time compilation** to a single C64 PRG file
-- **No implicit runtime** or standard library
-- **Reachability-based dead-code elimination** (only used code is included)
-- **Static memory only** (no heap, no local variables)
-- **Deterministic output** and performance
-- **Performance-first lowering** for real C64 hardware
-- **Maximum possible FPS** on real hardware
+-   **Ahead-of-time compilation** to a single C64 PRG file
+-   **No implicit runtime** or standard library
+-   **Reachability-based dead-code elimination** (only used code is included)
+-   **Static memory only** (no heap, no local variables)
+-   **Deterministic output** and performance
+-   **Performance-first lowering** for real C64 hardware
+-   **Maximum possible FPS** on real hardware
 
 ### What Blend64 Is NOT
 
-- Not a VM or bytecode language
-- Not an interpreter
-- Not a C replacement
-- Not a BASIC replacement
-- Not a scripting language
-- Not portable (C64-specific only)
+-   Not a VM or bytecode language
+-   Not an interpreter
+-   Not a C replacement
+-   Not a BASIC replacement
+-   Not a scripting language
+-   Not portable (C64-specific only)
 
 ### Project Genesis
 
-Blend64 is derived from the existing **Blend language** codebase but **deliberately cuts away modern-language abstractions** that don't map cleanly to 6502 hardware. This makes the implementation much faster than starting from scratch.
+Blend64 is derived from the existing **Blend language** codebase but **deliberately cuts away modern-language
+abstractions** that don't map cleanly to 6502 hardware. This makes the implementation much faster than starting from
+scratch.
 
 ---
 
@@ -64,29 +67,30 @@ Blend64 is derived from the existing **Blend language** codebase but **deliberat
 ### Implementation Approach
 
 This project uses a **spec-first, task-driven approach** with:
-- **37 detailed tasks** across **6 phases**
-- Each task designed for **2-3 hours** of work
-- **Self-contained instructions** with validation steps
-- **Clear dependencies** and handoff points
-- **Incremental testing** throughout
+
+-   **37 detailed tasks** across **6 phases**
+-   Each task designed for **2-3 hours** of work
+-   **Self-contained instructions** with validation steps
+-   **Clear dependencies** and handoff points
+-   **Incremental testing** throughout
 
 ### Phase Status
 
-| Phase | Status | Description | Tasks |
-|-------|--------|-------------|-------|
-| **Phase 1** | ✅ **Ready** | Lexer Adaptation | 5 tasks complete |
-| **Phase 2** | 🟡 **Partial** | AST Modifications | 2/6 tasks ready |
-| **Phase 3** | 📋 **Planned** | Parser Updates | Template ready |
-| **Phase 4** | 📋 **Planned** | Type System | Template ready |
-| **Phase 5** | 📋 **Planned** | Magic Phase | Template ready |
-| **Phase 6** | 📋 **Planned** | Code Generation | Template ready |
+| Phase       | Status         | Description       | Tasks            |
+| ----------- | -------------- | ----------------- | ---------------- |
+| **Phase 1** | ✅ **Ready**   | Lexer Adaptation  | 5 tasks complete |
+| **Phase 2** | 🟡 **Partial** | AST Modifications | 2/6 tasks ready  |
+| **Phase 3** | 📋 **Planned** | Parser Updates    | Template ready   |
+| **Phase 4** | 📋 **Planned** | Type System       | Template ready   |
+| **Phase 5** | 📋 **Planned** | Magic Phase       | Template ready   |
+| **Phase 6** | 📋 **Planned** | Code Generation   | Template ready   |
 
 ### Estimated Timeline
 
-- **Total:** 6-8 months with consistent progress
-- **Phase 1-3 (Frontend):** 2-3 months
-- **Phase 4-6 (Backend):** 4-6 months
-- **AI Implementation:** ~185 hours (37 tasks × 5 hours average)
+-   **Total:** 6-8 months with consistent progress
+-   **Phase 1-3 (Frontend):** 2-3 months
+-   **Phase 4-6 (Backend):** 4-6 months
+-   **AI Implementation:** ~185 hours (37 tasks × 5 hours average)
 
 ---
 
@@ -125,7 +129,7 @@ This project uses a **spec-first, task-driven approach** with:
 
 ### Compilation Pipeline
 
-```
+````js
 Source Code (.blend64)
     ↓
 Lexer (tokenization)
@@ -143,7 +147,7 @@ Optimization
 6502 Code Generation
     ↓
 PRG File (Commodore 64 executable)
-```
+```js
 
 ### Type System
 
@@ -181,7 +185,7 @@ PRG File (Commodore 64 executable)
 
 ### Project Structure
 
-```
+```js
 blend64/
 ├── packages/
 │   ├── lexer/           # Token recognition (Phase 1)
@@ -193,7 +197,7 @@ blend64/
 ├── research/           # Language specifications
 ├── implementation-plan/ # Task breakdown
 └── [root files]       # Documentation and examples
-```
+```js
 
 ### Source Codebase
 
@@ -331,7 +335,7 @@ npm run test
 
 # Run specific phase tests
 npm run test:phase1
-```
+```js
 
 ### Important Directories
 
@@ -340,7 +344,7 @@ npm run test:phase1
 ./research/                         # Blend64 specifications
 ./implementation-plan/              # Task breakdown
 ./packages/                         # Implementation work
-```
+```js
 
 ### Phase Start Points
 
@@ -418,3 +422,4 @@ As an AI assistant working on this project:
 **Remember: This is a serious systems programming project targeting real hardware. Precision and attention to detail are essential.**
 
 **Start with Phase 1, Task 1.1: `implementation-plan/phase-1-lexer/TASK_1.1_UPDATE_TOKEN_TYPES.md`**
+````

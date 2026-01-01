@@ -21,7 +21,7 @@ C64 game example: a joystick-controlled sprite ball with smooth movement and col
 
 ## Complete Program Code
 
-```js
+````js
 module Game.SpriteBall
 
 // Import C64 hardware access modules (function-based API)
@@ -159,7 +159,7 @@ export function main(): void
     animate()
   end hotloop
 end function
-```
+```js
 
 ---
 
@@ -167,13 +167,13 @@ end function
 
 ### 1. **Module System & Function-Based Hardware API**
 
-```
+```js
 module Game.SpriteBall
 import setSpritePosition, setSpriteColor, enableSprite from c64:sprites
 import setBackgroundColor, setBorderColor from c64:vic
 import readJoystick, joystickUp, joystickDown from c64:input
 import memset from c64:memory
-```
+```js
 
 **What this demonstrates:**
 
@@ -191,12 +191,12 @@ import memset from c64:memory
 
 ### 2. **Storage Class System**
 
-```
+```js
 zp var spriteX: word        // Zero-page for speed
 ram var frameCount: byte    // Uninitialized RAM
 const var ballSprite: byte[64] = [...] // ROM data
 io var VIC_SPRITE0_X: byte @ $D000     // Memory-mapped I/O
-```
+```js
 
 **Memory layout strategy:**
 
@@ -213,13 +213,13 @@ io var VIC_SPRITE0_X: byte @ $D000     // Memory-mapped I/O
 
 ### 3. **Fixed-Size Arrays & Binary Literals**
 
-```
+```js
 const var ballSprite: byte[64] = [
   0b00000000, 0b01111100, 0b00000000,  // Visual sprite data
   0b00000001, 0b11111111, 0b10000000,  // with inline comments
   // ... more rows
 ]
-```
+```js
 
 **What this enables:**
 
@@ -229,12 +229,12 @@ const var ballSprite: byte[64] = [
 
 ### 4. **Function-Based Hardware Integration**
 
-```
+```js
 setSpritePosition(0, spriteX, spriteY)  // Clean, obvious intent
 setSpriteColor(0, WHITE)                // No magic numbers
 enableSprite(0)                         // Self-documenting
 if joystickUp(1) then                   // Clear boolean logic
-```
+```js
 
 **Hardware integration advantages:**
 
@@ -246,11 +246,11 @@ if joystickUp(1) then                   // Clear boolean logic
 
 ### 5. **Bitwise Operations**
 
-```
+```js
 if joyState and $01 then        // Bit testing
 spriteX = spriteX and $FF       // Bit masking
 VIC_SPRITE_X_MSB or= $01        // Bit setting
-```
+```js
 
 **6502-optimized operators:**
 
@@ -260,7 +260,7 @@ VIC_SPRITE_X_MSB or= $01        // Bit setting
 
 ### 6. **Performance-Oriented Control Flow**
 
-```
+```js
 match frameCount and $1F
   case 0:
     setSpriteColor(0, WHITE)
@@ -268,7 +268,7 @@ match frameCount and $1F
     setSpriteColor(0, YELLOW)
   // ...
 end match
-```
+```js
 
 **Efficient lowering:**
 
@@ -279,12 +279,12 @@ end match
 
 ### 7. **Hotloop Construct**
 
-```
+```js
 hotloop
   updateSpritePosition()
   animate()
 end hotloop
-```
+```js
 
 **Optimization implications:**
 
@@ -299,7 +299,7 @@ end hotloop
 
 ### **Memory Map (Estimated)**
 
-```
+```js
 Zero-Page Usage:
 $02-$03   spriteX: word     (hotloop variable)
 $04       spriteY: byte     (hotloop variable)
@@ -321,7 +321,7 @@ $D021     VIC_BG_COLOR
 $D027     VIC_SPRITE0_COLOR
 $DC00     CIA1_PORT_A
 $07F8     SPRITE_POINTER_0
-```
+```js
 
 ### **Performance Characteristics**
 
@@ -347,7 +347,7 @@ AND #$1F           ; 2 cycles - mask for match
 Total: ~65-85 cycles per frame
 Available: 20,000 cycles per frame (50Hz)
 Efficiency: 99.6% cycles available for other game logic
-```
+```js
 
 ### **Equivalent Assembly Code**
 
@@ -388,7 +388,7 @@ CheckDown:
         ; ... color cases
 
         JMP MainLoop
-```
+```js
 
 **Key differences:**
 
@@ -475,3 +475,4 @@ language features while maintaining the performance characteristics of hand-opti
 
 The result is C64 game code that is both **readable and maintainable** for developers, yet **executes at optimal speed**
 on the target hardware - bridging the 40-year gap between modern programming practices and classic computer constraints.
+````

@@ -1,5 +1,5 @@
 # Blend65 Language Files
-*.blend linguist-language=VBA linguist-detectable=true
+*.blend linguist-language=js linguist-detectable=true
 
 # Documentation
 *.md linguist-documentation=true linguist-detectable=true

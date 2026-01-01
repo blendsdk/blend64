@@ -1,10 +1,7 @@
 # Task 1.5: Test and Validate Complete Lexer
 
-**Task ID:** 1.5_TEST_AND_VALIDATE
-**Phase:** Phase 1 - Lexer Adaptation
-**Estimated Time:** 2-3 hours
-**Dependencies:** Tasks 1.1-1.4 (Complete lexer modifications)
-**Context Requirement:** ~12K tokens
+**Task ID:** 1.5_TEST_AND_VALIDATE **Phase:** Phase 1 - Lexer Adaptation **Estimated Time:** 2-3 hours **Dependencies:**
+Tasks 1.1-1.4 (Complete lexer modifications) **Context Requirement:** ~12K tokens
 
 ---
 
@@ -17,20 +14,23 @@ Comprehensive testing of the complete Blend64 lexer with real-world code example
 ## Context
 
 **What you're validating:**
-- Complete Blend64 lexer functionality
-- All token types working correctly
-- Integration with existing test infrastructure
-- Preparation for Phase 2 (AST work)
+
+-   Complete Blend64 lexer functionality
+-   All token types working correctly
+-   Integration with existing test infrastructure
+-   Preparation for Phase 2 (AST work)
 
 **Why comprehensive testing is needed:**
-- Ensure no regressions from modifications
-- Validate complex syntax combinations
-- Confirm lexer ready for parser integration
+
+-   Ensure no regressions from modifications
+-   Validate complex syntax combinations
+-   Confirm lexer ready for parser integration
 
 **What should pass:**
-- All Blend64 language constructs tokenize correctly
-- Complex programs parse without lexer errors
-- Performance remains acceptable
+
+-   All Blend64 language constructs tokenize correctly
+-   Complex programs parse without lexer errors
+-   Performance remains acceptable
 
 ---
 
@@ -39,14 +39,16 @@ Comprehensive testing of the complete Blend64 lexer with real-world code example
 **Uses outputs from all previous tasks**
 
 **Reference documents:**
-- `research/blend64-spec.md` - Complete language syntax
+
+-   `research/blend64-spec.md` - Complete language syntax
 
 ---
 
 ## Task Instructions
 
 ### Step 1: Create comprehensive test program
-```bash
+
+````bash
 cat > test-complete.blend64 << 'EOF'
 module Game.Main
 
@@ -79,7 +81,7 @@ function testMath(a: word, b: word): word
   return (a << 1) ^ (b | 0xFF)
 end function
 EOF
-```
+```js
 
 ### Step 2: Run complete tokenization test
 ```bash
@@ -112,7 +114,7 @@ console.log(\`\\nBlend64 tokens found: \${foundTokens.join(', ')}\`);
 
 console.log(\`\\nTotal tokens: \${tokens.length}\`);
 "
-```
+```js
 
 ### Step 3: Performance test
 ```bash
@@ -134,7 +136,7 @@ const time = Date.now() - start;
 console.log(\`Tokenized \${tokens.length} tokens in \${time}ms\`);
 console.log(\`Rate: \${Math.round(tokens.length/time*1000)} tokens/second\`);
 "
-```
+```js
 
 ### Step 4: Error handling validation
 ```bash
@@ -162,7 +164,7 @@ errorTests.forEach(test => {
   }
 });
 "
-```
+```js
 
 ### Step 5: Integration test with Node.js
 ```bash
@@ -184,7 +186,7 @@ try {
   process.exit(1);
 }
 "
-```
+```js
 
 ---
 
@@ -239,3 +241,4 @@ try {
 - Problem: Performance too slow → Solution: Check for inefficient regex or loops
 - Problem: Integration failures → Solution: Verify all exports are updated correctly
 - Problem: Complex programs fail → Solution: Check operator precedence and keyword conflicts
+````

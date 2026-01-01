@@ -19,33 +19,33 @@ These features form the foundation for portable code that compiles to any suppor
 
 **Primitive Types (Universal):**
 
-```
+````js
 var counter: byte = 0        // 8-bit unsigned (0-255)
 var address: word = $C000    // 16-bit unsigned (0-65535)
 var flag: boolean = true     // 8-bit boolean (0 or 1)
-```
+```js
 
 **Fixed Arrays (Universal):**
 
-```
+```js
 var buffer: byte[256]        // 256-byte array
 var coordinates: word[10]    // 10-word array
 var flags: boolean[8]        // 8-boolean array
-```
+```js
 
 **Array access:**
 
-```
+```js
 buffer[0] = 255
 coordinates[index] = $1000
 if flags[2] then
     // ...
 end if
-```
+```js
 
 **Records/Structs (Universal):**
 
-```
+```js
 type Point
     x: word
     y: word
@@ -60,7 +60,7 @@ end type
 var player: GameObject
 player.position.x = 160
 player.health = 100
-```
+```js
 
 ---
 
@@ -68,12 +68,12 @@ player.health = 100
 
 **Storage Classes (Universal concept, target-specific addresses):**
 
-```
+```js
 zp   var fastVar: byte           // Zero page (fastest access)
 ram  var buffer: byte[256]       // Regular RAM
 data var palette: byte[16] = [...]  // Initialized data
 const var MESSAGE: string(10) = "HELLO"  // Read-only
-```
+```js
 
 **Storage characteristics:**
 
@@ -84,14 +84,14 @@ const var MESSAGE: string(10) = "HELLO"  // Read-only
 
 **Memory addressing:**
 
-```
+```js
 // Zero page addresses vary by target:
 // C64: $02-$FF available
 // Atari 2600: $80-$FF available
 // X16: $00-$FF available
 
 zp var zpByte: byte    // Compiler chooses optimal ZP address per target
-```
+```js
 
 ---
 
@@ -99,18 +99,18 @@ zp var zpByte: byte    // Compiler chooses optimal ZP address per target
 
 **Arithmetic Operators (8-bit and 16-bit):**
 
-```
+```js
 var a: byte = 10
 var b: byte = 20
 var result: byte = a + b * 2     // Standard precedence
 
 var addr1: word = $C000
 var addr2: word = addr1 + 256    // 16-bit arithmetic
-```
+```js
 
 **Bitwise Operations (Essential for 6502):**
 
-```
+```js
 var flags: byte = %11010000      // Binary literal
 flags = flags & %00001111        // Mask lower nibble
 flags = flags | %10000000        // Set bit 7
@@ -118,17 +118,17 @@ flags = flags ^ %01010101        // XOR pattern
 flags = flags << 1               // Shift left
 flags = flags >> 2               // Shift right
 flags = ~flags                   // Complement
-```
+```js
 
 **Boolean Logic:**
 
-```
+```js
 var condition1: boolean = true
 var condition2: boolean = false
 if condition1 and not condition2 then
     // ...
 end if
-```
+```js
 
 ---
 
@@ -136,7 +136,7 @@ end if
 
 **Conditional Execution:**
 
-```
+```js
 if playerHealth > 0 then
     // Player alive
 else
@@ -145,11 +145,11 @@ end if
 
 // Single-line form
 if bullets > 0 then fireBullet() end if
-```
+```js
 
 **Loops:**
 
-```
+```js
 // Definite loop with counter
 for i = 0 to 255
     buffer[i] = 0
@@ -169,11 +169,11 @@ end while
 while true
     // Never-ending loop
 end while
-```
+```js
 
 **Pattern Matching:**
 
-```
+```js
 match joystickDirection
     case 0:    // Up
         playerY = playerY - 1
@@ -186,11 +186,11 @@ match joystickDirection
     case _:    // No movement
         // Do nothing
 end match
-```
+```js
 
 **Loop Control:**
 
-```
+```js
 for i = 0 to 100
     if i == 50 then
         continue    // Skip to next iteration
@@ -200,7 +200,7 @@ for i = 0 to 100
     end if
     // Process i
 next
-```
+```js
 
 ---
 
@@ -208,7 +208,7 @@ next
 
 **Function Declaration:**
 
-```
+```js
 function add8(a: byte, b: byte): byte
     return a + b
 end function
@@ -221,15 +221,15 @@ function setMemory(address: word, value: byte): void
     // No return value
     peek(address, value)
 end function
-```
+```js
 
 **Function Calls:**
 
-```
+```js
 var sum: byte = add8(10, 20)
 var newAddress: word = add16(baseAddress, offset)
 setMemory($D020, 0)              // Set border color (C64)
-```
+```js
 
 **Parameter Passing:**
 
@@ -250,31 +250,31 @@ setMemory($D020, 0)              // Set border color (C64)
 
 **Direct Memory Access (Universal):**
 
-```
+```js
 // These functions exist on all targets but with different implementations
 import peek, poke from target:memory
 
 var screenByte: byte = peek($0400)    // Read from memory
 poke($D020, 7)                       // Write to memory
-```
+```js
 
 **Address Calculation:**
 
-```
+```js
 import addr from core:memory
 
 var screenAddr: word = addr(screenBuffer)     // Get address of variable
 var spriteAddr: word = addr(spriteData[0])    // Address of array element
-```
+```js
 
 **Memory Operations:**
 
-```
+```js
 import memcopy, memset from target:memory
 
 memcopy(source, dest, 256)           // Copy 256 bytes
 memset(buffer, 0, 1024)             // Fill with zeros
-```
+```js
 
 ---
 
@@ -282,7 +282,7 @@ memset(buffer, 0, 1024)             // Fill with zeros
 
 **Fixed-Length Strings:**
 
-```
+```js
 var playerName: string(8) = "PLAYER1"    // 8-character buffer
 var message: string(40) = ""             // Empty 40-char buffer
 
@@ -291,18 +291,18 @@ playerName = "NEWNAME"                   // Assignment
 if playerName == "PLAYER1" then          // Comparison
     // ...
 end if
-```
+```js
 
 **Template Strings (Limited):**
 
-```
+```js
 var score: word = 1500
 var lives: byte = 3
 
 // Simple formatting only
 var statusLine: string(20) = `S:${score} L:${lives}`
 var hexDisplay: string(10) = `ADDR:${hex(address)}`
-```
+```js
 
 ---
 
@@ -326,12 +326,12 @@ var hexDisplay: string(10) = `ADDR:${hex(address)}`
 
 **Numeric Literals:**
 
-```
+```js
 var decimal: byte = 42               // Decimal
 var hex: word = $C000               // Hexadecimal
 var binary: byte = %11010000        // Binary
 var char: byte = 'A'                // Character (ASCII)
-```
+```js
 
 ---
 
@@ -339,7 +339,7 @@ var char: byte = 'A'                // Character (ASCII)
 
 **Compile-Time Constants:**
 
-```
+```js
 const SCREEN_WIDTH: word = 320
 const SCREEN_HEIGHT: word = 200
 const MAX_SPRITES: byte = 8
@@ -351,14 +351,14 @@ var spriteCount: byte = 0
 for i = 0 to MAX_SPRITES - 1
     // Process sprites
 next
-```
+```js
 
 **Array Literals:**
 
-```
+```js
 data var colors: byte[4] = [0, 1, 2, 3]
 data var notes: word[8] = [$C000, $C100, $C200, $C300, $C400, $C500, $C600, $C700]
-```
+```js
 
 ---
 
@@ -366,18 +366,18 @@ data var notes: word[8] = [$C000, $C100, $C200, $C300, $C400, $C500, $C600, $C70
 
 **Module Declaration:**
 
-```
+```js
 module Game.Player
 
 // Module-level variables (static storage)
 var playerX: word = 160
 var playerY: byte = 100
 var playerHealth: byte = 100
-```
+```js
 
 **Exports and Imports:**
 
-```
+```js
 // In player.blend
 export function getPlayerX(): word
     return playerX
@@ -393,7 +393,7 @@ import getPlayerX, movePlayer from game:player
 
 var x: word = getPlayerX()
 movePlayer(-1, 0)    // Move left
-```
+```js
 
 **Import Resolution:**
 
@@ -409,7 +409,7 @@ movePlayer(-1, 0)    // Move left
 
 **Zero Page Usage:**
 
-```
+```js
 // These automatically use efficient zero page addressing
 zp var zpCounter: byte
 zp var zpPointer: word
@@ -417,11 +417,11 @@ zp var zpPointer: word
 // Compiler generates optimal 6502 instructions:
 // LDA zpCounter     (2 cycles vs 4 for absolute)
 // STA zpPointer     (3 cycles vs 4 for absolute)
-```
+```js
 
 **8-bit vs 16-bit Operations:**
 
-```
+```js
 // 8-bit operations are fastest
 var a: byte = 10
 var b: byte = 20
@@ -431,11 +431,11 @@ var result: byte = a + b     // Single ADC instruction
 var addr1: word = $1000
 var addr2: word = $2000
 var sum: word = addr1 + addr2    // Multi-instruction sequence
-```
+```js
 
 **Loop Optimization:**
 
-```
+```js
 // Counted loops optimize to efficient 6502 patterns
 for i = 0 to 255          // Uses 8-bit counter
     buffer[i] = 0         // Compiler optimizes indexing
@@ -446,7 +446,7 @@ next
 // loop: STA buffer,X
 //       INX
 //       BNE loop
-```
+```js
 
 ---
 
@@ -454,7 +454,7 @@ next
 
 **Generic Hardware Access:**
 
-```
+```js
 // These imports resolve differently per target but same API
 import readJoystick from target:input
 import setPixel from target:graphics
@@ -465,11 +465,11 @@ if readJoystick(1) then
     setPixel(100, 100, 1)
     playTone(440)
 end if
-```
+```js
 
 **Memory-Safe Patterns:**
 
-```
+```js
 // Fixed-size arrays prevent buffer overflows
 var safeBuffer: byte[256]
 
@@ -477,11 +477,11 @@ var safeBuffer: byte[256]
 for i = 0 to 255
     safeBuffer[i] = i    // Safe - compiler knows bounds
 next
-```
+```js
 
 **Deterministic Performance:**
 
-```
+```js
 // All operations have known cycle counts
 var cycles: word = 0
 
@@ -490,7 +490,7 @@ cycles += 3    // STA zero page (3 cycles)
 cycles += 4    // STA absolute (4 cycles)
 
 // No hidden allocations or garbage collection
-```
+```js
 
 ---
 
@@ -545,3 +545,4 @@ cycles += 4    // STA absolute (4 cycles)
 
 This universal 6502 core provides a solid foundation for cross-platform retro game development while maintaining the
 performance and determinism required for real-time 6502 programming.
+````

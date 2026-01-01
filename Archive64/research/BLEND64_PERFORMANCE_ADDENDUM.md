@@ -97,12 +97,12 @@ Effects:
 
 A new statement form:
 
-```
+````js
 hotloop {
   tick()
   render()
 }
-```
+```js
 
 **Lowering (magic phase):**
 
@@ -286,3 +286,4 @@ With these rules, Blend64 fast profile is designed so that:
 -   cycle costs are visible and inspectable without writing assembly
 
 No runtime is introduced; everything remains ahead-of-time, static, and reachable-only.
+````
