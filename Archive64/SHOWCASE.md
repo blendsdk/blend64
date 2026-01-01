@@ -149,7 +149,7 @@ What this demonstrates:
 
 State machines are common on C64. `match` lowers to either compare chains or jump tables depending on density.
 
-```blend
+```Java
 module Game.State
 
 zp var state: byte

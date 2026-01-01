@@ -1,5 +1,5 @@
 # Blend65 Language Files
-*.blend linguist-language=Pascal linguist-detectable=true
+*.blend linguist-language=Java linguist-detectable=true
 
 # Documentation
 *.md linguist-documentation=true
