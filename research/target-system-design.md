@@ -1,14 +1,14 @@
 # Blend65 Target System Design
 
-**Status:** Approved Architecture
-**Date:** January 1, 2026
-**Impact:** Multi-target compilation, hardware API resolution, code generation
+**Status:** Approved Architecture **Date:** January 1, 2026 **Impact:** Multi-target compilation, hardware API
+resolution, code generation
 
 ---
 
 ## Overview
 
-The Blend65 target system enables the same source code to compile to multiple 6502-based machines while providing machine-specific hardware APIs and optimizations.
+The Blend65 target system enables the same source code to compile to multiple 6502-based machines while providing
+machine-specific hardware APIs and optimizations.
 
 ---
 
@@ -17,16 +17,18 @@ The Blend65 target system enables the same source code to compile to multiple 65
 ### **1. Target Selection**
 
 Targets are selected via compiler flag:
+
 ```bash
 blend65 --target=MACHINE source.blend
 ```
 
 **Supported targets:**
-- `c64` - Commodore 64
-- `x16` - Commander X16
-- `vic20` - VIC-20
-- `atari2600` - Atari 2600
-- `plus4` - Commodore Plus/4
+
+-   `c64` - Commodore 64
+-   `x16` - Commander X16
+-   `vic20` - VIC-20
+-   `atari2600` - Atari 2600
+-   `plus4` - Commodore Plus/4
 
 ### **2. Target Resolution Process**
 
@@ -51,7 +53,8 @@ Native Binary Output
 ### **3. Import Resolution**
 
 **Generic imports** resolve to target-specific implementations:
-```blend
+
+```
 // Source code (target-agnostic):
 import setSpritePosition from target:sprites
 import readJoystick from target:input
@@ -66,7 +69,8 @@ import readJoystick from x16:input
 ```
 
 **Direct imports** work only on specified targets:
-```blend
+
+```
 // This only works when compiling with --target=c64
 import setSpritePosition from c64:sprites
 ```
@@ -78,6 +82,7 @@ import setSpritePosition from c64:sprites
 ### **File Organization**
 
 Each target provides a complete definition:
+
 ```
 targets/MACHINE/
 ├── target.toml          # Target metadata and capabilities
@@ -179,7 +184,8 @@ always_inline = [
 Hardware modules are written in a Blend65 subset optimized for inlining:
 
 **Example: c64/modules/sprites.blend65**
-```blend
+
+```
 // C64 Sprite Hardware API
 // Compiles to inline assembly sequences
 
@@ -220,7 +226,8 @@ end function
 ```
 
 **Example: x16/modules/vera.blend65**
-```blend
+
+```
 // Commander X16 VERA Hardware API
 
 const VERA_DC_VIDEO: word = $9F29
@@ -243,7 +250,8 @@ end function
 ### **Function Signature Consistency**
 
 Common functions have consistent signatures across targets:
-```blend
+
+```
 // These signatures work on ALL targets that support sprites
 function setSpritePosition(sprite: byte, x: word, y: byte): void
 function setSpriteColor(sprite: byte, color: byte): void
@@ -257,7 +265,8 @@ function joystickRight(port: byte): boolean
 ```
 
 **Target-specific extensions:**
-```blend
+
+```
 // C64-specific (SID chip)
 function setSIDFrequency(channel: byte, frequency: word): void
 
@@ -273,23 +282,27 @@ function setPlayfieldByte(index: byte, pattern: byte): void
 ## Compilation Process
 
 ### **Phase 1: Universal Parsing**
+
 1. Parse source code into universal AST
 2. Validate universal language constructs
 3. Identify import statements
 
 ### **Phase 2: Target Resolution**
+
 1. Load target definition from `targets/MACHINE/`
 2. Resolve `target:*` imports to `MACHINE:*` equivalents
 3. Validate that all imported functions exist on target
 4. Apply target-specific memory layout
 
 ### **Phase 3: Hardware API Integration**
+
 1. Load hardware module implementations
 2. Inline hardware function calls where beneficial
 3. Generate target-specific assembly sequences
 4. Apply target-specific optimizations
 
 ### **Phase 4: Code Generation**
+
 1. Apply target memory layout
 2. Generate 6502 assembly for target machine
 3. Create target-specific binary format
@@ -301,25 +314,25 @@ function setPlayfieldByte(index: byte, pattern: byte): void
 
 ### **Memory Constraints**
 
-| Target    | Zero Page | Program Area | Screen RAM | Special Notes |
-|-----------|-----------|--------------|------------|---------------|
-| C64       | $02-$FF   | $0801-$9FFF  | $0400-$07FF| VIC-II, SID |
-| X16       | $00-$FF   | $0800-$9EFF  | VRAM       | VERA, 2MB RAM |
-| VIC-20    | $02-$FF   | $1001-$1DFF  | $1E00-$1FFF| Limited RAM |
-| Atari 2600| $80-$FF   | $F000-$FFFF  | None       | 128 bytes RAM |
+| Target     | Zero Page | Program Area | Screen RAM  | Special Notes |
+| ---------- | --------- | ------------ | ----------- | ------------- |
+| C64        | $02-$FF   | $0801-$9FFF  | $0400-$07FF | VIC-II, SID   |
+| X16        | $00-$FF   | $0800-$9EFF  | VRAM        | VERA, 2MB RAM |
+| VIC-20     | $02-$FF   | $1001-$1DFF  | $1E00-$1FFF | Limited RAM   |
+| Atari 2600 | $80-$FF   | $F000-$FFFF  | None        | 128 bytes RAM |
 
 ### **Hardware Capabilities**
 
-| Feature     | C64 | X16 | VIC-20 | Atari 2600 |
-|-------------|-----|-----|--------|------------|
-| Sprites     | 8   | 128 | 0      | 2          |
-| Colors      | 16  | 256 | 8      | 128        |
-| Sound       | SID | YM  | Beep   | TIA        |
-| Resolution  | 320x200 | 640x480 | 176x184 | 160x192 |
+| Feature    | C64     | X16     | VIC-20  | Atari 2600 |
+| ---------- | ------- | ------- | ------- | ---------- |
+| Sprites    | 8       | 128     | 0       | 2          |
+| Colors     | 16      | 256     | 8       | 128        |
+| Sound      | SID     | YM      | Beep    | TIA        |
+| Resolution | 320x200 | 640x480 | 176x184 | 160x192    |
 
 ### **API Availability**
 
-```blend
+```
 // Available on C64, X16
 import setSpritePosition from target:sprites  ✓ ✓ ✗ ✗
 
@@ -335,23 +348,29 @@ import playNote from target:sound            ✓ ✓ ✗ ✗
 ## Adding New Targets
 
 ### **Step 1: Create Target Directory**
+
 ```bash
 mkdir targets/my_machine
 ```
 
 ### **Step 2: Define Target Capabilities**
+
 Create `targets/my_machine/target.toml` with machine specifications.
 
 ### **Step 3: Define Memory Layout**
+
 Create `targets/my_machine/memory-layout.toml` with memory map.
 
 ### **Step 4: Implement Hardware APIs**
+
 Create hardware modules in `targets/my_machine/modules/`.
 
 ### **Step 5: Test and Validate**
+
 Test compilation with sample programs to ensure correctness.
 
 ### **Step 6: Register Target**
+
 Add target to compiler's target registry.
 
 ---
@@ -359,27 +378,33 @@ Add target to compiler's target registry.
 ## Benefits
 
 ### **For Developers**
-- **Write once, compile anywhere** - same source works on multiple machines
-- **Hardware abstraction** - no need to learn register details
-- **Type safety** - function signatures prevent hardware misuse
-- **Performance** - zero-overhead inlined hardware access
+
+-   **Write once, compile anywhere** - same source works on multiple machines
+-   **Hardware abstraction** - no need to learn register details
+-   **Type safety** - function signatures prevent hardware misuse
+-   **Performance** - zero-overhead inlined hardware access
 
 ### **For Compiler**
-- **Modular architecture** - easy to add new targets
-- **Clear separation** - universal language vs hardware-specific
-- **Optimization opportunities** - target-specific code generation
-- **Maintainable** - hardware APIs isolated in modules
+
+-   **Modular architecture** - easy to add new targets
+-   **Clear separation** - universal language vs hardware-specific
+-   **Optimization opportunities** - target-specific code generation
+-   **Maintainable** - hardware APIs isolated in modules
 
 ### **For Ecosystem**
-- **Consistent APIs** - same patterns across all machines
-- **Community contributions** - easy to add new targets
-- **Documentation** - hardware APIs are self-documenting
-- **Future-proof** - new 6502 machines can be added easily
+
+-   **Consistent APIs** - same patterns across all machines
+-   **Community contributions** - easy to add new targets
+-   **Documentation** - hardware APIs are self-documenting
+-   **Future-proof** - new 6502 machines can be added easily
 
 ---
 
 ## Conclusion
 
-The Blend65 target system provides a clean, modular architecture for multi-target 6502 development. By separating universal language features from hardware-specific APIs, developers can write portable code while still achieving optimal performance on each target machine.
+The Blend65 target system provides a clean, modular architecture for multi-target 6502 development. By separating
+universal language features from hardware-specific APIs, developers can write portable code while still achieving
+optimal performance on each target machine.
 
-This design ensures Blend65 can grow to support the entire 6502 ecosystem while maintaining code quality and developer productivity.
+This design ensures Blend65 can grow to support the entire 6502 ecosystem while maintaining code quality and developer
+productivity.

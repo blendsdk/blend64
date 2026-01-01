@@ -1,26 +1,30 @@
 # Blend64 — Showcase (v0.1)
 
-This document is a **showcase** of what Blend64 *looks like* and the kind of workflows it enables for **Commodore 64 game development**.
+This document is a **showcase** of what Blend64 _looks like_ and the kind of workflows it enables for **Commodore 64
+game development**.
 
 Blend64 is **assembler-plus**:
-- ahead-of-time compiled to a C64 **PRG**
-- **no implicit runtime**
-- **reachability-based dead-code elimination**
-- **static memory only** (no heap, no dynamic containers)
-- designed for **maximum FPS** (cycle-efficient 6502/6510 output)
+
+-   ahead-of-time compiled to a C64 **PRG**
+-   **no implicit runtime**
+-   **reachability-based dead-code elimination**
+-   **static memory only** (no heap, no dynamic containers)
+-   designed for **maximum FPS** (cycle-efficient 6502/6510 output)
 
 > Notes:
-> - Code shown is **representative** of the spec and rules in this repo.
-> - Library modules like `c64:*` are **conventional** (toolchain-provided or developer-provided), and all imported code is tree-shaken.
+>
+> -   Code shown is **representative** of the spec and rules in this repo.
+> -   Library modules like `c64:*` are **conventional** (toolchain-provided or developer-provided), and all imported
+>     code is tree-shaken.
 
 ---
 
 ## 1) “Hello, HUD” — Fixed-capacity strings and screen output
 
-Blend64 strings are fixed-capacity buffers: `string(N)`.
-Template strings exist, but are **restricted** and lower to static copies + formatting helpers **only if used**.
+Blend64 strings are fixed-capacity buffers: `string(N)`. Template strings exist, but are **restricted** and lower to
+static copies + formatting helpers **only if used**.
 
-```Pascal
+```
 module Game.Hud
 
 import poke, memcpy from c64:mem
@@ -41,9 +45,10 @@ end function
 ```
 
 What this demonstrates:
-- `string(N)` is static storage, not heap-backed.
-- Formatting helpers (like `hex`) are emitted only if reachable.
-- The compiler can place hot HUD state in `zp` for speed.
+
+-   `string(N)` is static storage, not heap-backed.
+-   Formatting helpers (like `hex`) are emitted only if reachable.
+-   The compiler can place hot HUD state in `zp` for speed.
 
 ---
 
@@ -51,7 +56,7 @@ What this demonstrates:
 
 You can name hardware registers explicitly using `io` plus pinned placement.
 
-```Basic
+```
 module C64.Vic
 
 io var VIC_BORDER: byte @ $D020
@@ -64,18 +69,19 @@ end function
 ```
 
 What this demonstrates:
-- Explicit I/O mapping.
-- No “host objects” or runtime interop.
-- Writes compile to direct `STA $D020` etc.
+
+-   Explicit I/O mapping.
+-   No “host objects” or runtime interop.
+-   Writes compile to direct `STA $D020` etc.
 
 ---
 
 ## 3) Sprites — a typical game-facing API
 
-Toolchain or developer modules can wrap VIC-II sprite setup. The important part: **imports are explicit** and
-**unused code is not emitted**.
+Toolchain or developer modules can wrap VIC-II sprite setup. The important part: **imports are explicit** and **unused
+code is not emitted**.
 
-```Rust
+```
 module Game.Player
 
 import Sprites_Enable, Sprites_SetPos, Sprites_SetPtr from c64:sprites
@@ -104,8 +110,9 @@ end function
 ```
 
 What this demonstrates:
-- “Assembler-plus” ergonomics without hiding costs.
-- ZP placement aligns with the **maximum FPS** rules.
+
+-   “Assembler-plus” ergonomics without hiding costs.
+-   ZP placement aligns with the **maximum FPS** rules.
 
 ---
 
@@ -113,7 +120,7 @@ What this demonstrates:
 
 For performance builds, Blend64 favors a canonical hot path where the compiler can apply aggressive heuristics.
 
-```TypeScript
+```
 module Game.Main
 
 import Hud_Draw from game:hud
@@ -136,12 +143,13 @@ end function
 ```
 
 What this demonstrates:
-- `hotloop` is a clear marker for “this is the frame kernel”.
-- Everything called from `hotloop` is treated as **hot** by default.
-- In fast builds, the compiler biases:
-  - ZP promotion
-  - inlining
-  - branch lowering that reduces cycles
+
+-   `hotloop` is a clear marker for “this is the frame kernel”.
+-   Everything called from `hotloop` is treated as **hot** by default.
+-   In fast builds, the compiler biases:
+    -   ZP promotion
+    -   inlining
+    -   branch lowering that reduces cycles
 
 ---
 
@@ -172,9 +180,10 @@ end function
 ```
 
 What this demonstrates:
-- Developer-friendly control flow.
-- Predictable lowering choices (jump table when dense; compare chain when sparse).
-- Source order matters (developer can order likely cases first).
+
+-   Developer-friendly control flow.
+-   Predictable lowering choices (jump table when dense; compare chain when sparse).
+-   Source order matters (developer can order likely cases first).
 
 ---
 
@@ -182,7 +191,7 @@ What this demonstrates:
 
 Tables are foundational in 6502 code: sine tables, sprite X positions, tile maps, etc.
 
-```blend
+```
 module Game.Tables
 
 // 256-byte sine table
@@ -202,9 +211,10 @@ end function
 ```
 
 What this demonstrates:
-- Arrays are fixed-size and statically allocated.
-- No `.push`, `.pop`, or resizing.
-- Bounds checks are a **debug-only** option; performance builds forbid them.
+
+-   Arrays are fixed-size and statically allocated.
+-   No `.push`, `.pop`, or resizing.
+-   Bounds checks are a **debug-only** option; performance builds forbid them.
 
 ---
 
@@ -212,7 +222,7 @@ What this demonstrates:
 
 Records are flattened and laid out deterministically.
 
-```blend
+```
 module Game.Types
 
 type Player
@@ -233,8 +243,9 @@ end function
 ```
 
 What this demonstrates:
-- No classes, no methods, no dynamic dispatch.
-- Predictable memory layout that maps to contiguous bytes/words.
+
+-   No classes, no methods, no dynamic dispatch.
+-   Predictable memory layout that maps to contiguous bytes/words.
 
 ---
 
@@ -242,7 +253,7 @@ What this demonstrates:
 
 Blend64 has no locals; temps are static. For safety and speed, the compiler must prevent IRQ/mainline temp aliasing.
 
-```blend
+```
 module Game.Irq
 
 import Irq_InstallRaster, Irq_Enable from c64:irq
@@ -260,9 +271,10 @@ end function
 ```
 
 What this demonstrates:
-- `@irq` marks the function as IRQ context.
-- Compiler enforces temp partition rules at compile time.
-- Calling convention and register preservation can be optimized per IRQ model.
+
+-   `@irq` marks the function as IRQ context.
+-   Compiler enforces temp partition rules at compile time.
+-   Calling convention and register preservation can be optimized per IRQ model.
 
 ---
 
@@ -270,11 +282,11 @@ What this demonstrates:
 
 A conforming Blend64 toolchain emits artifacts that make performance and memory auditable:
 
-- `game.prg` — the binary
-- `game.map` — symbols, segments, ZP usage, addresses
-- `game.lst` — annotated listing (assembly + source mapping)
-- `game.perf.txt` — cycle estimates per hot path (fast profile)
-- `game.il.txt` — optional IL dump for inspection
+-   `game.prg` — the binary
+-   `game.map` — symbols, segments, ZP usage, addresses
+-   `game.lst` — annotated listing (assembly + source mapping)
+-   `game.perf.txt` — cycle estimates per hot path (fast profile)
+-   `game.il.txt` — optional IL dump for inspection
 
 This is central to Blend64’s philosophy:
 
@@ -286,7 +298,7 @@ This is central to Blend64’s philosophy:
 
 If you import a module but never call a function, it does not make it into the PRG.
 
-```blend
+```
 module Game.Main
 
 import Debug_Print from c64:debug  // imported but never called
@@ -299,8 +311,9 @@ end function
 ```
 
 In a conforming compiler:
-- `Debug_Print` (and any helpers it needs) is **not emitted**
-- no runtime or stdlib baggage is linked “just in case”
+
+-   `Debug_Print` (and any helpers it needs) is **not emitted**
+-   no runtime or stdlib baggage is linked “just in case”
 
 ---
 
@@ -325,9 +338,10 @@ c64/
 ```
 
 All `c64:*` modules are optional:
-- you can ship them with the toolchain
-- or implement your own
-- and only what is imported and reachable gets emitted
+
+-   you can ship them with the toolchain
+-   or implement your own
+-   and only what is imported and reachable gets emitted
 
 ---
 
@@ -335,16 +349,17 @@ All `c64:*` modules are optional:
 
 Blend64 is designed so that:
 
-- you write clear, data-oriented game logic
-- the compiler lowers it into a **single, explicit IL**
-- optimization decisions are made on that IL (not the AST)
-- codegen produces cycle-efficient 6502/6510 code
-- emitted reports make performance and memory visible
+-   you write clear, data-oriented game logic
+-   the compiler lowers it into a **single, explicit IL**
+-   optimization decisions are made on that IL (not the AST)
+-   codegen produces cycle-efficient 6502/6510 code
+-   emitted reports make performance and memory visible
 
 If a feature cannot be explained in terms of:
-- static memory
-- addressing modes
-- control flow
-- cycle cost
+
+-   static memory
+-   addressing modes
+-   control flow
+-   cycle cost
 
 …then it does not belong in Blend64 v0.1.

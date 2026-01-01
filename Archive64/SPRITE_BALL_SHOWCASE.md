@@ -6,20 +6,22 @@
 
 ## Overview
 
-This showcase presents a complete, working Blend64 program that demonstrates core language features through a practical C64 game example: a joystick-controlled sprite ball with smooth movement and color animation.
+This showcase presents a complete, working Blend64 program that demonstrates core language features through a practical
+C64 game example: a joystick-controlled sprite ball with smooth movement and color animation.
 
 **What this program does:**
-- Displays a 21×24 pixel ball sprite on screen
-- Responds to joystick movements in real-time
-- Animates sprite color over time
-- Runs at full 50Hz frame rate
-- Uses optimal C64 programming patterns
+
+-   Displays a 21×24 pixel ball sprite on screen
+-   Responds to joystick movements in real-time
+-   Animates sprite color over time
+-   Runs at full 50Hz frame rate
+-   Uses optimal C64 programming patterns
 
 ---
 
 ## Complete Program Code
 
-```blend64
+```
 module Game.SpriteBall
 
 // Import C64 hardware access modules (function-based API)
@@ -164,7 +166,8 @@ end function
 ## Feature Analysis
 
 ### 1. **Module System & Function-Based Hardware API**
-```blend64
+
+```
 module Game.SpriteBall
 import setSpritePosition, setSpriteColor, enableSprite from c64:sprites
 import setBackgroundColor, setBorderColor from c64:vic
@@ -173,19 +176,22 @@ import memset from c64:memory
 ```
 
 **What this demonstrates:**
-- Clean module organization with semantic function imports
-- Function-based hardware API instead of raw register access
-- Selective imports - only the functions you actually use
-- No monolithic standard library or complex abstractions
+
+-   Clean module organization with semantic function imports
+-   Function-based hardware API instead of raw register access
+-   Selective imports - only the functions you actually use
+-   No monolithic standard library or complex abstractions
 
 **Implementation benefits:**
-- Tree-shaking eliminates unused C64 functions automatically
-- Clear dependencies on specific hardware capabilities
-- Functions inline to optimal register sequences
-- Type-safe hardware access with readable names
+
+-   Tree-shaking eliminates unused C64 functions automatically
+-   Clear dependencies on specific hardware capabilities
+-   Functions inline to optimal register sequences
+-   Type-safe hardware access with readable names
 
 ### 2. **Storage Class System**
-```blend64
+
+```
 zp var spriteX: word        // Zero-page for speed
 ram var frameCount: byte    // Uninitialized RAM
 const var ballSprite: byte[64] = [...] // ROM data
@@ -193,18 +199,21 @@ io var VIC_SPRITE0_X: byte @ $D000     // Memory-mapped I/O
 ```
 
 **Memory layout strategy:**
-- **Hot variables** (`spriteX`, `spriteY`, `joyState`) in zero-page for 3-cycle access
-- **Cold variables** (`frameCount`, `oldJoyState`) in regular RAM
-- **Constant data** (`ballSprite`, game parameters) in ROM
-- **Hardware registers** mapped to exact addresses
+
+-   **Hot variables** (`spriteX`, `spriteY`, `joyState`) in zero-page for 3-cycle access
+-   **Cold variables** (`frameCount`, `oldJoyState`) in regular RAM
+-   **Constant data** (`ballSprite`, game parameters) in ROM
+-   **Hardware registers** mapped to exact addresses
 
 **Performance impact:**
-- Zero-page variables: **25% faster** than absolute addressing
-- Direct I/O mapping: **No function call overhead**
-- Static allocation: **100% predictable memory usage**
+
+-   Zero-page variables: **25% faster** than absolute addressing
+-   Direct I/O mapping: **No function call overhead**
+-   Static allocation: **100% predictable memory usage**
 
 ### 3. **Fixed-Size Arrays & Binary Literals**
-```blend64
+
+```
 const var ballSprite: byte[64] = [
   0b00000000, 0b01111100, 0b00000000,  // Visual sprite data
   0b00000001, 0b11111111, 0b10000000,  // with inline comments
@@ -213,12 +222,14 @@ const var ballSprite: byte[64] = [
 ```
 
 **What this enables:**
-- **Visual sprite editing** directly in source code
-- **Compile-time size checking** (exactly 64 bytes)
-- **Efficient memory layout** (no dynamic allocation)
+
+-   **Visual sprite editing** directly in source code
+-   **Compile-time size checking** (exactly 64 bytes)
+-   **Efficient memory layout** (no dynamic allocation)
 
 ### 4. **Function-Based Hardware Integration**
-```blend64
+
+```
 setSpritePosition(0, spriteX, spriteY)  // Clean, obvious intent
 setSpriteColor(0, WHITE)                // No magic numbers
 enableSprite(0)                         // Self-documenting
@@ -226,26 +237,30 @@ if joystickUp(1) then                   // Clear boolean logic
 ```
 
 **Hardware integration advantages:**
-- **Zero overhead** - functions inline to direct register access
-- **Type safety** - function signatures prevent invalid parameters
-- **Readable intent** - function names clearly express what happens
-- **Hidden complexity** - MSB handling, bit manipulation abstracted away
-- **Consistent interface** - all hardware follows same patterns
+
+-   **Zero overhead** - functions inline to direct register access
+-   **Type safety** - function signatures prevent invalid parameters
+-   **Readable intent** - function names clearly express what happens
+-   **Hidden complexity** - MSB handling, bit manipulation abstracted away
+-   **Consistent interface** - all hardware follows same patterns
 
 ### 5. **Bitwise Operations**
-```blend64
+
+```
 if joyState and $01 then        // Bit testing
 spriteX = spriteX and $FF       // Bit masking
 VIC_SPRITE_X_MSB or= $01        // Bit setting
 ```
 
 **6502-optimized operators:**
-- `and`, `or`, `not` map directly to 6502 instructions
-- Hex literals (`$01`, `$FF`) match assembly conventions
-- Efficient bit manipulation for hardware control
+
+-   `and`, `or`, `not` map directly to 6502 instructions
+-   Hex literals (`$01`, `$FF`) match assembly conventions
+-   Efficient bit manipulation for hardware control
 
 ### 6. **Performance-Oriented Control Flow**
-```blend64
+
+```
 match frameCount and $1F
   case 0:
     setSpriteColor(0, WHITE)
@@ -256,13 +271,15 @@ end match
 ```
 
 **Efficient lowering:**
-- **Dense cases** → jump table (2-3 cycles)
-- **Sparse cases** → compare chain (predictable timing)
-- **Function inlining** - setSpriteColor() becomes direct register store
-- **Constant propagation** - sprite number and colors compile-time resolved
+
+-   **Dense cases** → jump table (2-3 cycles)
+-   **Sparse cases** → compare chain (predictable timing)
+-   **Function inlining** - setSpriteColor() becomes direct register store
+-   **Constant propagation** - sprite number and colors compile-time resolved
 
 ### 7. **Hotloop Construct**
-```blend64
+
+```
 hotloop
   updateSpritePosition()
   animate()
@@ -270,16 +287,18 @@ end hotloop
 ```
 
 **Optimization implications:**
-- **No exit condition checking** - infinite loop
-- **Function inlining** encouraged for called functions
-- **Zero-page promotion** for variables used in loop
-- **Cycle counting** for 50Hz timing analysis
+
+-   **No exit condition checking** - infinite loop
+-   **Function inlining** encouraged for called functions
+-   **Zero-page promotion** for variables used in loop
+-   **Cycle counting** for 50Hz timing analysis
 
 ---
 
 ## Compilation Analysis
 
 ### **Memory Map (Estimated)**
+
 ```
 Zero-Page Usage:
 $02-$03   spriteX: word     (hotloop variable)
@@ -307,6 +326,7 @@ $07F8     SPRITE_POINTER_0
 ### **Performance Characteristics**
 
 **Main loop cycle count (per frame):**
+
 ```asm
 ; updateSpritePosition() - ~45-60 cycles
 LDA $DC00          ; 4 cycles - read joystick
@@ -330,6 +350,7 @@ Efficiency: 99.6% cycles available for other game logic
 ```
 
 ### **Equivalent Assembly Code**
+
 For comparison, here's how the main loop would look in hand-written 6502 assembly:
 
 ```asm
@@ -370,9 +391,10 @@ CheckDown:
 ```
 
 **Key differences:**
-- Blend64 version is **more readable** and **maintainable**
-- Assembly version is **slightly more compact** (no function call overhead)
-- **Performance is nearly identical** after Blend64 optimization
+
+-   Blend64 version is **more readable** and **maintainable**
+-   Assembly version is **slightly more compact** (no function call overhead)
+-   **Performance is nearly identical** after Blend64 optimization
 
 ---
 
@@ -381,64 +403,75 @@ CheckDown:
 ### **How This Would Compile:**
 
 1. **Module Resolution:**
-   - Import statements resolved to C64 hardware modules
-   - Function signatures verified against module APIs
+
+    - Import statements resolved to C64 hardware modules
+    - Function signatures verified against module APIs
 
 2. **Storage Class Processing:**
-   - `zp` variables allocated to $02-$05 (compiler managed)
-   - `const` data placed in ROM area ($8000+)
-   - `io` variables become direct memory references
+
+    - `zp` variables allocated to $02-$05 (compiler managed)
+    - `const` data placed in ROM area ($8000+)
+    - `io` variables become direct memory references
 
 3. **Function Compilation:**
-   - `hotloop` becomes infinite assembly loop
-   - Function calls inlined if small and hot
-   - Register allocation optimized for 6502
+
+    - `hotloop` becomes infinite assembly loop
+    - Function calls inlined if small and hot
+    - Register allocation optimized for 6502
 
 4. **Optimization Passes:**
-   - Zero-page promotion for loop variables
-   - Constant folding for sprite calculations
-   - Dead code elimination for unused colors
+
+    - Zero-page promotion for loop variables
+    - Constant folding for sprite calculations
+    - Dead code elimination for unused colors
 
 5. **Code Generation:**
-   - Direct 6502 instruction emission
-   - No runtime library linking
-   - Memory map generation for debugging
+    - Direct 6502 instruction emission
+    - No runtime library linking
+    - Memory map generation for debugging
 
 ### **Expected Performance:**
-- **Frame rate:** Full 50Hz (PAL) / 60Hz (NTSC)
-- **Input latency:** 1 frame (20ms)
-- **Memory usage:** ~128 bytes RAM, 64 bytes ROM
-- **Code size:** ~200 bytes optimized 6502 code
+
+-   **Frame rate:** Full 50Hz (PAL) / 60Hz (NTSC)
+-   **Input latency:** 1 frame (20ms)
+-   **Memory usage:** ~128 bytes RAM, 64 bytes ROM
+-   **Code size:** ~200 bytes optimized 6502 code
 
 ---
 
 ## Educational Value
 
-This example demonstrates how Blend64 bridges the gap between **high-level programming** and **optimal C64 performance**:
+This example demonstrates how Blend64 bridges the gap between **high-level programming** and **optimal C64
+performance**:
 
 ### **High-Level Features:**
-- Type safety and bounds checking (compile-time)
-- Module system and clean imports
-- Readable control flow and logic
-- Self-documenting storage allocation
+
+-   Type safety and bounds checking (compile-time)
+-   Module system and clean imports
+-   Readable control flow and logic
+-   Self-documenting storage allocation
 
 ### **Low-Level Efficiency:**
-- Direct hardware register access
-- Zero-page optimization for hot variables
-- Efficient bitwise operations
-- Predictable memory layout
-- Optimal 6502 instruction generation
+
+-   Direct hardware register access
+-   Zero-page optimization for hot variables
+-   Efficient bitwise operations
+-   Predictable memory layout
+-   Optimal 6502 instruction generation
 
 ### **Game Development Benefits:**
-- **Rapid prototyping** with readable syntax
-- **Performance guarantee** through static analysis
-- **Hardware integration** without abstraction overhead
-- **Debugging support** through symbol maps and memory layout
+
+-   **Rapid prototyping** with readable syntax
+-   **Performance guarantee** through static analysis
+-   **Hardware integration** without abstraction overhead
+-   **Debugging support** through symbol maps and memory layout
 
 ---
 
 ## Conclusion
 
-This sprite ball example showcases Blend64's core philosophy: **"Assembler-Plus"** programming that provides modern language features while maintaining the performance characteristics of hand-optimized assembly code.
+This sprite ball example showcases Blend64's core philosophy: **"Assembler-Plus"** programming that provides modern
+language features while maintaining the performance characteristics of hand-optimized assembly code.
 
-The result is C64 game code that is both **readable and maintainable** for developers, yet **executes at optimal speed** on the target hardware - bridging the 40-year gap between modern programming practices and classic computer constraints.
+The result is C64 game code that is both **readable and maintainable** for developers, yet **executes at optimal speed**
+on the target hardware - bridging the 40-year gap between modern programming practices and classic computer constraints.
