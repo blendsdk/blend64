@@ -1,0 +1,63 @@
+{
+  "name": "@blend65/monorepo",
+  "version": "0.0.1",
+  "description": "Blend65 - A multi-target, ahead-of-time compiled language for high-performance 6502 family game development",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0",
+    "yarn": ">=1.22.0 <2.0.0"
+  },
+  "packageManager": "yarn@1.22.22",
+  "workspaces": [
+    "packages/*",
+    "packages/*/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "test": "turbo run test",
+    "test:watch": "turbo run test:watch",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "type-check": "turbo run type-check",
+    "clean": "yarn self:clean && turbo run clean",
+    "self:clean": "rm -rf .turbo",
+    "docs": "turbo run docs",
+    "docs:dev": "turbo run docs:dev",
+    "lockstep": "tsx scripts/lockstep.ts",
+    "lockstep:version:auto": "tsx scripts/lockstep.ts version --type auto --ci",
+    "lockstep:version:patch": "tsx scripts/lockstep.ts version --type patch --ci",
+    "lockstep:version:minor": "tsx scripts/lockstep.ts version --type minor --ci",
+    "lockstep:version:major": "tsx scripts/lockstep.ts version --type major --ci",
+    "lockstep:publish:latest": "tsx scripts/lockstep.ts publish --tag latest --git-push",
+    "lockstep:publish:next": "tsx scripts/lockstep.ts publish --tag next --git-push",
+    "lockstep:publish:v5": "tsx scripts/lockstep.ts publish --tag next --git-push",
+    "ncu": "ncu -u -x \"@blend65*\" && yarn workspaces run ncu && rm -fR node_modules yarn.lock && yarn install && yarn build && yarn test"
+  },
+  "devDependencies": {
+    "@manypkg/get-packages": "^3.1.0",
+    "@typescript-eslint/eslint-plugin": "^8.49.0",
+    "@typescript-eslint/parser": "^8.49.0",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "npm-check-updates": "^19.2.0",
+    "prettier": "^3.7.4",
+    "tsx": "^4.21.0",
+    "turbo": "^2.6.3",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.15"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/blendsdk/blend65.git"
+  },
+  "author": "TrueSoftware B.V. <info@truesoftware.nl>",
+  "license": "MIT",
+  "keywords": [
+    "programming-language",
+    "sdk",
+    "monorepo"
+  ]
+}
