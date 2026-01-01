@@ -51,7 +51,7 @@ What this demonstrates:
 
 You can name hardware registers explicitly using `io` plus pinned placement.
 
-```blend
+```Basic
 module C64.Vic
 
 io var VIC_BORDER: byte @ $D020
@@ -75,7 +75,7 @@ What this demonstrates:
 Toolchain or developer modules can wrap VIC-II sprite setup. The important part: **imports are explicit** and
 **unused code is not emitted**.
 
-```blend
+```Rust
 module Game.Player
 
 import Sprites_Enable, Sprites_SetPos, Sprites_SetPtr from c64:sprites
