@@ -2,7 +2,7 @@
 *.blend linguist-language=VBA linguist-detectable=true
 
 # Documentation
-*.md linguist-documentation=true
+*.md linguist-documentation=true linguist-detectable=true
 
 # Configuration Files
 *.toml linguist-language=TOML
