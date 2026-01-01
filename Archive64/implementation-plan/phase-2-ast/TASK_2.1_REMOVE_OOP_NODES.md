@@ -57,7 +57,7 @@ mkdir -p packages/ast/src/ast-types
 cp /Users/gevik/workdir/blend-lang/packages/ast/src/ast-types/core.ts packages/ast/src/ast-types/
 cp /Users/gevik/workdir/blend-lang/packages/ast/src/ast-types/index.ts packages/ast/src/ast-types/
 # Note: Don't copy oop.ts - we're removing it
-```js
+```
 
 ### Step 2: Remove OOP expressions from core.ts
 In `packages/ast/src/ast-types/core.ts`, find the Expression union type and remove these types:
@@ -66,7 +66,7 @@ In `packages/ast/src/ast-types/core.ts`, find the Expression union type and remo
 // REMOVE these from the Expression union:
 | NewExpr
 | ThisExpr
-```js
+```
 
 ### Step 3: Remove OOP expression interfaces
 In the same file, remove these interface definitions completely:
@@ -82,7 +82,7 @@ export interface NewExpr extends BlendASTNode {
 export interface ThisExpr extends BlendASTNode {
   type: 'ThisExpr';
 }
-```js
+```
 
 ### Step 4: Update index.ts exports
 Modify `packages/ast/src/ast-types/index.ts` to remove OOP exports:
@@ -95,7 +95,7 @@ Modify `packages/ast/src/ast-types/index.ts` to remove OOP exports:
 export * from './core.js';
 export * from './modules.js';
 export * from './types.js';
-```js
+```
 
 ### Step 5: Update core.ts comments
 Add a comment explaining Blend64 differences:
@@ -112,7 +112,7 @@ Add a comment explaining Blend64 differences:
  * - Classes, methods, inheritance not supported
  * - Focus on procedural programming with records
  */
-```js
+```
 
 ---
 
@@ -157,7 +157,7 @@ export interface NewExpr extends BlendASTNode {
 export interface ThisExpr extends BlendASTNode {
   type: 'ThisExpr';
 }
-```js
+```
 
 ### After (core.ts):
 ```typescript
@@ -170,7 +170,7 @@ export type Expression =
   | Literal;
 
 // NewExpr and ThisExpr interfaces completely removed
-```js
+```
 
 ---
 
@@ -200,7 +200,7 @@ if (ast.NewExpr || ast.ThisExpr) {
   console.log('✓ OOP types successfully removed from exports');
 }
 "
-```js
+```
 
 **Expected results:**
 - TypeScript compiles without errors

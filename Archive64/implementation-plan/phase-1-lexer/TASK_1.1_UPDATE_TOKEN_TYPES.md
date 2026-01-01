@@ -51,7 +51,7 @@ Modify the TokenType enum in the Blend lexer to support Blend64 syntax requireme
 
 ````bash
 cp /Users/gevik/workdir/blend-lang/packages/lexer/src/types.ts packages/lexer/src/types.ts
-```js
+```
 
 ### Step 2: Add new TokenType enum values
 Add these new tokens to the TokenType enum (in alphabetical order within logical groups):
@@ -67,7 +67,7 @@ HOTLOOP = 'HOTLOOP',          // control construct
 // Add after DOT in punctuation section:
 AT = 'AT',                    // @ for placement
 DOLLAR = 'DOLLAR',            // $ for hex addresses
-```js
+```
 
 ### Step 3: Remove unused tokens
 Remove these TokenType enum values (Blend64 doesn't use them):
@@ -77,7 +77,7 @@ Remove these TokenType enum values (Blend64 doesn't use them):
 QMARKQMARK = 'QMARKQMARK', // ?? (null coalescing)
 DOTDOTDOT = 'DOTDOTDOT',   // ... (spread/rest)
 NULL = 'NULL',             // null literal
-```js
+```
 
 ### Step 4: Update comments
 Update the file header comment to reflect Blend64:
@@ -93,7 +93,7 @@ Update the file header comment to reflect Blend64:
  * - Added HOTLOOP control construct
  * - Removed null coalescing and spread operators
  */
-```js
+```
 
 ---
 
@@ -132,7 +132,7 @@ export enum TokenType {
   BOOLEAN = 'BOOLEAN', // true/false
   NULL = 'NULL', // null
 }
-```js
+```
 
 ### After:
 ```typescript
@@ -165,7 +165,7 @@ export enum TokenType {
   BOOLEAN = 'BOOLEAN', // true/false
   // REMOVED: NULL
 }
-```js
+```
 
 ---
 
@@ -189,7 +189,7 @@ console.log('AT exists:', !!TokenType.AT);
 console.log('DOLLAR exists:', !!TokenType.DOLLAR);
 console.log('QMARKQMARK removed:', !TokenType.QMARKQMARK);
 "
-```js
+```
 
 **Expected results:**
 - TypeScript compiles without errors

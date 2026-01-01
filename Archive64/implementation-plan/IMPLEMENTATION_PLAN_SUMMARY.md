@@ -11,7 +11,7 @@ language. The plan consists of **small, self-contained tasks** designed for AI a
 
 ### **Plan Structure:**
 
-````js
+````
 implementation-plan/
 ├── MASTER_PLAN.md                    # Overview and dependencies
 ├── TASK_TEMPLATE.md                  # Template for all tasks
@@ -30,7 +30,7 @@ implementation-plan/
 ├── phase-4-types/                   # Type system (PLANNED)
 ├── phase-5-magic/                   # AST transformation (PLANNED)
 └── phase-6-codegen/                 # 6502 code generation (PLANNED)
-```js
+```
 
 ---
 

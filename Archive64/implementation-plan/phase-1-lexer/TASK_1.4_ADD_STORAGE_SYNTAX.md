@@ -57,7 +57,7 @@ data var palette: byte[4] = [0x00, 0x06, 0x0E, 0x0B]
 const var message: string(16) = "HELLO"
 io var VIC_BORDER: byte @ $D020
 EOF
-```js
+```
 
 ### Step 2: Test placement syntax
 
@@ -70,7 +70,7 @@ cat > test-placement.blend64 << 'EOF'
 @ $D021
 @ 53280
 EOF
-```js
+```
 
 ### Step 3: Run comprehensive tokenization test
 
@@ -102,7 +102,7 @@ hexTokens.forEach(token => {
   }
 });
 "
-```js
+```
 
 ### Step 4: Verify error handling
 
@@ -121,7 +121,7 @@ try {
   console.log('✓ Invalid syntax correctly rejected');
 }
 "
-```js
+```
 
 ---
 
@@ -144,14 +144,14 @@ try {
 
 ### Test Input:
 
-```js
+```
 zp var x: byte @ $02
 data var msg: string(8) = "HELLO"
-```js
+```
 
 ### Expected Tokens:
 
-```js
+```
 ZP → KEYWORD
 var → KEYWORD
 x → IDENTIFIER
@@ -163,7 +163,7 @@ data → KEYWORD
 var → KEYWORD
 msg → IDENTIFIER
 ...
-```js
+```
 
 ---
 
@@ -178,7 +178,7 @@ cd packages/lexer
 # Run the comprehensive test from Step 3
 # Verify all expected tokens appear
 # Check hex literal values are correct
-```js
+```
 
 **Expected results:**
 

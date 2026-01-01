@@ -20,7 +20,7 @@ Targets are selected via compiler flag:
 
 ````bash
 blend65 --target=MACHINE source.blend
-```js
+```
 
 **Supported targets:**
 
@@ -32,7 +32,7 @@ blend65 --target=MACHINE source.blend
 
 ### **2. Target Resolution Process**
 
-```js
+```
 Source Code
     ↓
 Parse Universal AST
@@ -48,13 +48,13 @@ Target-Specific Memory Layout
 Target-Specific Code Generation
     ↓
 Native Binary Output
-```js
+```
 
 ### **3. Import Resolution**
 
 **Generic imports** resolve to target-specific implementations:
 
-```js
+```
 // Source code (target-agnostic):
 import setSpritePosition from target:sprites
 import readJoystick from target:input
@@ -66,14 +66,14 @@ import readJoystick from c64:input
 // Commander X16 compilation resolves to:
 import setSpritePosition from x16:vera
 import readJoystick from x16:input
-```js
+```
 
 **Direct imports** work only on specified targets:
 
-```js
+```
 // This only works when compiling with --target=c64
 import setSpritePosition from c64:sprites
-```js
+```
 
 ---
 
@@ -83,7 +83,7 @@ import setSpritePosition from c64:sprites
 
 Each target provides a complete definition:
 
-```js
+```
 targets/MACHINE/
 ├── target.toml          # Target metadata and capabilities
 ├── memory-layout.toml   # Memory map and constraints
@@ -95,7 +95,7 @@ targets/MACHINE/
 │   ├── video.blend65    # Display functions
 │   └── memory.blend65   # Memory operations
 └── README.md           # Target documentation
-```js
+```
 
 ### **Target Metadata (target.toml)**
 
@@ -124,7 +124,7 @@ memory = "c64:memory"
 format = "prg"
 extension = ".prg"
 load_address = 0x0801
-```js
+```
 
 ### **Memory Layout (memory-layout.toml)**
 
@@ -149,7 +149,7 @@ size = 0x0040
 [io]
 start = 0xD000
 end = 0xDFFF
-```js
+```
 
 ### **Code Generation Rules (codegen-rules.toml)**
 
@@ -173,7 +173,7 @@ always_inline = [
     "readJoystick",
     "setBackgroundColor"
 ]
-```js
+```
 
 ---
 
@@ -185,7 +185,7 @@ Hardware modules are written in a Blend65 subset optimized for inlining:
 
 **Example: c64/modules/sprites.blend65**
 
-```js
+```
 // C64 Sprite Hardware API
 // Compiles to inline assembly sequences
 
@@ -223,11 +223,11 @@ export function enableSprite(sprite: byte): void
         STA VIC_SPRITE_ENABLE
     }
 end function
-```js
+```
 
 **Example: x16/modules/vera.blend65**
 
-```js
+```
 // Commander X16 VERA Hardware API
 
 const VERA_DC_VIDEO: word = $9F29
@@ -245,13 +245,13 @@ export function setSpritePosition(sprite: byte, x: word, y: byte): void
         STA VERA_SPRITE_CTRL + 2
     }
 end function
-```js
+```
 
 ### **Function Signature Consistency**
 
 Common functions have consistent signatures across targets:
 
-```js
+```
 // These signatures work on ALL targets that support sprites
 function setSpritePosition(sprite: byte, x: word, y: byte): void
 function setSpriteColor(sprite: byte, color: byte): void
@@ -262,11 +262,11 @@ function joystickUp(port: byte): boolean
 function joystickDown(port: byte): boolean
 function joystickLeft(port: byte): boolean
 function joystickRight(port: byte): boolean
-```js
+```
 
 **Target-specific extensions:**
 
-```js
+```
 // C64-specific (SID chip)
 function setSIDFrequency(channel: byte, frequency: word): void
 
@@ -275,7 +275,7 @@ function setVeraPalette(index: byte, color: word): void
 
 // Atari 2600-specific (extreme constraints)
 function setPlayfieldByte(index: byte, pattern: byte): void
-```js
+```
 
 ---
 
@@ -332,7 +332,7 @@ function setPlayfieldByte(index: byte, pattern: byte): void
 
 ### **API Availability**
 
-```js
+```
 // Available on C64, X16
 import setSpritePosition from target:sprites  ✓ ✓ ✗ ✗
 
@@ -341,7 +341,7 @@ import readJoystick from target:input         ✓ ✓ ✓ ✓
 
 // Limited by hardware
 import playNote from target:sound            ✓ ✓ ✗ ✗
-```js
+```
 
 ---
 
@@ -351,7 +351,7 @@ import playNote from target:sound            ✓ ✓ ✗ ✗
 
 ```bash
 mkdir targets/my_machine
-```js
+```
 
 ### **Step 2: Define Target Capabilities**
 

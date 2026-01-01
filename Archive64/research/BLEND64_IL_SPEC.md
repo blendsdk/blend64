@@ -95,7 +95,7 @@ interface ILMeta {
   absWrites: number
   clobbers: ("A" | "X" | "Y" | "P")[]
 }
-```js
+```
 
 ---
 

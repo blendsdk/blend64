@@ -70,12 +70,12 @@ tasks] **Context Requirement:** [Token count estimate]
 
 ````typescript
 // Original Blend code
-```js
+```
 
 ### After:
 ```typescript
 // Expected Blend64 code
-```js
+```
 
 ---
 
@@ -84,7 +84,7 @@ tasks] **Context Requirement:** [Token count estimate]
 **Test cases to run:**
 ```bash
 # Commands to validate
-```js
+```
 
 **Expected results:**
 - [Specific output or behavior]

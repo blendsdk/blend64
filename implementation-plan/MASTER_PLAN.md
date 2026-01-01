@@ -14,7 +14,7 @@ This implementation plan creates Blend65, a multi-target compiler that compiles 
 
 ## Project Structure
 
-````js
+````
 blend65/
 ├── packages/
 │   ├── lexer/              # Universal token recognition
@@ -31,7 +31,7 @@ blend65/
 │   └── template/         # Template for new targets
 ├── research/             # Language specifications
 └── implementation-plan/  # This folder with task breakdown
-```js
+```
 
 ---
 
@@ -39,7 +39,7 @@ blend65/
 
 ### **Universal Compiler Core**
 
-```js
+```
 Source Code
     ↓
 Universal Lexer (6502 core language)
@@ -59,7 +59,7 @@ Magic Phase (AST transformation + validation)
 Target-Specific Code Generation
     ↓
 Native Binary (PRG/BIN/etc.)
-```js
+```
 
 ### **Multi-Target Support**
 
@@ -107,7 +107,7 @@ optimized intermediate representation **Tasks:** 6 tasks
 
 ## Task Dependencies
 
-```js
+```
 Phase 1: Universal Language Core
 ├── 1.1 Universal Lexer (tokens, keywords, operators)
 ├── 1.2 Universal AST Definitions (nodes for all language constructs)
@@ -156,7 +156,7 @@ Phase 6: Code Generation & Output
 ├── 6.6 Debug Information & Memory Maps
 ├── 6.7 Optimization Passes
 └── 6.8 Final Integration & Testing
-```js
+```
 
 ---
 
@@ -261,35 +261,35 @@ Phase 6: Code Generation & Output
 
 ### **1. Function-Based Hardware APIs**
 
-```js
+```
 // Instead of raw register access
 import setSpritePosition, enableSprite from target:sprites
 setSpritePosition(0, playerX, playerY)
 
 // Compiles to optimal register sequences per target
-```js
+```
 
 ### **2. Zero-Overhead Abstraction**
 
-```js
+```
 // Hardware function calls inline to direct register access
 // No runtime overhead for abstraction
-```js
+```
 
 ### **3. Target-Aware Type System**
 
-```js
+```
 // Memory constraints enforced per target
 zp var counter: byte  // Uses available zero page per machine
-```js
+```
 
 ### **4. Modular Architecture**
 
-```js
+```
 targets/c64/modules/sprites.blend65    // C64 VIC-II sprites
 targets/x16/modules/vera.blend65       // X16 VERA sprites
 targets/vic20/modules/screen.blend65   // VIC-20 character mode
-```js
+```
 
 ---
 

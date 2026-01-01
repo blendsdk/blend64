@@ -20,12 +20,12 @@ Blend65 is a **multi-target assembler-plus** language for serious 6502 family ga
 
 ### 0.2 Target architecture
 
-````js
+````
 blend65 --target=c64 game.blend     → game.prg (Commodore 64)
 blend65 --target=x16 game.blend     → game.prg (Commander X16)
 blend65 --target=vic20 game.blend   → game.prg (VIC-20)
 blend65 --target=atari2600 game.blend → game.bin (Atari 2600)
-```js
+```
 
 ### 0.3 Memory & storage model
 
@@ -79,7 +79,7 @@ blend65 --target=atari2600 game.blend → game.bin (Atari 2600)
 
 A program is a set of modules. Each file declares exactly one module.
 
-```js
+```
 module Game.Main
 
 import joystickLeft, joystickRight from target:input
@@ -89,20 +89,20 @@ import playNote from target:sound
 export function main(): void
     // Universal 6502 code with target-specific hardware
 end function
-```js
+```
 
 ### 2.1 Module declaration
 
 ```ebnf
 module         ::= "module" qualified_name newline
 qualified_name ::= ident { "." ident }*
-```js
+```
 
 ### 2.2 Target-aware imports
 
 Imports resolve based on the selected compilation target:
 
-```js
+```
 // These imports resolve differently per target:
 import setSpritePosition from target:sprites
 import setBackgroundColor from target:video
@@ -111,7 +111,7 @@ import readJoystick from target:input
 // Explicit target modules also supported:
 import setSpritePosition from c64:sprites
 import setSprite from x16:vera
-```js
+```
 
 ```ebnf
 import_decl ::= "import" import_list "from" module_path newline
@@ -121,7 +121,7 @@ module_path ::= target_module | explicit_module | string_literal
 target_module   ::= "target:" ident
 explicit_module ::= machine_id ":" ident
 machine_id      ::= "c64" | "x16" | "vic20" | "atari2600" | ...
-```js
+```
 
 **Resolution rules:**
 - `target:*` modules resolve to machine-specific implementations
@@ -132,12 +132,12 @@ machine_id      ::= "c64" | "x16" | "vic20" | "atari2600" | ...
 
 Only exported symbols may be imported by other modules.
 
-```js
+```
 export const SCREEN_W: byte = 40
 export function main(): void
     // ...
 end function
-```js
+```
 
 ---
 
@@ -162,11 +162,11 @@ Optional (target-dependent):
 
 Arrays are fixed-capacity, compile-time sized, contiguous memory.
 
-```js
+```
 var spriteX: byte[8]
 var screenLine: byte[40]
 var tiles: byte[256]
-```js
+```
 
 Size must be a compile-time constant. Target-specific memory constraints apply.
 
@@ -174,7 +174,7 @@ Size must be a compile-time constant. Target-specific memory constraints apply.
 
 Records compile to a **flat layout** in target memory.
 
-```js
+```
 type Player extends HasPos, HasVel
     hp: byte
     flags: byte
@@ -184,7 +184,7 @@ type HasPos
     x: word
     y: word
 end type
-```js
+```
 
 Layout is deterministic and target-defined.
 
@@ -196,24 +196,24 @@ Layout is deterministic and target-defined.
 
 ```bash
 blend65 --target=MACHINE source.blend
-```js
+```
 
 Valid targets depend on installed target definitions.
 
 ### 4.2 Target-specific imports
 
 **Universal pattern:**
-```js
+```
 import functionName from target:module
-```js
+```
 
 **Target-specific pattern:**
-```js
+```
 import functionName from machine:module
-```js
+```
 
 **Examples:**
-```js
+```
 // Works on targets that have sprites
 import setSpritePosition from target:sprites
 
@@ -222,7 +222,7 @@ import setSpritePosition from c64:sprites
 
 // Commander X16-specific
 import setSprite from x16:vera
-```js
+```
 
 ### 4.3 Target capabilities
 
@@ -256,7 +256,7 @@ Different targets provide different hardware modules:
 ### 5.1 Function-based hardware access
 
 Instead of raw register manipulation:
-```js
+```
 // OLD (not supported):
 io var VIC_SPRITE0_X: byte @ $D000
 VIC_SPRITE0_X = playerX
@@ -264,12 +264,12 @@ VIC_SPRITE0_X = playerX
 // NEW (function-based):
 import setSpritePosition from target:sprites
 setSpritePosition(0, playerX, playerY)
-```js
+```
 
 ### 5.2 Zero-overhead inlining
 
 Hardware functions compile to optimal register sequences:
-```js
+```
 // Source:
 setSpritePosition(0, 160, 100)
 
@@ -278,7 +278,7 @@ LDA #160       ; X coordinate
 STA $D000      ; VIC_SPRITE0_X
 LDA #100       ; Y coordinate
 STA $D001      ; VIC_SPRITE0_Y
-```js
+```
 
 ### 5.3 Target-specific optimizations
 
@@ -292,13 +292,13 @@ Every variable is static. Storage is expressed via **storage prefix** and option
 
 ### 6.1 Declarations
 
-```js
+```
 zp   var frame: byte
 ram  var bulletsX: byte[8]
 data var palette: byte[16] = [ 0x00, 0x06, 0x0E, 0x0B ]
 const var msg: string(16) = "SCORE:"
 io   var CUSTOM_REG: byte @ $D800  // Target-specific address
-```js
+```
 
 **Target-specific considerations:**
 - **Zero page size** varies by target (C64: ~$02-$FF, Atari 2600: $80-$FF)
@@ -330,7 +330,7 @@ Standard precedence hierarchy applies universally.
 Universal control flow constructs work on all 6502 targets.
 
 ### 8.1 If/While/For
-```js
+```
 if condition then
     // ...
 end if
@@ -342,10 +342,10 @@ end while
 for i = 0 to 255
     // ...
 next
-```js
+```
 
 ### 8.2 Match statement
-```js
+```
 match joystickState
     case 1:  // Up
         playerY = playerY - 1
@@ -354,7 +354,7 @@ match joystickState
     case _:
         // No movement
 end match
-```js
+```
 
 ---
 
@@ -362,11 +362,11 @@ end match
 
 ### 9.1 Declaration
 
-```js
+```
 function add(a: byte, b: byte): byte
     return a + b
 end function
-```js
+```
 
 Universal function model works across all targets.
 
@@ -404,7 +404,7 @@ When compiling with `--target=MACHINE`:
 
 Hardware functions have consistent signatures across targets when possible:
 
-```js
+```
 // Sprite functions (where supported):
 function setSpritePosition(sprite: byte, x: word, y: byte): void
 function setSpriteColor(sprite: byte, color: byte): void
@@ -414,7 +414,7 @@ function enableSprite(sprite: byte): void
 function joystickLeft(port: byte): boolean
 function joystickRight(port: byte): boolean
 function joystickFire(port: byte): boolean
-```js
+```
 
 ---
 
@@ -431,7 +431,7 @@ Each target provides:
 ### 11.2 Adding new targets
 
 New targets are added by creating target definition files:
-```js
+```
 targets/MACHINE/
 ├── memory-layout.toml
 ├── modules/
@@ -439,7 +439,7 @@ targets/MACHINE/
 │   ├── input.blend65
 │   └── sound.blend65
 └── codegen-rules.toml
-```js
+```
 
 ---
 
@@ -448,9 +448,9 @@ targets/MACHINE/
 ### 12.1 Entry point
 
 A program must export exactly one entry:
-```js
+```
 export function main(): void
-```js
+```
 
 ### 12.2 Target-specific output
 
@@ -464,7 +464,7 @@ The compiler outputs target-appropriate binaries:
 
 ## 13. Example: Multi-Target Program
 
-```js
+```
 module Game.Snake
 
 // Universal 6502 variables
@@ -510,7 +510,7 @@ function renderSnake(): void
         setPixel(snakeX[i], snakeY[i])
     next
 end function
-```js
+```
 
 **Compilation:**
 ```bash
@@ -525,7 +525,7 @@ blend65 --target=x16 snake.blend
 # VIC-20 version
 blend65 --target=vic20 snake.blend
 # → Resolves target:input to vic20:input, target:graphics to vic20:screen
-```js
+```
 
 ---
 

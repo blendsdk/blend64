@@ -97,12 +97,12 @@ Effects:
 
 A new statement form:
 
-````js
+````
 hotloop {
   tick()
   render()
 }
-```js
+```
 
 **Lowering (magic phase):**
 

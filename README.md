@@ -50,7 +50,7 @@ Blend65 exists for developers who want:
 
 ### **Universal Core Language**
 
-````js
+````
 // This code works on ANY 6502 target
 var lives: byte = 3
 var score: word = 0
@@ -62,10 +62,10 @@ end function
 while lives > 0
     // Game loop logic
 end while
-```js
+```
 
 ### **Target-Specific Hardware**
-```js
+```
 // Commodore 64
 import setSpritePosition, enableSprite from c64:sprites
 import setBackgroundColor from c64:vic
@@ -78,7 +78,7 @@ import playNote from x16:ym2151
 // VIC-20 (no sprites)
 import setBackgroundColor from vic20:vic
 import setCharacterAt from vic20:screen
-```js
+```
 
 ### **Compile for Any Target**
 ```bash
@@ -86,7 +86,7 @@ blend65 --target=c64 game.blend     # → game.prg (Commodore 64)
 blend65 --target=x16 game.blend     # → game.prg (Commander X16)
 blend65 --target=vic20 game.blend   # → game.prg (VIC-20)
 blend65 --target=atari2600 game.blend # → game.bin (Atari 2600)
-```js
+```
 
 ---
 
@@ -144,7 +144,7 @@ Source
 
 ## Example: Cross-Target Game
 
-```js
+```
 module Game.Main
 
 // Universal 6502 code
@@ -177,21 +177,21 @@ end function
 function render(): void
     setPlayerSprite(playerX, playerY)
 end function
-```js
+```
 
 **Compile for C64:**
 ```bash
 blend65 --target=c64 game.blend
 # Resolves: c64:input, c64:sprites, c64:sid
 # Output: game.prg for C64
-```js
+```
 
 **Compile for Commander X16:**
 ```bash
 blend65 --target=x16 game.blend
 # Resolves: x16:input, x16:vera, x16:ym2151
 # Output: game.prg for X16
-```js
+```
 
 ---
 

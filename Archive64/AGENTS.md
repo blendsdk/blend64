@@ -129,7 +129,7 @@ This project uses a **spec-first, task-driven approach** with:
 
 ### Compilation Pipeline
 
-````js
+````
 Source Code (.blend64)
     ↓
 Lexer (tokenization)
@@ -147,7 +147,7 @@ Optimization
 6502 Code Generation
     ↓
 PRG File (Commodore 64 executable)
-```js
+```
 
 ### Type System
 
@@ -185,7 +185,7 @@ PRG File (Commodore 64 executable)
 
 ### Project Structure
 
-```js
+```
 blend64/
 ├── packages/
 │   ├── lexer/           # Token recognition (Phase 1)
@@ -197,7 +197,7 @@ blend64/
 ├── research/           # Language specifications
 ├── implementation-plan/ # Task breakdown
 └── [root files]       # Documentation and examples
-```js
+```
 
 ### Source Codebase
 
@@ -335,7 +335,7 @@ npm run test
 
 # Run specific phase tests
 npm run test:phase1
-```js
+```
 
 ### Important Directories
 
@@ -344,7 +344,7 @@ npm run test:phase1
 ./research/                         # Blend64 specifications
 ./implementation-plan/              # Task breakdown
 ./packages/                         # Implementation work
-```js
+```
 
 ### Phase Start Points
 

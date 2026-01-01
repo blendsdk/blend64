@@ -81,7 +81,7 @@ function testMath(a: word, b: word): word
   return (a << 1) ^ (b | 0xFF)
 end function
 EOF
-```js
+```
 
 ### Step 2: Run complete tokenization test
 ```bash
@@ -114,7 +114,7 @@ console.log(\`\\nBlend64 tokens found: \${foundTokens.join(', ')}\`);
 
 console.log(\`\\nTotal tokens: \${tokens.length}\`);
 "
-```js
+```
 
 ### Step 3: Performance test
 ```bash
@@ -136,7 +136,7 @@ const time = Date.now() - start;
 console.log(\`Tokenized \${tokens.length} tokens in \${time}ms\`);
 console.log(\`Rate: \${Math.round(tokens.length/time*1000)} tokens/second\`);
 "
-```js
+```
 
 ### Step 4: Error handling validation
 ```bash
@@ -164,7 +164,7 @@ errorTests.forEach(test => {
   }
 });
 "
-```js
+```
 
 ### Step 5: Integration test with Node.js
 ```bash
@@ -186,7 +186,7 @@ try {
   process.exit(1);
 }
 "
-```js
+```
 
 ---
 

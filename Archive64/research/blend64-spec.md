@@ -67,7 +67,7 @@ Blend64 is an **assembler-plus** language for serious C64 game code.
 
 A program is a set of modules. Each file declares exactly one module.
 
-````js
+````
 module Game.Main
 
 import c64:vic
@@ -76,14 +76,14 @@ import game:player
 export function main(): void
     // ...
 end function
-```js
+```
 
 ### 2.1 Module declaration
 
 ```ebnf
 module         ::= "module" qualified_name newline
 qualified_name ::= ident { "." ident }*
-```js
+```
 
 Modules are **namespaces**. They do not create runtime init logic. Top-level initializers are compiled into static data
 or explicit init code only if referenced.
@@ -95,16 +95,16 @@ Imports are **compile-time only** and exist solely to:
 -   bring names into scope
 -   mark imported symbols as potential reachability roots when referenced
 
-```js
+```
 import irqInit, irqEnable from c64:irq
 import Player_Init, Player_Tick from game:player
-```js
+```
 
 ```ebnf
 import_decl ::= "import" import_list "from" module_path newline
 import_list ::= ident { "," ident }*
 module_path ::= qualified_name | string_literal
-```js
+```
 
 **Resolution is toolchain-defined** (project-local modules, or `c64:*` modules shipped with the toolchain). Imports are
 never dynamic.
@@ -113,12 +113,12 @@ never dynamic.
 
 Only exported symbols may be imported by other modules.
 
-```js
+```
 export const SCREEN_W: byte = 40
 export function main(): void
     // ...
 end function
-```js
+```
 
 ---
 
@@ -148,15 +148,15 @@ Arrays are fixed-capacity, compile-time sized, contiguous memory.
 
 Syntax (developer-friendly, C-like):
 
-```js
+```
 var spriteX: byte[8]
 var screenLine: byte[40]
 var tiles: byte[256]
-```js
+```
 
 ```ebnf
 array_type ::= prim_type "[" int_lit "]"
-```js
+```
 
 -   Size must be a compile-time constant integer literal.
 -   No `push`, `pop`, resizing, or heap backing.
@@ -168,7 +168,7 @@ array_type ::= prim_type "[" int_lit "]"
 
 Records compile to a **flat layout** in memory.
 
-```js
+```
 type Player extends HasPos, HasVel
     hp: byte
     flags: byte
@@ -183,7 +183,7 @@ type HasVel
     vx: sbyte
     vy: sbyte
 end type
-```js
+```
 
 Rules:
 
@@ -200,7 +200,7 @@ type_decl ::= "type" ident [ "extends" type_ref { "," type_ref }* ] newline
 
 field_decl ::= ident ":" type_expr newline
 type_expr  ::= prim_type | array_type | type_ref
-```js
+```
 
 ### 3.4 Pointers (v0.1)
 
@@ -221,19 +221,19 @@ Every variable is static. Storage is expressed via a **storage prefix** and opti
 
 ### 4.1 Declarations
 
-```js
+```
 zp   var frame: byte
 ram  var bulletsX: byte[8]
 data var palette: byte[16] = [ 0x00, 0x06, 0x0E, 0x0B, /* ... */ ]
 const var msg: string(16) = "SCORE:"
 io   var VIC_BORDER: byte @ $D020
-```js
+```
 
 ```ebnf
 storage    ::= "zp" | "ram" | "data" | "const" | "io"
 var_decl   ::= [storage] ("var" | "const") ident ":" type_expr [placement] [ "=" init ] newline
 placement  ::= "@" (hex_lit | int_lit)
-```js
+```
 
 Notes:
 
@@ -247,10 +247,10 @@ Notes:
 
 Strings are **fixed-capacity buffers**: `string(N)`.
 
-```js
+```
 ram  var hudLine: string(40)
 const var labelScore: string(8) = "SCORE:"
-```js
+```
 
 ### 5.1 String literal assignment
 
@@ -263,10 +263,10 @@ const var labelScore: string(8) = "SCORE:"
 
 Template strings are allowed **only** when assigning to a `string(N)` buffer, and only with predictable placeholders.
 
-```js
+```
 // allowed (examples)
 hudLine = `S:${hex(score)} L:${lives}`
-```js
+```
 
 Allowed placeholders (v0.1):
 
@@ -340,21 +340,21 @@ Notes:
 
 ### 7.1 If
 
-```js
+```
 if a == 0 then
     // ...
 else
     // ...
 end if
-```js
+```
 
 ### 7.2 While (infinite loops allowed)
 
-```js
+```
 while true
     // main game loop
 end while
-```js
+```
 
 No sandbox iteration limits exist.
 
@@ -364,19 +364,19 @@ Two forms are allowed:
 
 #### Range form
 
-```js
+```
 for i = 0 to 39
     // ...
 next
-```js
+```
 
 #### Range form with step
 
-```js
+```
 for i = 39 to 0 step -1
     // ...
 next
-```js
+```
 
 `i` is a **static loop variable** (see §8.3), not a local.
 
@@ -384,7 +384,7 @@ next
 
 Match is allowed as a statement or expression, but must lower predictably.
 
-```js
+```
 match state
     case 0:
         // ...
@@ -393,7 +393,7 @@ match state
     case _:
         // ...
 end match
-```js
+```
 
 Allowed patterns (v0.1):
 
@@ -419,11 +419,11 @@ Lowering strategies (compiler choice):
 
 ### 8.1 Declaration
 
-```js
+```
 function add(a: byte, b: byte): byte
     return a + b
 end function
-```js
+```
 
 ```ebnf
 fn_decl ::= ["export"] "function" ident "(" [params] ")" [ ":" ret_type ] newline
@@ -432,7 +432,7 @@ fn_decl ::= ["export"] "function" ident "(" [params] ")" [ ":" ret_type ] newlin
 params   ::= param { "," param }*
 param    ::= ident ":" type_expr
 ret_type ::= "byte" | "word" | "boolean" | "void"
-```js
+```
 
 ### 8.2 Restrictions
 
@@ -452,7 +452,7 @@ Blend64 v0.1 has **no local variables**. To write readable code, the language su
 
 Example pattern:
 
-```js
+```
 module Game.Math
 
 ram var tmp0: word
@@ -463,7 +463,7 @@ function mulAdd(a: word, b: word, c: word): word
     tmp1 = tmp0 + c
     return tmp1
 end function
-```js
+```
 
 The compiler may additionally provide an optional feature:
 
@@ -508,9 +508,9 @@ Intrinsics must not imply always-linked helpers.
 
 A program must export exactly one entry:
 
-```js
+```
 export function main(): void
-```js
+```
 
 This is a reachability root.
 
@@ -560,7 +560,7 @@ statement   ::= if_stmt | while_stmt | for_stmt | match_stmt
               | expr_stmt
 
 expr        ::= assignment
-```js
+```
 
 (Full grammar is toolchain-defined; v0.1 focuses on deterministic compilation rather than maximal surface area.)
 

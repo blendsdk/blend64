@@ -53,7 +53,7 @@ removing unsupported operators.
 
 ````bash
 cp /Users/gevik/workdir/blend-lang/packages/lexer/src/lexer.ts packages/lexer/src/lexer.ts
-```js
+```
 
 ### Step 2: Remove unsupported 3-char operators
 In the `lexSymbol()` method, remove these cases from the 3-char operators section:
@@ -65,7 +65,7 @@ case '...':
   this.advance();
   this.advance();
   return this.makeToken(TokenType.DOTDOTDOT, '...', start, this.pos());
-```js
+```
 
 ### Step 3: Remove unsupported 2-char operators
 In the `lexSymbol()` method, remove these cases from the 2-char operators section:
@@ -80,7 +80,7 @@ case '**':
   this.advance();
   this.advance();
   return this.makeToken(TokenType.STARSTAR, '**', start, this.pos());
-```js
+```
 
 ### Step 4: Add new single-char operators
 In the 1-char operators section, add support for `@` and `$`:
@@ -91,7 +91,7 @@ case '@':
   return this.makeToken(TokenType.AT, '@', start, this.pos());
 case '$':
   return this.makeToken(TokenType.DOLLAR, '$', start, this.pos());
-```js
+```
 
 ### Step 5: Update operator comments
 Update the comment for the `^` operator to reflect its new meaning:
@@ -106,7 +106,7 @@ case '^': // XOR in Blend64 (not exponentiation)
   return this.makeToken(TokenType.CARET, '^', start, this.pos());
 case '~':
   return this.makeToken(TokenType.TILDE, '~', start, this.pos());
-```js
+```
 
 ### Step 6: Update file header comment
 Add a comment explaining Blend64 operator changes:
@@ -121,7 +121,7 @@ Add a comment explaining Blend64 operator changes:
  * - Added @ and $ for placement syntax
  * - Word operators (and, or, not) handled as keywords
  */
-```js
+```
 
 ---
 
@@ -157,7 +157,7 @@ case '**':
 case '^':
   return this.makeToken(TokenType.CARET, '^', start, this.pos());
 // (no @ or $ handling)
-```js
+```
 
 ### After:
 ```typescript
@@ -174,7 +174,7 @@ case '@':
   return this.makeToken(TokenType.AT, '@', start, this.pos());
 case '$':
   return this.makeToken(TokenType.DOLLAR, '$', start, this.pos());
-```js
+```
 
 ---
 
@@ -214,7 +214,7 @@ try {
   console.log('✓ ?? correctly rejected');
 }
 "
-```js
+```
 
 **Expected results:**
 - `@` → AT token

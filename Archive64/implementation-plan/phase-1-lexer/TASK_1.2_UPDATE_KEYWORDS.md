@@ -51,7 +51,7 @@ Update the keyword set in blend-lexer.ts to recognize Blend64 keywords and remov
 
 ````bash
 cp /Users/gevik/workdir/blend-lang/packages/lexer/src/blend-lexer.ts packages/lexer/src/blend-lexer.ts
-```js
+```
 
 ### Step 2: Update the keyword set
 Find the keyword set definition and replace it with the Blend64 keyword set:
@@ -86,7 +86,7 @@ const BLEND64_KEYWORDS = new Set([
   // Literals
   'true', 'false', 'nothing'
 ]);
-```js
+```
 
 ### Step 3: Update the factory function
 Modify the `createBlendLexer` function to use the new keyword set:
@@ -102,7 +102,7 @@ export function createBlendLexer(options: LexerOptions = {}): Lexer {
     ...options,
   });
 }
-```js
+```
 
 ### Step 4: Update comments and exports
 Update the file header to reflect Blend64:
@@ -114,7 +114,7 @@ Update the file header to reflect Blend64:
  * This module provides a pre-configured lexer for the Blend64 language
  * with the correct keyword set and default options.
  */
-```js
+```
 
 ---
 
@@ -144,7 +144,7 @@ const BLEND_KEYWORDS = new Set([
   'let', 'null', 'undefined',
   // ...
 ]);
-```js
+```
 
 ### After:
 ```typescript
@@ -173,7 +173,7 @@ const BLEND64_KEYWORDS = new Set([
   // Literals
   'true', 'false', 'nothing'
 ]);
-```js
+```
 
 ---
 
@@ -204,7 +204,7 @@ tokens2.forEach(t => {
   if (t.type === 'IDENTIFIER') console.log('Identifier (not keyword):', t.lexeme);
 });
 "
-```js
+```
 
 **Expected results:**
 - `zp`, `hotloop`, `function`, `end` should be recognized as keywords

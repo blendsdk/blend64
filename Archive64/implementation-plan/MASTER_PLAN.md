@@ -15,7 +15,7 @@ limited context windows.
 
 ## Project Structure
 
-````js
+````
 blend64/
 ├── packages/
 │   ├── lexer/           # Token recognition and classification
@@ -26,7 +26,7 @@ blend64/
 │   └── codegen/        # 6502 code generation and IL
 ├── research/           # Language specifications (existing)
 └── implementation-plan/ # This folder with task breakdown
-```js
+```
 
 ---
 
@@ -72,7 +72,7 @@ blend64/
 
 ## Task Dependencies
 
-```js
+```
 Phase 1 (Lexer)
 ├── 1.1 Update Token Types
 ├── 1.2 Update Keywords
@@ -121,7 +121,7 @@ Phase 6 (Codegen)
 ├── 6.6 Performance Analysis
 ├── 6.7 Optimization Passes
 └── 6.8 Final Integration
-```js
+```
 
 ---
 

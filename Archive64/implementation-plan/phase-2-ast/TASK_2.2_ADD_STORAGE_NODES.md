@@ -78,7 +78,7 @@ export interface AttributeAnnotation extends BlendASTNode {
   name: 'hot' | 'inline' | 'noinline' | 'irq' | 'unroll';
   args?: Expression[]; // for @unroll(4) etc.
 }
-```js
+```
 
 ### Step 2: Update VariableDeclaration
 Replace the existing VariableDeclaration interface with this enhanced version:
@@ -100,7 +100,7 @@ export interface VariableDeclaration extends BlendASTNode {
   placement: PlacementAnnotation | null; // NEW: explicit placement
   initializer: Expression | null;
 }
-```js
+```
 
 ### Step 3: Add to union types
 Update the relevant union types to include the new nodes:
@@ -109,7 +109,7 @@ Update the relevant union types to include the new nodes:
 // Add to CoreNode export at the bottom
 export type CoreNode = Program | Expression | Statement | Declaration | Parameter
   | StorageClass | PlacementAnnotation | AttributeAnnotation; // NEW
-```js
+```
 
 ### Step 4: Update file documentation
 Update the header comment to reflect new capabilities:
@@ -128,7 +128,7 @@ Update the header comment to reflect new capabilities:
  * - Enhanced VariableDeclaration with storage and placement
  * - Focus on procedural programming with static memory
  */
-```js
+```
 
 ---
 
@@ -174,7 +174,7 @@ Update the header comment to reflect new capabilities:
   placement: null,
   initializer: null
 }
-```js
+```
 
 ---
 
@@ -198,7 +198,7 @@ console.log('✓ Core module loads successfully');
 // Verify TypeScript didn't complain about our union types
 console.log('✓ New AST nodes integrated successfully');
 "
-```js
+```
 
 **Expected results:**
 - TypeScript compiles without errors
