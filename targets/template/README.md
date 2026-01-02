@@ -23,10 +23,10 @@ cd targets/YOUR_MACHINE
 
 Define the memory map for your target:
 
--   Zero page layout and restrictions
--   Program memory area
--   I/O register addresses
--   Special memory regions
+- Zero page layout and restrictions
+- Program memory area
+- I/O register addresses
+- Special memory regions
 
 ### Step 4: Implement Hardware Modules
 
@@ -34,7 +34,7 @@ Create module directories:
 
 ```bash
 mkdir modules
-# Then create .blend65 files for each hardware module
+# Then create .blend files for each hardware module
 ```
 
 ### Step 5: Test and Validate
@@ -57,11 +57,11 @@ Specifies memory organization and constraints.
 
 Directory containing hardware API implementations:
 
--   `sprites.blend65` (if target supports sprites)
--   `input.blend65` (joystick/keyboard handling)
--   `sound.blend65` (audio functions)
--   `video.blend65` (display functions)
--   `memory.blend65` (universal memory operations)
+- `sprites.blend` (if target supports sprites)
+- `input.blend` (joystick/keyboard handling)
+- `sound.blend` (audio functions)
+- `video.blend` (display functions)
+- `memory.blend` (universal memory operations)
 
 ## Target Categories
 
@@ -113,27 +113,27 @@ setSpritePosition(8, 100, 50)  // Error: C64 only has sprites 0-7
 
 ## Testing Checklist
 
--   [ ] Target definition validates correctly
--   [ ] Memory layout respects machine constraints
--   [ ] All hardware modules compile and inline properly
--   [ ] Sample programs work on real hardware/emulator
--   [ ] Error messages are clear and helpful
--   [ ] Performance meets expectations (compare to hand-written assembly)
+- [ ] Target definition validates correctly
+- [ ] Memory layout respects machine constraints
+- [ ] All hardware modules compile and inline properly
+- [ ] Sample programs work on real hardware/emulator
+- [ ] Error messages are clear and helpful
+- [ ] Performance meets expectations (compare to hand-written assembly)
 
 ## Documentation Requirements
 
--   [ ] Clear description of target machine capabilities
--   [ ] Hardware API reference with examples
--   [ ] Memory map documentation
--   [ ] Known limitations or quirks
--   [ ] Recommended development workflow
+- [ ] Clear description of target machine capabilities
+- [ ] Hardware API reference with examples
+- [ ] Memory map documentation
+- [ ] Known limitations or quirks
+- [ ] Recommended development workflow
 
 ## Example Targets
 
 See existing targets for reference:
 
--   `targets/c64/` - Full-featured target (VIC-II, SID, sprites)
--   `targets/x16/` - Modern 6502 target (VERA, YM2151)
+- `targets/c64/` - Full-featured target (VIC-II, SID, sprites)
+- `targets/x16/` - Modern 6502 target (VERA, YM2151)
 
 ## Contributing
 

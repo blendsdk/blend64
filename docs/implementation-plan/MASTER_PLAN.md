@@ -63,11 +63,11 @@ Native Binary (PRG/BIN/etc.)
 
 ### **Multi-Target Support**
 
--   **Universal Core**: Language features that work on all 6502 targets
--   **Target System**: Modular hardware API resolution per machine
--   **Hardware APIs**: Function-based abstractions for sprites, sound, input, etc.
--   **Memory Layouts**: Target-specific zero page and memory organization
--   **Code Generation**: Optimized 6502 assembly per target
+- **Universal Core**: Language features that work on all 6502 targets
+- **Target System**: Modular hardware API resolution per machine
+- **Hardware APIs**: Function-based abstractions for sprites, sound, input, etc.
+- **Memory Layouts**: Target-specific zero page and memory organization
+- **Code Generation**: Optimized 6502 assembly per target
 
 ---
 
@@ -164,20 +164,20 @@ Phase 6: Code Generation & Output
 
 ### **Tier 1: Initial Targets (Phases 3-4)**
 
--   **Commodore 64** - Most popular, complete hardware feature set
--   **Commander X16** - Modern 6502, validates architecture scalability
+- **Commodore 64** - Most popular, complete hardware feature set
+- **Commander X16** - Modern 6502, validates architecture scalability
 
 ### **Tier 2: Validation Targets (Post v1.0)**
 
--   **VIC-20** - Limited hardware (no sprites), tests feature subsetting
--   **Atari 2600** - Extreme constraints, validates minimal hardware support
+- **VIC-20** - Limited hardware (no sprites), tests feature subsetting
+- **Atari 2600** - Extreme constraints, validates minimal hardware support
 
 ### **Tier 3: Extended Family (Future)**
 
--   Commodore Plus/4, C128, CBM/PET series
--   Atari 5200, 7800
--   Apple II series
--   MEGA 65
+- Commodore Plus/4, C128, CBM/PET series
+- Atari 5200, 7800
+- Apple II series
+- MEGA 65
 
 ---
 
@@ -185,24 +185,24 @@ Phase 6: Code Generation & Output
 
 ### **Phase 1-2: Universal Foundation**
 
--   [ ] Parses all universal 6502 language constructs
--   [ ] Validates target-agnostic programs
--   [ ] Resolves target-specific imports correctly
--   [ ] Generates clear error messages for unsupported features
+- [ ] Parses all universal 6502 language constructs
+- [ ] Validates target-agnostic programs
+- [ ] Resolves target-specific imports correctly
+- [ ] Generates clear error messages for unsupported features
 
 ### **Phase 3-4: Multi-Target Validation**
 
--   [ ] Compiles same source code to both C64 and X16
--   [ ] Hardware API functions work correctly on real hardware
--   [ ] Target-specific optimizations applied appropriately
--   [ ] Memory layouts respect target constraints
+- [ ] Compiles same source code to both C64 and X16
+- [ ] Hardware API functions work correctly on real hardware
+- [ ] Target-specific optimizations applied appropriately
+- [ ] Memory layouts respect target constraints
 
 ### **Phase 5-6: Complete Compiler**
 
--   [ ] Produces working PRG/BIN files for real hardware
--   [ ] Meets performance requirements (optimal 6502 code)
--   [ ] Generates required artifacts (.map, .lst, etc.)
--   [ ] Handles error cases gracefully
+- [ ] Produces working PRG/BIN files for real hardware
+- [ ] Meets performance requirements (optimal 6502 code)
+- [ ] Generates required artifacts (.map, .lst, etc.)
+- [ ] Handles error cases gracefully
 
 ---
 
@@ -218,17 +218,17 @@ Phase 6: Code Generation & Output
 
 ### **Context Management:**
 
--   Each task file is **self-contained** with clear requirements
--   **No cross-task dependencies** within phases
--   **Clear handoff artifacts** between phases
--   **Incremental validation** throughout development
+- Each task file is **self-contained** with clear requirements
+- **No cross-task dependencies** within phases
+- **Clear handoff artifacts** between phases
+- **Incremental validation** throughout development
 
 ### **Quality Assurance:**
 
--   **Unit tests** for all compiler components
--   **Integration tests** at phase boundaries
--   **Real hardware validation** for target implementations
--   **Performance benchmarking** against hand-written assembly
+- **Unit tests** for all compiler components
+- **Integration tests** at phase boundaries
+- **Real hardware validation** for target implementations
+- **Performance benchmarking** against hand-written assembly
 
 ---
 
@@ -236,24 +236,24 @@ Phase 6: Code Generation & Output
 
 ### **For Developers:**
 
--   **Write once, compile anywhere** - same code works on multiple machines
--   **Hardware abstraction** - clean APIs instead of register manipulation
--   **Type safety** - function signatures prevent hardware errors
--   **Performance** - zero-overhead hardware function inlining
+- **Write once, compile anywhere** - same code works on multiple machines
+- **Hardware abstraction** - clean APIs instead of register manipulation
+- **Type safety** - function signatures prevent hardware errors
+- **Performance** - zero-overhead hardware function inlining
 
 ### **For Language Evolution:**
 
--   **Easy target addition** - new 6502 machines added via target definitions
--   **Hardware innovation** - new chips supported without language changes
--   **Community contributions** - target definitions can be community-maintained
--   **Future-proof** - language outlives any single machine
+- **Easy target addition** - new 6502 machines added via target definitions
+- **Hardware innovation** - new chips supported without language changes
+- **Community contributions** - target definitions can be community-maintained
+- **Future-proof** - language outlives any single machine
 
 ### **For Ecosystem:**
 
--   **Consistent development** - same tools and patterns across machines
--   **Knowledge transfer** - skills apply to entire 6502 family
--   **Code sharing** - libraries work across different hardware
--   **Documentation** - unified reference for all supported machines
+- **Consistent development** - same tools and patterns across machines
+- **Knowledge transfer** - skills apply to entire 6502 family
+- **Code sharing** - libraries work across different hardware
+- **Documentation** - unified reference for all supported machines
 
 ---
 
@@ -286,9 +286,9 @@ zp var counter: byte  // Uses available zero page per machine
 ### **4. Modular Architecture**
 
 ```
-targets/c64/modules/sprites.blend65    // C64 VIC-II sprites
-targets/x16/modules/vera.blend65       // X16 VERA sprites
-targets/vic20/modules/screen.blend65   // VIC-20 character mode
+targets/c64/modules/sprites.blend    // C64 VIC-II sprites
+targets/x16/modules/vera.blend       // X16 VERA sprites
+targets/vic20/modules/screen.blend   // VIC-20 character mode
 ```
 
 ---
@@ -297,9 +297,9 @@ targets/vic20/modules/screen.blend65   // VIC-20 character mode
 
 ### **Prerequisites:**
 
--   Understanding of 6502 assembly language
--   Knowledge of target machine hardware (C64, X16)
--   Familiarity with compiler design principles
+- Understanding of 6502 assembly language
+- Knowledge of target machine hardware (C64, X16)
+- Familiarity with compiler design principles
 
 ### **First Steps:**
 
@@ -310,19 +310,19 @@ targets/vic20/modules/screen.blend65   // VIC-20 character mode
 
 ### **Development Environment:**
 
--   **Version Control:** Git with feature branches per task
--   **Testing:** Automated tests + real hardware validation
--   **Documentation:** Update specs as implementation proceeds
+- **Version Control:** Git with feature branches per task
+- **Testing:** Automated tests + real hardware validation
+- **Documentation:** Update specs as implementation proceeds
 
 ---
 
 ## Notes for Implementation
 
--   **Incremental development** - each task builds on previous
--   **Test-driven approach** - write tests before implementation
--   **Real hardware focus** - validate on actual machines when possible
--   **Performance-conscious** - 6502 cycles matter for real-time code
--   **Modular design** - clean separation between universal and target-specific
+- **Incremental development** - each task builds on previous
+- **Test-driven approach** - write tests before implementation
+- **Real hardware focus** - validate on actual machines when possible
+- **Performance-conscious** - 6502 cycles matter for real-time code
+- **Modular design** - clean separation between universal and target-specific
 
 ---
 
@@ -330,17 +330,17 @@ targets/vic20/modules/screen.blend65   // VIC-20 character mode
 
 ### **Technical Risks:**
 
--   **Hardware API complexity** - Start simple, add features incrementally
--   **Target variations** - Design system for differences from day one
--   **Performance regression** - Benchmark against hand-written assembly
--   **Memory constraints** - Test on most restrictive target (Atari 2600)
+- **Hardware API complexity** - Start simple, add features incrementally
+- **Target variations** - Design system for differences from day one
+- **Performance regression** - Benchmark against hand-written assembly
+- **Memory constraints** - Test on most restrictive target (Atari 2600)
 
 ### **Project Risks:**
 
--   **Scope creep** - Stick to defined phases and success criteria
--   **Target proliferation** - Focus on Tier 1 targets first
--   **Feature requests** - Defer non-essential features to post-v1.0
--   **Quality issues** - Maintain comprehensive test suite
+- **Scope creep** - Stick to defined phases and success criteria
+- **Target proliferation** - Focus on Tier 1 targets first
+- **Feature requests** - Defer non-essential features to post-v1.0
+- **Quality issues** - Maintain comprehensive test suite
 
 ---
 

@@ -11,12 +11,12 @@ Blend65 is a **multi-target assembler-plus** language for serious 6502 family ga
 
 ### 0.1 Multi-target compilation model
 
--   Source compiles **ahead-of-time** to target-specific native binaries.
--   **Target selection** via `--target=MACHINE` compiler flag.
--   **Universal 6502 core** language works on all targets.
--   **Target-specific hardware APIs** via modular import system.
--   The compiler performs **reachability-based dead-code elimination**.
--   There is **no implicitly linked runtime** and **no default standard library**.
+- Source compiles **ahead-of-time** to target-specific native binaries.
+- **Target selection** via `--target=MACHINE` compiler flag.
+- **Universal 6502 core** language works on all targets.
+- **Target-specific hardware APIs** via modular import system.
+- The compiler performs **reachability-based dead-code elimination**.
+- There is **no implicitly linked runtime** and **no default standard library**.
 
 ### 0.2 Target architecture
 
@@ -29,34 +29,34 @@ blend65 --target=atari2600 game.blend → game.bin (Atari 2600)
 
 ### 0.3 Memory & storage model
 
--   **All variables have static storage** (global lifetime).
--   **No stack-allocated locals** exist in v0.1.
--   **Target-specific memory layouts** based on machine capabilities.
--   Storage classes exist (explicit or inferred):
-    -   `zp` (zero page) - varies by target
-    -   `ram` (RAM, uninitialized)
-    -   `data` (RAM/ROM initialized bytes/words)
-    -   `const` (read-only data / ROM-intent)
-    -   `io` (memory-mapped I/O) - target-specific addresses
--   The compiler **may auto-promote** eligible variables to `zp` unless pinned elsewhere.
+- **All variables have static storage** (global lifetime).
+- **No stack-allocated locals** exist in v0.1.
+- **Target-specific memory layouts** based on machine capabilities.
+- Storage classes exist (explicit or inferred):
+  - `zp` (zero page) - varies by target
+  - `ram` (RAM, uninitialized)
+  - `data` (RAM/ROM initialized bytes/words)
+  - `const` (read-only data / ROM-intent)
+  - `io` (memory-mapped I/O) - target-specific addresses
+- The compiler **may auto-promote** eligible variables to `zp` unless pinned elsewhere.
 
 ### 0.4 Hardware abstraction
 
--   **Function-based hardware APIs** instead of raw register access.
--   **Target-specific modules** (e.g., `c64.sprites`, `x16.vera`, `vic20.screen`).
--   **Content-based module resolution** - modules resolved by `module` declaration, not file path.
--   **Compile-time import resolution** based on selected target.
--   **Zero-overhead inlining** for hardware function calls.
+- **Function-based hardware APIs** instead of raw register access.
+- **Target-specific modules** (e.g., `c64.sprites`, `x16.vera`, `vic20.screen`).
+- **Content-based module resolution** - modules resolved by `module` declaration, not file path.
+- **Compile-time import resolution** based on selected target.
+- **Zero-overhead inlining** for hardware function calls.
 
 ### 0.5 Forbidden in v0.1
 
--   Heap allocation (no dynamic arrays, maps, strings, objects)
--   Floating-point types
--   Local variables
--   Nested functions / closures / lambdas
--   Recursion (direct or indirect)
--   Exceptions / `Result` types
--   Returning structs/records/arrays
+- Heap allocation (no dynamic arrays, maps, strings, objects)
+- Floating-point types
+- Local variables
+- Nested functions / closures / lambdas
+- Recursion (direct or indirect)
+- Exceptions / `Result` types
+- Returning structs/records/arrays
 
 ---
 
@@ -64,18 +64,18 @@ blend65 --target=atari2600 game.blend → game.bin (Atari 2600)
 
 ### 1.1 Source encoding
 
--   UTF-8 source files.
+- UTF-8 source files.
 
 ### 1.2 Comments
 
--   `//` line comment
--   `/* ... */` block comment
+- `//` line comment
+- `/* ... */` block comment
 
 ### 1.3 Identifiers
 
--   `[A-Za-z_][A-Za-z0-9_]*`
--   Case-sensitive
--   Keywords are reserved.
+- `[A-Za-z_][A-Za-z0-9_]*`
+- Case-sensitive
+- Keywords are reserved.
 
 ---
 
@@ -131,7 +131,7 @@ qualified_name ::= ident { "." ident }*
 
 **Resolution rules:**
 
-1. **Content-based resolution**: The compiler scans all `.blend65` files to find matching `module` declarations
+1. **Content-based resolution**: The compiler scans all `.blend` files to find matching `module` declarations
 2. **File location independence**: Module files can be located anywhere in the project directory tree
 3. **Target resolution**: `target.*` modules resolve to `{current_target}.*` based on `--target` flag
 4. **Explicit target modules**: Direct target imports (e.g., `c64.sprites`) work only on that specific target
@@ -139,7 +139,7 @@ qualified_name ::= ident { "." ident }*
 
 **Module Discovery Process:**
 
-1. **Scan Phase**: Recursively scan project directory for all `.blend65` files
+1. **Scan Phase**: Recursively scan project directory for all `.blend` files
 2. **Index Phase**: Parse each file's `module` declaration and build module name → file path mapping
 3. **Resolution Phase**: When resolving imports, lookup module name in the index
 4. **Loading Phase**: Load target file and validate exported symbols exist
@@ -172,8 +172,8 @@ Blend65 types are **target-defined** and have fixed sizes. All 6502 targets shar
 
 Optional (target-dependent):
 
--   `sbyte` (8-bit signed)
--   `sword` (16-bit signed)
+- `sbyte` (8-bit signed)
+- `sword` (16-bit signed)
 
 ### 3.2 Arrays (fixed-size only)
 
@@ -250,28 +250,28 @@ Different targets provide different hardware modules:
 
 **Commodore 64:**
 
--   `c64.sprites` - 8 hardware sprites via VIC-II
--   `c64.sid` - Sound synthesis via SID chip
--   `c64.vic` - Screen colors, graphics modes
--   `c64.input` - Joystick/keyboard via CIA
+- `c64.sprites` - 8 hardware sprites via VIC-II
+- `c64.sid` - Sound synthesis via SID chip
+- `c64.vic` - Screen colors, graphics modes
+- `c64.input` - Joystick/keyboard via CIA
 
 **Commander X16:**
 
--   `x16.vera` - Modern graphics via VERA chip
--   `x16.ym2151` - FM synthesis via YM2151
--   `x16.input` - Modern input handling
+- `x16.vera` - Modern graphics via VERA chip
+- `x16.ym2151` - FM synthesis via YM2151
+- `x16.input` - Modern input handling
 
 **VIC-20:**
 
--   `vic20.screen` - Character-based display
--   `vic20.vic` - Simple colors/modes (no sprites)
--   `vic20.input` - Basic input
+- `vic20.screen` - Character-based display
+- `vic20.vic` - Simple colors/modes (no sprites)
+- `vic20.input` - Basic input
 
 **Atari 2600:**
 
--   `atari2600.tia` - Minimal graphics (2 sprites, playfield)
--   `atari2600.riot` - Sound and input
--   Extreme memory constraints (128 bytes RAM)
+- `atari2600.tia` - Minimal graphics (2 sprites, playfield)
+- `atari2600.riot` - Sound and input
+- Extreme memory constraints (128 bytes RAM)
 
 ---
 
@@ -328,9 +328,9 @@ io   var CUSTOM_REG: byte @ $D800  // Target-specific address
 
 **Target-specific considerations:**
 
--   **Zero page size** varies by target (C64: ~$02-$FF, Atari 2600: $80-$FF)
--   **Memory layout** differs significantly between machines
--   **I/O addresses** are completely target-dependent
+- **Zero page size** varies by target (C64: ~$02-$FF, Atari 2600: $80-$FF)
+- **Memory layout** differs significantly between machines
+- **I/O addresses** are completely target-dependent
 
 ---
 
@@ -417,20 +417,20 @@ When compiling with `--target=MACHINE`:
 
 **Graphics:**
 
--   `target.sprites` → `c64.sprites`, `x16.vera`, etc.
--   `target.screen` → `c64.vic`, `vic20.screen`, etc.
+- `target.sprites` → `c64.sprites`, `x16.vera`, etc.
+- `target.screen` → `c64.vic`, `vic20.screen`, etc.
 
 **Input:**
 
--   `target.input` → `c64.input`, `x16.input`, etc.
+- `target.input` → `c64.input`, `x16.input`, etc.
 
 **Sound:**
 
--   `target.sound` → `c64.sid`, `x16.ym2151`, etc.
+- `target.sound` → `c64.sid`, `x16.ym2151`, etc.
 
 **Memory:**
 
--   `target.memory` → Universal `peek`/`poke` functions
+- `target.memory` → Universal `peek`/`poke` functions
 
 ### 10.3 Function signatures
 
@@ -456,10 +456,10 @@ function joystickFire(port: byte): boolean
 
 Each target provides:
 
--   **Memory layout** (zero page, program area, I/O ranges)
--   **Hardware modules** (available functions and their implementations)
--   **Code generation rules** (calling conventions, optimizations)
--   **Output format** (PRG, BIN, etc.)
+- **Memory layout** (zero page, program area, I/O ranges)
+- **Hardware modules** (available functions and their implementations)
+- **Code generation rules** (calling conventions, optimizations)
+- **Output format** (PRG, BIN, etc.)
 
 ### 11.2 Adding new targets
 
@@ -469,9 +469,9 @@ New targets are added by creating target definition files:
 targets/MACHINE/
 ├── memory-layout.toml
 ├── modules/
-│   ├── sprites.blend65
-│   ├── input.blend65
-│   └── sound.blend65
+│   ├── sprites.blend
+│   ├── input.blend
+│   └── sound.blend
 └── codegen-rules.toml
 ```
 
@@ -491,10 +491,10 @@ export function main(): void
 
 The compiler outputs target-appropriate binaries:
 
--   **C64/VIC-20/Plus4**: `.prg` format
--   **Commander X16**: `.prg` format
--   **Atari 2600**: `.bin` format
--   **Apple II**: Target-specific format
+- **C64/VIC-20/Plus4**: `.prg` format
+- **Commander X16**: `.prg` format
+- **Atari 2600**: `.bin` format
+- **Apple II**: Target-specific format
 
 ---
 

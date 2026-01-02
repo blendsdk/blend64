@@ -24,11 +24,11 @@ blend65 --target=MACHINE source.blend
 
 **Supported targets:**
 
--   `c64` - Commodore 64
--   `x16` - Commander X16
--   `vic20` - VIC-20
--   `atari2600` - Atari 2600
--   `plus4` - Commodore Plus/4
+- `c64` - Commodore 64
+- `x16` - Commander X16
+- `vic20` - VIC-20
+- `atari2600` - Atari 2600
+- `plus4` - Commodore Plus/4
 
 ### **2. Target Resolution Process**
 
@@ -89,11 +89,11 @@ targets/MACHINE/
 ├── memory-layout.toml   # Memory map and constraints
 ├── codegen-rules.toml   # Code generation preferences
 ├── modules/             # Hardware API implementations
-│   ├── sprites.blend65  # Sprite functions (if supported)
-│   ├── input.blend65    # Input handling
-│   ├── sound.blend65    # Audio functions
-│   ├── video.blend65    # Display functions
-│   └── memory.blend65   # Memory operations
+│   ├── sprites.blend  # Sprite functions (if supported)
+│   ├── input.blend    # Input handling
+│   ├── sound.blend    # Audio functions
+│   ├── video.blend    # Display functions
+│   └── memory.blend   # Memory operations
 └── README.md           # Target documentation
 ```
 
@@ -183,7 +183,7 @@ always_inline = [
 
 Hardware modules are written in a Blend65 subset optimized for inlining:
 
-**Example: c64/modules/sprites.blend65**
+**Example: c64/modules/sprites.blend**
 
 ```
 // C64 Sprite Hardware API
@@ -225,7 +225,7 @@ export function enableSprite(sprite: byte): void
 end function
 ```
 
-**Example: x16/modules/vera.blend65**
+**Example: x16/modules/vera.blend**
 
 ```
 // Commander X16 VERA Hardware API
@@ -379,24 +379,24 @@ Add target to compiler's target registry.
 
 ### **For Developers**
 
--   **Write once, compile anywhere** - same source works on multiple machines
--   **Hardware abstraction** - no need to learn register details
--   **Type safety** - function signatures prevent hardware misuse
--   **Performance** - zero-overhead inlined hardware access
+- **Write once, compile anywhere** - same source works on multiple machines
+- **Hardware abstraction** - no need to learn register details
+- **Type safety** - function signatures prevent hardware misuse
+- **Performance** - zero-overhead inlined hardware access
 
 ### **For Compiler**
 
--   **Modular architecture** - easy to add new targets
--   **Clear separation** - universal language vs hardware-specific
--   **Optimization opportunities** - target-specific code generation
--   **Maintainable** - hardware APIs isolated in modules
+- **Modular architecture** - easy to add new targets
+- **Clear separation** - universal language vs hardware-specific
+- **Optimization opportunities** - target-specific code generation
+- **Maintainable** - hardware APIs isolated in modules
 
 ### **For Ecosystem**
 
--   **Consistent APIs** - same patterns across all machines
--   **Community contributions** - easy to add new targets
--   **Documentation** - hardware APIs are self-documenting
--   **Future-proof** - new 6502 machines can be added easily
+- **Consistent APIs** - same patterns across all machines
+- **Community contributions** - easy to add new targets
+- **Documentation** - hardware APIs are self-documenting
+- **Future-proof** - new 6502 machines can be added easily
 
 ---
 
