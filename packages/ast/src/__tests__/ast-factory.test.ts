@@ -261,14 +261,12 @@ describe('ASTNodeFactory', () => {
     it('should create variable declarations', () => {
       const varType = factory.createPrimitiveType('byte');
       const initializer = factory.createLiteral(0, '0');
-      const placement = factory.createMemoryPlacement(factory.createLiteral(0xD000, '$D000'));
 
       const varDecl = factory.createVariableDeclaration(
         'counter',
         varType,
         initializer,
         'zp',
-        placement,
         false,
         mockMetadata
       );
@@ -278,7 +276,6 @@ describe('ASTNodeFactory', () => {
       expect(varDecl.varType).toBe(varType);
       expect(varDecl.initializer).toBe(initializer);
       expect(varDecl.storageClass).toBe('zp');
-      expect(varDecl.placement).toBe(placement);
       expect(varDecl.exported).toBe(false);
       expect(varDecl.metadata).toEqual(mockMetadata);
     });
@@ -375,14 +372,6 @@ describe('ASTNodeFactory', () => {
       expect(arrayType.metadata).toEqual(mockMetadata);
     });
 
-    it('should create memory placement', () => {
-      const address = factory.createLiteral(0xD000, '$D000');
-      const placement = factory.createMemoryPlacement(address, mockMetadata);
-
-      expect(placement.type).toBe('MemoryPlacement');
-      expect(placement.address).toBe(address);
-      expect(placement.metadata).toEqual(mockMetadata);
-    });
   });
 
   describe('Generic Node Creation', () => {

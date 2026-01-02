@@ -104,9 +104,6 @@ export enum TokenType {
   COLON = 'COLON',
   DOT = 'DOT',
 
-  // Memory placement operator
-  AT = 'AT',        // @ symbol for memory placement (@ $D000)
-
   // Special
   NEWLINE = 'NEWLINE',
   EOF = 'EOF',

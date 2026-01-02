@@ -116,11 +116,11 @@ import func from target.system.memory.management.advanced`;
       expect(ast.body[0].type).toBe('VariableDeclaration');
     });
 
-    it('should handle multiple memory placements', () => {
-      expectParseError('module Main\nio var x: byte @ $D000 @ $D001');
+    it('should reject memory placement syntax', () => {
+      expectParseError('module Main\nio var x: byte @ $D000');
     });
 
-    it('should handle memory placement without address', () => {
+    it('should reject @ symbol', () => {
       expectParseError('module Main\nio var x: byte @');
     });
 
@@ -325,23 +325,13 @@ var emptyArray: byte[0] = []`;
   });
 
   describe('Memory and Storage Edge Cases', () => {
-    it('should handle extreme memory addresses', () => {
-      const source = `module Main
-io var lowReg: byte @ $0000
-io var highReg: byte @ $FFFF`;
-      const ast = parseSource(source);
-
-      expect(ast.body.length).toBe(2);
-      expect(ast.body[0].type).toBe('VariableDeclaration');
-      expect(ast.body[1].type).toBe('VariableDeclaration');
+    it('should reject memory placement syntax', () => {
+      expectParseError('module Main\nio var lowReg: byte @ $0000');
+      expectParseError('module Main\nio var highReg: byte @ $FFFF');
     });
 
-    it('should handle computed memory addresses', () => {
-      const source = `module Main
-io var computed: byte @ $D000 + offset * 2`;
-      const ast = parseSource(source);
-
-      expect(ast.body[0].type).toBe('VariableDeclaration');
+    it('should reject computed memory addresses', () => {
+      expectParseError('module Main\nio var computed: byte @ $D000 + offset * 2');
     });
 
     it('should handle all storage class combinations correctly', () => {
@@ -350,7 +340,7 @@ zp var zpVar: byte
 ram var ramVar: byte
 data var dataVar: byte = 42
 const var constVar: byte = 255
-io var ioVar: byte @ $D020`;
+io var ioVar: byte`;
       const ast = parseSource(source);
 
       expect(ast.body.length).toBe(5);
@@ -636,7 +626,7 @@ zp var fastCounter: byte
 ram var workBuffer: byte[256]
 data var lookupTable: word[128] = [0, 1, 4, 9, 16, 25]
 const var SYSTEM_FLAGS: byte = $FF
-io var CUSTOM_CHIP: word @ $DE00
+io var CUSTOM_CHIP: word
 
 export function complexOperation(input: byte): byte
   // Nested control flow with complex expressions

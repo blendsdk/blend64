@@ -331,7 +331,6 @@ export interface VariableDeclaration extends Blend65ASTNode {
   name: string;
   varType: TypeAnnotation;
   initializer: Expression | null;
-  placement: MemoryPlacement | null; // For @ $D000 syntax
   exported: boolean;
 }
 
@@ -339,14 +338,6 @@ export interface VariableDeclaration extends Blend65ASTNode {
  * Storage class for variables
  */
 export type StorageClass = 'zp' | 'ram' | 'data' | 'const' | 'io';
-
-/**
- * Memory placement: `@ $D000`
- */
-export interface MemoryPlacement extends Blend65ASTNode {
-  type: 'MemoryPlacement';
-  address: Expression;
-}
 
 /**
  * Type declaration: `type Player extends HasPos ... end type`

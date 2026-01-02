@@ -1,7 +1,7 @@
 # Blend65 Missing Features Matrix
 
 **Purpose:** Consolidated tracking of all missing features identified through gamecheck analysis
-**Last Updated:** 02/01/2026, 5:27:00 am (Europe/Amsterdam, UTC+1:00)
+**Last Updated:** 02/01/2026, 12:26:00 pm (Europe/Amsterdam, UTC+1:00)
 
 ---
 
@@ -41,10 +41,23 @@
 | c64.timing | getFrameCounter() | Missing | HIGH | [Astroblast] | LOW | Frame-accurate timing |
 | c64.timing | waitForNextFrame() | Missing | HIGH | [Astroblast] | LOW | 60 FPS synchronization |
 | c64.sprites | setSpriteExpansion() | Missing | MEDIUM | [Bubble Escape] | LOW | Simple register write |
-| c64.vic | readSpriteCollisions() | Missing | CRITICAL | [Bubble Escape, Astroblast] | MEDIUM | Hardware collision detection |
-| c64.vic | readBackgroundCollisions() | Missing | CRITICAL | [Bubble Escape, Astroblast] | MEDIUM | Hardware collision detection |
+| c64.vic | readSpriteCollisions() | Missing | CRITICAL | [Bubble Escape, Astroblast, Into The Electric Castle] | MEDIUM | Hardware collision detection |
+| c64.vic | readBackgroundCollisions() | Missing | CRITICAL | [Bubble Escape, Astroblast, Into The Electric Castle] | MEDIUM | Hardware collision detection |
 | c64.vic | readSpriteCollisionRegister() | Missing | CRITICAL | [Astroblast] | MEDIUM | Direct VIC-II collision access |
-| c64.interrupts | setRasterInterrupt() | Missing | CRITICAL | [Bubble Escape, Iridis Alpha] | HIGH | Complex interrupt handling |
+| c64.vic | waitForRaster() | Missing | CRITICAL | [Into The Electric Castle] | MEDIUM | Raster line synchronization |
+| c64.interrupts | setRasterInterrupt() | Missing | CRITICAL | [Bubble Escape, Iridis Alpha, Psychedelia, Into The Electric Castle] | HIGH | Complex interrupt handling |
+| c64.sprites | enableSprites() | Missing | CRITICAL | [Into The Electric Castle] | LOW | Sprite enable/disable control |
+| c64.sprites | setSpriteOverflow() | Missing | HIGH | [Into The Electric Castle] | MEDIUM | Screen wrapping sprite control |
+| c64.input | readDualJoystick() | Missing | HIGH | [Astroblast, Into The Electric Castle] | LOW | Dual joystick port access |
+| c64.sid | playFootstepSound() | Missing | MEDIUM | [Into The Electric Castle] | LOW | Game-specific sound effects |
+| c64.sid | playLaserSound() | Missing | MEDIUM | [Into The Electric Castle] | LOW | Weapon sound effects |
+| c64.sid | playExplosionSound() | Missing | MEDIUM | [Into The Electric Castle] | LOW | Impact sound effects |
+| c64.vic | setColorRam() | Missing | CRITICAL | [Psychedelia] | HIGH | Direct color RAM access |
+| c64.vic | clearColorRam() | Missing | CRITICAL | [Psychedelia] | MEDIUM | Color RAM initialization |
+| c64.vic | setCharacterSet() | Missing | HIGH | [Psychedelia] | MEDIUM | VIC-II memory control |
+| c64.vic | configureMemoryLayout() | Missing | HIGH | [Psychedelia] | HIGH | Advanced VIC-II configuration |
+| c64.cia | readTimer() | Missing | HIGH | [Psychedelia] | LOW | Hardware timing access |
+| c64.memory | setZeroPageVar() | Missing | CRITICAL | [Psychedelia] | MEDIUM | Zero page optimization |
 | c64.cia | setTimer() | Missing | HIGH | [Bubble Escape] | MEDIUM | CIA timer programming |
 | c64.sid | readOscillator() | Missing | MEDIUM | [Bubble Escape] | LOW | Hardware random generation |
 | c64.sid | playSIDMusic() | Missing | CRITICAL | [Astroblast] | HIGH | GoatTracker music integration |
@@ -157,6 +170,7 @@ Based on analyzed games:
 | Game | Repository | Primary Blocker | Target Version |
 |------|------------|-----------------|----------------|
 | **Astroblast** | github.com/nealvis/astroblast.git | Hardware collision + advanced sprites + SID integration | v0.5 |
+| **Into The Electric Castle** | github.com/dread-pirate-johnny-spaceboots/Into-The-Electric-Castle.git | Interrupt system + hardware collision + advanced sprite control + dual joystick | v0.5 |
 | **Bubble Escape** | codeberg.org/catseye/Bubble-Escape | Interrupt system | v0.5 |
 | **Iridis Alpha** | github.com/mwenge/iridisalpha.git | Hardware collision | v0.5 |
 | **Demo scene effects** | [Various] | Raster interrupts | v0.5 |
@@ -165,6 +179,11 @@ Based on analyzed games:
 | Game | Repository | Primary Blocker | Target Version |
 |------|------------|-----------------|----------------|
 | **Mafia ASM** | github.com/dkrey/mafia_asm.git | 32-bit arithmetic + dynamic arrays + complex data structures | v0.4 |
+
+### NEEDS VERSION 0.6+ (Real-Time Hardware Applications)
+| Game | Repository | Primary Blocker | Target Version |
+|------|------------|-----------------|----------------|
+| **Psychedelia/Colourspace** | github.com/mwenge/psychedelia.git | Interrupt system + memory-mapped I/O + real-time graphics + zero page optimization | v0.6+ |
 
 ### NEEDS VERSION 1.0+ (Elite-Class)
 | Game | Repository | Primary Blocker | Target Version |
@@ -188,7 +207,16 @@ Based on analyzed games:
 - **v0.5:** Support hardware-intensive arcade games
 - **v1.0:** Full Elite-class game compatibility
 
-## Analysis History
+### Psychedelia/Colourspace (02/01/2026)
+- **Status:** NOT_CURRENTLY_PORTABLE - Requires v0.6+ beyond current roadmap
+- **Repository:** github.com/mwenge/psychedelia.git (6,983 lines across 6 files)
+- **Project Type:** Real-time light synthesizer (interactive audio-visual application)
+- **Blockers:** Hardware interrupt system, advanced graphics control, real-time pattern generation, memory-mapped I/O access
+- **Revolutionary Significance:** Identifies new application category requiring v0.6+ features beyond games
+- **Impact:** EXTREME priority upgrade for interrupt system, memory-mapped I/O, real-time graphics framework, hardware timing control
+- **New Complexity Class:** Real-Time Hardware Applications - requires both advanced language features AND critical hardware control
+- **Evolution Path:** Demands v0.6+ with memory-mapped I/O, zero page optimization, complete VIC-II/CIA control APIs
+- **Alternative Strategy:** Consider hybrid approach with high-level recreation using available features for near-term compatibility
 
 ### C64 Examples Collection (02/01/2026)
 - **Status:** DIRECTLY PORTABLE (85%) - Excellent v0.1 compatibility
@@ -223,6 +251,19 @@ Based on analyzed games:
 - **Blockers:** Interrupt-driven game loop, hardware collision
 - **Impact:** Defines hardware API requirements for v0.5
 - **Priority:** High - represents important game category
+
+### Into The Electric Castle (02/01/2026)
+- **Status:** PARTIALLY PORTABLE - Requires v0.5 hardware features
+- **Repository:** github.com/dread-pirate-johnny-spaceboots/Into-The-Electric-Castle.git (3.8M / 26 files)
+- **Game Type:** Adventure/Action game with dual-joystick control system
+- **Blockers:** Interrupt system, hardware collision detection, advanced sprite control, precise timing control
+- **Validation:** Confirms v0.5 hardware roadmap priorities and demonstrates sophisticated C64 game requirements
+- **Hardware Patterns:** 8 sprites with overflow handling, dual joystick ports, raster synchronization, complex state machines
+- **Impact:** Validates hardware-intensive arcade/adventure game category needs v0.5 APIs for quality gameplay
+- **Innovation Factor:** Dual-joystick control scheme shows how hardware APIs enable creative game design
+- **Complexity Class:** Moderate hardware-intensive adventure games - bridge between simple arcade (v0.1) and elite simulations (v1.0)
+- **Quality Standards:** Professional timing, smooth collision detection, and polished animations expected in real games
+- **Roadmap Impact:** Confirms v0.5 as critical milestone for real-world C64 game development (~85% compatibility achieved)
 
 ### Mafia ASM (01/02/2026)
 - **Status:** NOT PORTABLE - Requires v0.4+ language features

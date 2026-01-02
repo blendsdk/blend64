@@ -38,7 +38,6 @@ import {
   ExportDeclaration,
   PrimitiveType,
   ArrayType,
-  MemoryPlacement,
   StorageClass,
   TypeAnnotation
 } from './ast-types/core.js';
@@ -350,7 +349,6 @@ export class ASTNodeFactory {
     varType: TypeAnnotation,
     initializer: Expression | null = null,
     storageClass: StorageClass | null = null,
-    placement: MemoryPlacement | null = null,
     exported: boolean = false,
     metadata?: NodeMetadata
   ): VariableDeclaration {
@@ -360,15 +358,7 @@ export class ASTNodeFactory {
       name,
       varType,
       initializer,
-      placement,
       exported
-    }, metadata);
-  }
-
-  createMemoryPlacement(address: Expression, metadata?: NodeMetadata): MemoryPlacement {
-    return this.addMetadata({
-      type: 'MemoryPlacement',
-      address
     }, metadata);
   }
 

@@ -201,13 +201,10 @@ describe('Blend65Lexer', () => {
   });
 
   describe('Special tokens', () => {
-    it('should parse memory placement operator', () => {
-      const source = '@ $D000';
-      const tokens = tokenize(source);
+    it('should reject unsupported memory placement operator', () => {
+      const source = '@';
 
-      expect(tokens[0].type).toBe(TokenType.AT);
-      expect(tokens[1].type).toBe(TokenType.NUMBER);
-      expect(tokens[1].value).toBe('$D000');
+      expect(() => tokenize(source)).toThrow('Unexpected character \'@\' at line 1, column 1');
     });
 
     it('should parse punctuation', () => {
@@ -287,7 +284,7 @@ end function`;
     it('should tokenize storage declarations', () => {
       const source = `zp var counter: byte
 ram var buffer: byte[256]
-io var VIC_REG: byte @ $D000`;
+io var VIC_REG: byte`;
 
       const tokens = tokenize(source);
 
@@ -313,16 +310,14 @@ io var VIC_REG: byte @ $D000`;
       expect(tokens[13].type).toBe(TokenType.RIGHT_BRACKET);
       expect(tokens[14].type).toBe(TokenType.NEWLINE);
 
-      // Third line: io var VIC_REG: byte @ $D000
+      // Third line: io var VIC_REG: byte (no memory placement)
       expect(tokens[15].type).toBe(TokenType.IO);
       expect(tokens[16].type).toBe(TokenType.VAR);
       expect(tokens[17].type).toBe(TokenType.IDENTIFIER);
       expect(tokens[17].value).toBe('VIC_REG');
       expect(tokens[18].type).toBe(TokenType.COLON);
       expect(tokens[19].type).toBe(TokenType.BYTE);
-      expect(tokens[20].type).toBe(TokenType.AT);
-      expect(tokens[21].type).toBe(TokenType.NUMBER);
-      expect(tokens[21].value).toBe('$D000');
+      expect(tokens[20].type).toBe(TokenType.EOF);
     });
   });
 });

@@ -21,7 +21,6 @@ This plan ports the lexer, parser, and AST from `/Users/gevik/workdir/blend-lang
 - Add Blend65 keywords: `module`, `import`, `export`, `from`, `target`, `function`, `end`, `then`, `next`, `to`, `case`, `match`
 - Add storage class tokens: `zp`, `ram`, `data`, `const`, `io`
 - Remove increment/decrement operators (`++`, `--`) - not in Blend65
-- Add `@` token for memory placement syntax
 - Add `extends` token for record inheritance
 **Test:** Verify all new tokens can be recognized
 **Success:** TokenType enum matches Blend65 specification
@@ -39,12 +38,11 @@ This plan ports the lexer, parser, and AST from `/Users/gevik/workdir/blend-lang
 
 ### Task 1.3: Add Storage Class Syntax Support
 **File:** `packages/lexer/src/lexer.ts`
-**Goal:** Support storage prefix syntax and memory placement
+**Goal:** Support storage prefix syntax
 **Changes:**
-- Add `@` symbol lexing for memory placement (`@ $D000`)
 - Update number lexing to handle hex addresses
 - Ensure storage keywords (`zp`, `ram`, `data`, `const`, `io`) are tokenized
-- Test with examples: `zp var counter: byte`, `io var VIC_REG: byte @ $D000`
+- Test with examples: `zp var counter: byte`, `io var VIC_REG: byte`
 **Test:** Parse storage declarations correctly
 **Success:** Storage syntax tokens recognized properly
 
@@ -152,7 +150,7 @@ This plan ports the lexer, parser, and AST from `/Users/gevik/workdir/blend-lang
 **Status:** Complete - Full module system with corrected dot notation (c64.sprites)
 
 ### Task 3.3: ✅ Implement Storage Declaration Parsing
-**Status:** Complete - All storage classes (zp, ram, data, const, io) with memory placement
+**Status:** Complete - All storage classes (zp, ram, data, const, io) without memory placement
 
 ### Task 3.4: ✅ Implement Function Declaration Parsing
 **Status:** Complete - Functions with parameters, return types, export support
@@ -183,7 +181,7 @@ This plan ports the lexer, parser, and AST from `/Users/gevik/workdir/blend-lang
 ### Validation Tests:
 - Parse complete Blend65 programs successfully
 - Generate correct AST for multi-target code
-- Handle storage declarations and memory placement
+- Handle storage declarations
 - Support target-specific imports properly
 - Reject unsupported syntax with clear errors
 

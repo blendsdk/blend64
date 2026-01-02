@@ -31,7 +31,6 @@ import {
   PrimitiveType,
   ArrayType,
   TypeAnnotation,
-  MemoryPlacement,
   StorageClass
 } from '@blend65/ast';
 import { RecursiveDescentParser, Precedence } from '../strategies/recursive-descent.js';
@@ -294,12 +293,6 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
       initializer = this.parseExpression();
     }
 
-    let placement: MemoryPlacement | null = null;
-    if (this.match(TokenType.AT)) {
-      const address = this.parseExpression();
-      placement = this.factory.createMemoryPlacement(address);
-    }
-
     this.consumeStatementTerminator();
 
     return this.factory.createVariableDeclaration(
@@ -307,7 +300,6 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
       varType,
       initializer,
       storageClass,
-      placement,
       false,
       {
         start: startToken.start,

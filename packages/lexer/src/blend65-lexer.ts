@@ -145,7 +145,6 @@ export class Blend65Lexer {
       case ';': return this.createSingleCharToken(TokenType.SEMICOLON);
       case ':': return this.createSingleCharToken(TokenType.COLON);
       case '.': return this.createSingleCharToken(TokenType.DOT);
-      case '@': return this.createSingleCharToken(TokenType.AT);
     }
 
     // Unknown character

@@ -373,11 +373,236 @@ Based on analyzed games:
 - **Planned**: Feature scheduled for specific version
 - **Complete**: Feature fully implemented and tested
 
-### Phase 6: Comprehensive Report Generation
+#### 5.4 Language & Compiler Features Tracking
+
+**Create or update `docs/research/BLEND65_MISSING_LANGUAGE_FEATURES.md`:**
+
+This file tracks missing language and compiler features including heap allocation, variable types, 6502-specific optimizations, and core language constructs.
+
+**File Structure:**
+```markdown
+# Blend65 Missing Language & Compiler Features
+
+**Purpose:** Track missing language features, compiler capabilities, and 6502-specific optimizations
+**Last Updated:** [current_date]
+
+---
+
+## Core Language Features
+
+| Feature | Status | Target Version | Priority | Requesting Games | Implementation Effort | Notes |
+|---------|--------|----------------|----------|------------------|---------------------|-------|
+| Dynamic Arrays | Missing | v0.2 | CRITICAL | [Game1, Game2] | HIGH | `dynamic byte[]` syntax |
+| String Type | Missing | v0.3 | HIGH | [Game3, Game4] | MEDIUM | Built-in string operations |
+| Function Pointers | Missing | v0.3 | MEDIUM | [Game5] | HIGH | First-class function types |
+| Heap Allocation | Missing | v0.4 | CRITICAL | [Game6, Game7] | VERY HIGH | `malloc()` / `free()` system |
+| Recursion Support | Missing | v0.4 | MEDIUM | [Game8] | HIGH | Stack management for 6502 |
+| Local Variables | Missing | v0.2 | HIGH | [Game9, Game10] | MEDIUM | Function-scoped variables |
+| Nested Types | Missing | v0.3 | MEDIUM | [Game11] | MEDIUM | Structs within structs |
+| Unions | Missing | v0.4 | LOW | [Game12] | MEDIUM | Memory-efficient data layout |
+| Enums | Missing | v0.2 | MEDIUM | [Game13] | LOW | Named constant groups |
+| Optional Types | Missing | v0.3 | MEDIUM | [Game14] | MEDIUM | null-safe programming |
+
+## Memory Management
+
+| Feature | Status | Target Version | Priority | Requesting Games | Implementation Effort | Notes |
+|---------|--------|----------------|----------|------------------|---------------------|-------|
+| Memory Pools | Missing | v0.4 | HIGH | [Game15] | HIGH | Fixed-size allocation pools |
+| Garbage Collection | Missing | v0.5 | MEDIUM | [Game16] | VERY HIGH | Optional automatic memory mgmt |
+| Stack Variables | Missing | v0.2 | HIGH | [Game17] | MEDIUM | Local variable storage |
+| Reference Types | Missing | v0.3 | MEDIUM | [Game18] | HIGH | Pointer-like references |
+| Memory Safety | Missing | v0.4 | MEDIUM | [Game19] | HIGH | Bounds checking, null checks |
+
+## 6502-Specific Compiler Features
+
+| Feature | Status | Target Version | Priority | Requesting Games | Implementation Effort | Notes |
+|---------|--------|----------------|----------|------------------|---------------------|-------|
+| Zero Page Optimization | Partial | v0.2 | CRITICAL | [Game20] | MEDIUM | Auto-promote hot variables |
+| Register Allocation | Missing | v0.3 | HIGH | [Game21] | HIGH | Smart A/X/Y register usage |
+| Inline Assembly | Missing | v0.3 | MEDIUM | [Game22] | MEDIUM | Embed raw 6502 code |
+| Loop Unrolling | Missing | v0.3 | MEDIUM | [Game23] | MEDIUM | Performance optimization |
+| Dead Code Elimination | Missing | v0.2 | HIGH | [Game24] | MEDIUM | Remove unused functions |
+| Constant Folding | Missing | v0.2 | HIGH | [Game25] | LOW | Compile-time math evaluation |
+| Tail Call Optimization | Missing | v0.4 | LOW | [Game26] | HIGH | Recursive function optimization |
+
+## Control Flow Features
+
+| Feature | Status | Target Version | Priority | Requesting Games | Implementation Effort | Notes |
+|---------|--------|----------------|----------|------------------|---------------------|-------|
+| Match Expressions | Missing | v0.3 | MEDIUM | [Game27] | MEDIUM | Pattern matching syntax |
+| Range Loops | Missing | v0.2 | HIGH | [Game28] | LOW | `for x in range` syntax |
+| Break/Continue | Missing | v0.2 | HIGH | [Game29] | LOW | Loop control statements |
+| Nested Functions | Missing | v0.4 | LOW | [Game30] | HIGH | Functions inside functions |
+| Closures | Missing | v0.5 | LOW | [Game31] | VERY HIGH | Capture local variables |
+
+## Type System Enhancements
+
+| Feature | Status | Target Version | Priority | Requesting Games | Implementation Effort | Notes |
+|---------|--------|----------------|----------|------------------|---------------------|-------|
+| Generic Types | Missing | v0.4 | MEDIUM | [Game32] | VERY HIGH | Template-like functionality |
+| Type Inference | Missing | v0.3 | HIGH | [Game33] | HIGH | Auto-detect variable types |
+| Const Generics | Missing | v0.4 | LOW | [Game34] | HIGH | Compile-time parameters |
+| Trait System | Missing | v0.5 | LOW | [Game35] | VERY HIGH | Interface-like functionality |
+
+## Error Handling
+
+| Feature | Status | Target Version | Priority | Requesting Games | Implementation Effort | Notes |
+|---------|--------|----------------|----------|------------------|---------------------|-------|
+| Result Types | Missing | v0.3 | MEDIUM | [Game36] | MEDIUM | Optional error handling |
+| Panic System | Missing | v0.3 | MEDIUM | [Game37] | MEDIUM | Graceful failure handling |
+| Assert Macros | Missing | v0.2 | LOW | [Game38] | LOW | Debug-time checks |
+```
+
+#### 5.5 Library & Functions Tracking
+
+**Create or update `docs/research/BLEND65_MISSING_LIBRARIES.md`:**
+
+This file tracks missing built-in libraries, hardware APIs, and standard functions that games need.
+
+**File Structure:**
+```markdown
+# Blend65 Missing Libraries & Functions
+
+**Purpose:** Track missing standard libraries, hardware APIs, and utility functions
+**Last Updated:** [current_date]
+
+---
+
+## Mathematics Library
+
+| Function | Status | Target Version | Priority | Requesting Games | Implementation Effort | Notes |
+|----------|--------|----------------|----------|------------------|---------------------|-------|
+| sin() | Missing | v0.3 | HIGH | [Game1, Game5] | MEDIUM | Lookup table implementation |
+| cos() | Missing | v0.3 | HIGH | [Game1, Game5] | MEDIUM | Lookup table implementation |
+| sqrt() | Missing | v0.3 | MEDIUM | [Game12] | HIGH | Newton's method or lookup |
+| arctan() | Missing | v0.3 | MEDIUM | [Game39] | HIGH | CORDIC algorithm |
+| abs() | Missing | v0.2 | HIGH | [Game40] | LOW | Simple absolute value |
+| min() / max() | Missing | v0.2 | HIGH | [Game41] | LOW | Comparison functions |
+| fastMultiply() | Missing | v0.3 | HIGH | [Game13] | MEDIUM | 6502-optimized multiplication |
+| fastDivide() | Missing | v0.3 | MEDIUM | [Game42] | HIGH | 6502-optimized division |
+| random() | Missing | v0.2 | CRITICAL | [Game43] | MEDIUM | Pseudo-random number generator |
+| randomSeed() | Missing | v0.2 | HIGH | [Game44] | LOW | Initialize RNG state |
+
+## String Library
+
+| Function | Status | Target Version | Priority | Requesting Games | Implementation Effort | Notes |
+|----------|--------|----------------|----------|------------------|---------------------|-------|
+| length() | Missing | v0.3 | HIGH | [Game3, Game4] | LOW | String length calculation |
+| concatenate() | Missing | v0.3 | HIGH | [Game3, Game4] | MEDIUM | String joining |
+| substring() | Missing | v0.3 | MEDIUM | [Game14] | MEDIUM | Extract string portion |
+| charAt() | Missing | v0.3 | MEDIUM | [Game45] | LOW | Get character at index |
+| indexOf() | Missing | v0.3 | MEDIUM | [Game46] | MEDIUM | Find substring position |
+| toString() | Missing | v0.3 | HIGH | [Game47] | MEDIUM | Convert numbers to strings |
+| parseInt() | Missing | v0.3 | MEDIUM | [Game48] | MEDIUM | Parse string to number |
+| split() | Missing | v0.3 | LOW | [Game49] | HIGH | Split string by delimiter |
+| trim() | Missing | v0.3 | LOW | [Game50] | LOW | Remove whitespace |
+
+## Memory Management Library
+
+| Function | Status | Target Version | Priority | Requesting Games | Implementation Effort | Notes |
+|----------|--------|----------------|----------|------------------|---------------------|-------|
+| malloc() | Missing | v0.4 | CRITICAL | [Game6, Game7] | VERY HIGH | Dynamic allocation |
+| free() | Missing | v0.4 | CRITICAL | [Game6, Game7] | HIGH | Memory deallocation |
+| realloc() | Missing | v0.4 | MEDIUM | [Game51] | HIGH | Resize allocated memory |
+| memcpy() | Missing | v0.3 | HIGH | [Game52] | MEDIUM | Fast memory copying |
+| memset() | Missing | v0.3 | HIGH | [Game53] | LOW | Memory filling |
+| memcmp() | Missing | v0.3 | MEDIUM | [Game54] | LOW | Memory comparison |
+
+## Array/Collection Library
+
+| Function | Status | Target Version | Priority | Requesting Games | Implementation Effort | Notes |
+|----------|--------|----------------|----------|------------------|---------------------|-------|
+| append() | Missing | v0.2 | HIGH | [Game55] | MEDIUM | Add to dynamic array |
+| remove() | Missing | v0.2 | HIGH | [Game56] | MEDIUM | Remove from dynamic array |
+| insert() | Missing | v0.2 | MEDIUM | [Game57] | MEDIUM | Insert at specific position |
+| find() | Missing | v0.3 | MEDIUM | [Game58] | MEDIUM | Search array for element |
+| sort() | Missing | v0.3 | MEDIUM | [Game59] | HIGH | Array sorting algorithms |
+| reverse() | Missing | v0.3 | LOW | [Game60] | LOW | Reverse array order |
+
+## Hardware APIs by Platform
+
+### C64 Graphics (c64.vic)
+| Function | Status | Priority | Requesting Games | Implementation Effort | Notes |
+|----------|--------|----------|------------------|---------------------|-------|
+| setScreenMode() | Missing | CRITICAL | [Game61] | MEDIUM | Text/bitmap/multicolor modes |
+| setBackgroundColor() | Partial | HIGH | [Game62] | LOW | Single background color |
+| setBorderColor() | Missing | MEDIUM | [Game63] | LOW | Screen border color |
+| readSpriteCollisions() | Missing | CRITICAL | [Game4] | MEDIUM | Hardware collision detection |
+| readBackgroundCollisions() | Missing | CRITICAL | [Game4] | MEDIUM | Sprite-background collision |
+| clearCollisions() | Missing | HIGH | [Game64] | LOW | Reset collision registers |
+| setScrollX() | Missing | HIGH | [Game65] | MEDIUM | Horizontal scrolling |
+| setScrollY() | Missing | HIGH | [Game65] | MEDIUM | Vertical scrolling |
+
+### C64 Sprites (c64.sprites)
+| Function | Status | Priority | Requesting Games | Implementation Effort | Notes |
+|----------|--------|----------|------------------|---------------------|-------|
+| setSpriteImage() | Missing | CRITICAL | [Game1, Game2] | MEDIUM | Set sprite data pointer |
+| setSpriteExpansion() | Missing | MEDIUM | [Game3] | LOW | Double width/height |
+| setSpriteColor() | Missing | HIGH | [Game66] | LOW | Sprite color setting |
+| enableSprites() | Missing | HIGH | [Game67] | LOW | Enable sprite display |
+| setSpriteCollisionMask() | Missing | MEDIUM | [Game68] | MEDIUM | Collision detection control |
+| setSpriteMulticolor() | Missing | MEDIUM | [Game69] | MEDIUM | Multicolor sprite mode |
+| setSpritePriority() | Missing | MEDIUM | [Game70] | LOW | Foreground/background priority |
+
+### C64 Sound (c64.sid)
+| Function | Status | Priority | Requesting Games | Implementation Effort | Notes |
+|----------|--------|----------|------------------|---------------------|-------|
+| playNote() | Partial | HIGH | [Game71] | LOW | Simple note playing |
+| setWaveform() | Missing | HIGH | [Game72] | MEDIUM | Pulse/triangle/sawtooth/noise |
+| setADSR() | Missing | MEDIUM | [Game73] | MEDIUM | Attack/decay/sustain/release |
+| setFrequency() | Missing | HIGH | [Game74] | LOW | Direct frequency control |
+| enableFilter() | Missing | MEDIUM | [Game75] | HIGH | Low/band/high pass filters |
+| readOscillator() | Missing | MEDIUM | [Game7] | LOW | Hardware random number |
+| setSynchronization() | Missing | LOW | [Game76] | MEDIUM | Voice sync effects |
+
+### C64 Input (c64.cia)
+| Function | Status | Priority | Requesting Games | Implementation Effort | Notes |
+|----------|--------|----------|------------------|---------------------|-------|
+| readKeyboard() | Missing | HIGH | [Game77] | MEDIUM | Full keyboard matrix |
+| setTimer() | Missing | CRITICAL | [Game6] | MEDIUM | CIA timer programming |
+| readTimer() | Missing | CRITICAL | [Game78] | LOW | Timer value reading |
+| enableInterrupt() | Missing | CRITICAL | [Game5] | HIGH | Timer/serial interrupts |
+
+### C64 Interrupts (c64.interrupts)
+| Function | Status | Priority | Requesting Games | Implementation Effort | Notes |
+|----------|--------|----------|------------------|---------------------|-------|
+| setRasterInterrupt() | Missing | CRITICAL | [Game5] | HIGH | Raster line interrupts |
+| setTimerInterrupt() | Missing | HIGH | [Game79] | HIGH | CIA timer interrupts |
+| clearInterrupt() | Missing | HIGH | [Game80] | MEDIUM | Acknowledge interrupts |
+| disableInterrupts() | Missing | MEDIUM | [Game81] | LOW | Disable all interrupts |
+
+## Platform-Independent Libraries
+
+### Generic Graphics
+| Function | Status | Priority | Requesting Games | Implementation Effort | Notes |
+|----------|--------|----------|------------------|---------------------|-------|
+| setPixel() | Missing | HIGH | [Game82] | MEDIUM | Plot single pixel |
+| clearScreen() | Missing | HIGH | [Game83] | LOW | Clear entire screen |
+| drawLine() | Missing | MEDIUM | [Game84] | HIGH | Bresenham line algorithm |
+| drawCircle() | Missing | MEDIUM | [Game85] | HIGH | Circle drawing |
+| drawRectangle() | Missing | MEDIUM | [Game86] | MEDIUM | Rectangle drawing |
+| printText() | Missing | HIGH | [Game87] | MEDIUM | Text rendering |
+
+### Generic Input
+| Function | Status | Priority | Requesting Games | Implementation Effort | Notes |
+|----------|--------|----------|------------------|---------------------|-------|
+| readJoystick() | Partial | HIGH | [Game88] | LOW | Multi-platform joystick |
+| readKeys() | Missing | HIGH | [Game89] | MEDIUM | Platform-abstracted keyboard |
+| waitForInput() | Missing | MEDIUM | [Game90] | LOW | Block until input received |
+
+### File I/O (where supported)
+| Function | Status | Priority | Requesting Games | Implementation Effort | Notes |
+|----------|--------|----------|------------------|---------------------|-------|
+| loadFile() | Missing | LOW | [Game91] | HIGH | Load data from storage |
+| saveFile() | Missing | LOW | [Game92] | HIGH | Save data to storage |
+| fileExists() | Missing | LOW | [Game93] | MEDIUM | Check file existence |
+```
+
+### Phase 6: Game Analysis Report Generation
 
 #### 6.1 Analysis Summary
 
-**Generate final report:**
+**Save individual game analysis to `docs/research/games/[GAME_NAME]_GAMECHECK_ANALYSIS.md`:**
 
 ```markdown
 # Game Analysis Report: [Game Name]
@@ -418,6 +643,55 @@ Based on analyzed games:
 - Incomplete source code
 - Platform-specific code without clear documentation
 - Complex build systems requiring special handling
+
+### Phase 8: Automatic Git Integration
+
+#### 8.1 Commit Game Research Results
+
+**Execute `gitcmp` workflow automatically when gamecheck analysis completes:**
+
+1. **Stage all analysis changes** (`git add .`)
+2. **Create detailed commit message** following the format:
+   ```
+   feat(research): analyze [Game Name] for Blend65 compatibility
+
+   - Added game analysis report to docs/research/games/
+   - Updated evolution roadmap with compatibility findings
+   - Updated missing features matrix with new requirements
+   - Updated language features tracking with [X] new gaps
+   - Updated library functions tracking with [Y] missing APIs
+   - Priority adjustments based on [Game Name] requirements
+   ```
+3. **Commit the changes** (`git commit -m "detailed message"`)
+4. **Pull and rebase** if needed (`git pull --rebase`)
+5. **Push to remote** (`git push`) if no conflicts
+6. **Report any conflicts** for manual resolution
+
+**Commit Message Template:**
+```
+feat(research): analyze [GAME_NAME] for Blend65 compatibility
+
+- Game analysis: [PORTABILITY_STATUS] - Version [X.Y] needed
+- Updated evolution roadmap with [Game Name] compatibility analysis
+- Updated missing features matrix with [N] new feature requirements
+- Updated language features tracking with [N] new language gaps
+- Updated library functions tracking with [N] missing APIs
+- Priority updates: [List major priority changes]
+- New blockers identified: [List critical missing features]
+```
+
+**Example commit message:**
+```
+feat(research): analyze Iridis Alpha for Blend65 compatibility
+
+- Game analysis: PARTIALLY_PORTABLE - Version v0.3 needed
+- Updated evolution roadmap with Iridis Alpha compatibility analysis
+- Updated missing features matrix with 8 new feature requirements
+- Updated language features tracking with dynamic arrays, string processing
+- Updated library functions tracking with 12 missing sprite/collision APIs
+- Priority updates: Hardware collision detection upgraded to CRITICAL
+- New blockers identified: Advanced sprite control, interrupt system
+```
 
 ---
 

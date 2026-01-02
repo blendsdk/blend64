@@ -285,8 +285,7 @@ Instead of raw register manipulation:
 
 ```
 // OLD (not supported):
-io var VIC_SPRITE0_X: byte @ $D000
-VIC_SPRITE0_X = playerX
+// Direct register access not supported
 
 // NEW (function-based):
 import setSpritePosition from c64.sprites
@@ -325,14 +324,14 @@ zp   var frame: byte
 ram  var bulletsX: byte[8]
 data var palette: byte[16] = [ 0x00, 0x06, 0x0E, 0x0B ]
 const var msg: byte[7] = "SCORE:"
-io   var CUSTOM_REG: byte @ $D800  // Target-specific address
+io   var CUSTOM_REG: byte  // Target-specific address mapping
 ```
 
 **Target-specific considerations:**
 
 - **Zero page size** varies by target (C64: ~$02-$FF, Atari 2600: $80-$FF)
 - **Memory layout** differs significantly between machines
-- **I/O addresses** are completely target-dependent
+- **I/O register access** is handled through target-specific hardware APIs
 
 ---
 

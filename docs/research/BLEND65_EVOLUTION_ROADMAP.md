@@ -1355,6 +1355,167 @@ This analysis **strongly validates** the Blend65 evolution strategy:
 
 ---
 
+## Psychedelia/Colourspace Compatibility Analysis
+
+**Repository:** https://github.com/mwenge/psychedelia.git
+**Analysis Date:** 02/01/2026
+**Target Platform:** C64/VIC-20/Atari 800 (Multi-platform 6502)
+**Project Size:** 6,983 lines of assembly code across 6 files
+**Project Type:** Real-time light synthesizer (interactive audio-visual application)
+
+### Portability Status: NOT_CURRENTLY_PORTABLE - Requires Version 0.6+
+
+**Primary Blockers:**
+- Hardware interrupt system (CRITICAL)
+- Advanced graphics control (CRITICAL)
+- Real-time pattern generation (CRITICAL)
+- Memory-mapped I/O access (CRITICAL)
+
+**Recommended Blend65 Version:** v0.6+ (beyond current roadmap)
+**Implementation Effort:** EXTREME - Most hardware-intensive application analyzed
+
+### Revolutionary Application Class: **Real-Time Hardware Synthesizer**
+
+Psychedelia represents a **completely new application category** that pushes beyond traditional game development:
+
+1. **Real-Time Graphics Engine**: 60Hz pattern generation with complex geometric algorithms
+2. **Interrupt-Driven Architecture**: Entire application runs in custom IRQ handlers
+3. **Direct Hardware Manipulation**: Color RAM access, VIC-II control, CIA input processing
+4. **Advanced Pattern System**: Multi-level geometric rendering with symmetry transformations
+5. **Hardware-Based Audio-Visual Sync**: Tight integration between input, graphics, and timing
+
+### Critical Missing Hardware Features (v0.6+ Required):
+
+**Interrupt System Framework:**
+```blend65
+// 60Hz main loop in interrupt handler
+interrupt function mainUpdate(): void
+    updatePixelBuffers()
+    processJoystickInput()
+    renderPatterns()
+end function
+
+interrupt function nmiHandler(): void
+    preserveSystemState()
+end function
+```
+
+**Memory-Mapped I/O Access:**
+```blend65
+// Direct hardware register access
+var colorRam: ptr byte = $D800
+var joystick: ptr byte = $DC00
+var borderColor: ptr byte = $D020
+
+function paintPixel(x: byte, y: byte, color: byte): void
+    var offset: word = y * 40 + x
+    colorRam[offset] = color
+end function
+```
+
+**Real-Time Graphics APIs:**
+```blend65
+import clearColorRam, setCharacterSet, configureMemoryLayout from c64.vic
+
+function initializeGraphics(): void
+    clearColorRam()
+    setCharacterSet(CUSTOM_CHARSET_ADDRESS)
+    setBorderColor(BLACK)
+    setBackgroundColor(BLACK)
+end function
+```
+
+**Precise Timing Control:**
+```blend65
+import setTimer, readTimer from c64.cia
+
+function waitForNextFrame(): void
+    setTimer(CIA1, TIMER_A, 16666) // 60Hz synchronization
+    while readTimer(CIA1, TIMER_A) > 0 do
+        // Hardware-accurate timing
+    end while
+end function
+```
+
+**Zero Page Optimization:**
+```blend65
+// Performance-critical variables in zero page
+zp var pixelX: byte at $02
+zp var pixelY: byte at $03
+zp var colorIndex: byte at $04
+```
+
+### Evolution Roadmap Impact:
+
+**NEW COMPLEXITY CLASS IDENTIFIED: Real-Time Hardware Applications**
+
+| Application Type | Language Features | Hardware Access | Blend65 Version | Example |
+|------------------|-------------------|-----------------|-----------------|---------|
+| **Educational** | Basic | Basic | v0.1 | C64 Examples |
+| **Simple Games** | Basic | Basic | v0.1 | Snake, Pong |
+| **Arcade Games** | Basic | Advanced | v0.5 | Astroblast, Bubble Escape |
+| **Simulation Games** | Advanced | Basic | v0.4 | Mafia ASM, Trading |
+| **Real-Time Applications** | Advanced | Critical | **v0.6+** | **Psychedelia**, Demos |
+| **Ultimate Games** | Advanced | Critical | v1.0+ | Elite + Hardware mastery |
+
+### Implementation Priority Updates:
+
+**CRITICAL PRIORITY (New Category from Psychedelia):**
+1. **Interrupt System Implementation** - UPGRADED to CRITICAL (from HIGH)
+2. **Memory-Mapped I/O Support** - UPGRADED to CRITICAL (from MEDIUM)
+3. **Real-Time Graphics Framework** - NEW CRITICAL requirement
+4. **Hardware Timing Control** - UPGRADED to CRITICAL (from LOW)
+
+**Version 0.6 Requirements (Beyond Current Roadmap):**
+1. **Advanced Graphics Control** - Color RAM manipulation, VIC-II configuration
+2. **Zero Page Optimization** - Performance-critical variable placement
+3. **Hardware Collision Detection** - Advanced VIC-II features
+4. **Complete C64 Hardware API** - Full register access coverage
+
+### Development Effort Analysis:
+
+**Language Core Extensions: EXTREME**
+- Interrupt system: 6-8 weeks
+- Memory-mapped I/O: 4-6 weeks
+- Real-time graphics: 8-10 weeks
+- Hardware APIs: 8-12 weeks per platform
+- Zero page optimization: 4-6 weeks
+
+**Total Estimated Effort for v0.6:** 8-12 months of dedicated development
+
+### Validation of Hardware-Intensive Path:
+
+Psychedelia **confirms the essential nature** of the hardware-intensive evolution path:
+
+1. **Real-Time Applications Exist**: Proves there's a category beyond games requiring deep hardware control
+2. **Interrupt Systems are Critical**: Validates v0.5+ interrupt system priority
+3. **Performance Matters**: Zero page optimization is essential for real-time applications
+4. **Hardware APIs Need Depth**: Surface-level APIs insufficient for sophisticated applications
+
+### Alternative Implementation Strategy:
+
+Given the extreme implementation complexity, consider a **hybrid approach**:
+
+1. **High-Level Recreation**: Implement pattern generation using available Blend65 features
+2. **Software Graphics**: Use character/sprite graphics instead of direct color RAM
+3. **Polling Input**: Replace interrupt-driven input with polling systems
+4. **Simplified Patterns**: Recreate visual effects within current capabilities
+
+This provides **similar functionality** while remaining within Blend65's evolution timeline.
+
+### Evolutionary Significance:
+
+Psychedelia represents the **pinnacle of hardware-intensive 6502 programming** and demonstrates that Blend65's evolution must eventually support:
+
+1. **Real-Time Interactive Systems** - Beyond traditional game development
+2. **Creative Applications** - Audio-visual tools, demos, art applications
+3. **Hardware Mastery** - Deep platform integration for maximum capability
+4. **Performance-Critical Code** - Zero-overhead abstractions with hardware efficiency
+
+Supporting Psychedelia-class applications would establish Blend65 as a **complete retro development platform** capable of the most demanding 8-bit applications.
+
+---
+
 ## Astroblast Compatibility Analysis
 
 **Repository:** https://github.com/nealvis/astroblast.git
@@ -1702,3 +1863,186 @@ Mafia ASM **validates the v0.4 roadmap** and reveals that Blend65 needs **two ev
 - **v0.4 for language sophistication** (simulations, RPGs, complex logic games)
 
 Both paths are essential for **complete C64 game development coverage**.
+
+---
+
+## Into The Electric Castle Compatibility Analysis
+
+**Repository:** https://github.com/dread-pirate-johnny-spaceboots/Into-The-Electric-Castle.git
+**Analysis Date:** 02/01/2026
+**Target Platform:** Commodore 64
+**Project Size:** 3.8M / 26 files (4 ASM files, 22 binary/sprite files)
+**Game Type:** Adventure/Action game with dual-joystick control system
+
+### Portability Status: PARTIALLY_PORTABLE - Needs Version 0.5
+
+**Primary Blockers:**
+- Interrupt system (CRITICAL)
+- Hardware collision detection (CRITICAL)
+- Advanced sprite control (CRITICAL)
+- Precise timing control (CRITICAL)
+
+**Recommended Blend65 Version:** v0.5 (hardware-intensive features required)
+**Implementation Effort:** HIGH
+
+### Technical Analysis Summary:
+
+**Hardware Usage Patterns:**
+- **Sprites:** 8 hardware sprites used simultaneously with overflow handling
+- **Collision:** Both sprite-sprite and sprite-background collision systems
+- **Input:** Dual joystick control scheme (movement + action control)
+- **Sound:** SID chip sound effects with hardware parameters
+- **Timing:** Raster synchronization with `WaitForRaster` macro
+- **Memory:** Sophisticated memory layout with sprite overflow for screen wrapping
+
+### Critical Missing Hardware APIs (v0.5 Features):
+
+**Interrupt System:**
+```blend65
+import waitForRaster from c64.vic
+import setRasterInterrupt from c64.interrupts
+
+function gameLoop(): void
+    while playerLives > 0
+        waitForRaster(255) // Critical raster synchronization
+        handleInput()
+        updatePlayer()
+        updateBullets()
+        checkCollisions()
+        updateAnimations()
+    end while
+end function
+```
+
+**Hardware Collision Detection:**
+```blend65
+import readSpriteCollisions, readBackgroundCollisions from c64.vic
+
+function checkCollisions(): void
+    var spriteHits: byte = readSpriteCollisions()
+    var bgHits: byte = readBackgroundCollisions()
+
+    if (spriteHits and 0b00000101) != 0 then // player and door
+        killPlayer()
+    end if
+
+    if (spriteHits and 0b00000110) != 0 then // bullet and door
+        destroyBullet()
+    end if
+end function
+```
+
+**Advanced Sprite Control:**
+```blend65
+import enableSprites, setSpriteOverflow, setSpritePosition from c64.sprites
+
+function initSprites(): void
+    enableSprites(0b11111101) // enable sprites 0,2,3,4,5,6,7
+    setSpriteOverflow(0b10101000) // handle screen wrapping
+
+    for i = 0 to 7
+        setSpritePosition(i, spriteX[i], spriteY[i])
+    next i
+end function
+```
+
+**Dual Joystick Support:**
+```blend65
+import readJoystick from c64.input
+
+function handleDualInput(): void
+    var movementStick = readJoystick(2)  // Port 2 for movement
+    var actionStick = readJoystick(1)    // Port 1 for actions
+
+    // Complex input processing for dual-stick gameplay
+    if (movementStick and JOYSTICK_LEFT) != 0 then
+        movePlayerLeft()
+    end if
+
+    if (actionStick and JOYSTICK_FIRE) != 0 then
+        executeCurrentAction()
+    end if
+end function
+```
+
+### Version 0.5 Requirements Validation:
+
+Into The Electric Castle **confirms the critical importance** of v0.5 hardware features:
+
+1. **Hardware Collision Detection** - Core gameplay mechanic for door opening, combat
+2. **Interrupt System** - Essential for smooth gameplay timing and screen synchronization
+3. **Advanced Sprite Control** - 8 sprites with overflow handling for screen wrapping
+4. **Dual Input System** - Innovative control scheme requiring both joystick ports
+5. **Precise Timing** - Raster synchronization for professional game feel
+
+### Sophisticated Features Analysis:
+
+**Complex State Machine:**
+- Multiple game states: title, gameplay, dying sequence, door animations, level transitions
+- Frame-based animation sequences with timing counters
+- Dynamic action switching with UI feedback system
+
+**Advanced Graphics Management:**
+- Multiple character sets for different screens
+- Dynamic sprite data management with animation frames
+- Screen wrapping with sprite overflow register management
+- Door opening sequences with multi-frame animations
+
+**Audio Integration:**
+- Multiple sound effects: footsteps, laser fire, explosions, death sounds
+- Hardware parameter-driven SID voice control
+- Sound effect timing integrated with gameplay events
+
+### Implementation Priority Updates:
+
+**CRITICAL PRIORITY (Confirmed by Into The Electric Castle):**
+1. **Hardware Collision Detection** - Essential for sophisticated C64 action games
+2. **Interrupt System** - Required for professional-quality timing and smooth gameplay
+3. **Advanced Sprite Control** - Needed for complex multi-sprite games with screen wrapping
+4. **Dual Input Support** - Enables innovative control schemes for advanced games
+
+**HIGH PRIORITY (Enhanced by ITEC requirements):**
+1. **Memory-Mapped I/O** - Direct hardware register access for advanced control
+2. **Advanced Animation Systems** - Frame-based animation with timing control
+3. **Sound Effect Library** - Higher-level sound functions for game audio
+4. **Raster Synchronization** - Hardware timing for smooth visual effects
+
+### Game Complexity Validation:
+
+Into The Electric Castle represents **moderate-complexity C64 adventure games** that require:
+
+1. **Hardware Integration** - More than basic APIs, less than demo-level control
+2. **State Management** - Complex game states with animation sequences
+3. **Multi-System Coordination** - Graphics, sound, input, and timing working together
+4. **Professional Polish** - Smooth gameplay requiring precise hardware control
+
+### Evolutionary Significance:
+
+ITEC validates that **v0.5 hardware APIs are essential** for the C64 gaming ecosystem:
+
+1. **Bridge to Real Games** - Fills gap between educational examples (v0.1) and elite-class games (v1.0)
+2. **Hardware-Intensive Gaming** - Confirms arcade/action games need deep VIC-II integration
+3. **Innovation Enablement** - Dual-joystick control shows how hardware APIs enable creativity
+4. **Quality Standards** - Professional timing and collision detection expected in real games
+
+**Updated Game Complexity Matrix:**
+
+| Game Type | Language Features | Hardware Access | Blend65 Version | Example |
+|-----------|-------------------|-----------------|-----------------|---------|
+| **Simple Arcade** | Basic | Basic | v0.1 | Snake, Pong, C64 Examples |
+| **Adventure/Action** | Basic | Advanced | v0.5 | **Into The Electric Castle**, Astroblast |
+| **Hardware-Intensive** | Basic | Critical | v0.5 | Bubble Escape, Psychedelia |
+| **Business Simulation** | Advanced | Basic | v0.4 | Mafia ASM, Trading Games |
+| **Ultimate Games** | Advanced | Critical | v1.0+ | Elite + Hardware optimization |
+
+Into The Electric Castle **confirms the v0.5 roadmap** and demonstrates that hardware APIs are the primary blocker for porting sophisticated C64 games to Blend65.
+
+### Compatibility Percentage Estimates:
+
+- **v0.1 (Current):** ~15% compatible - Basic structure only, no hardware features
+- **v0.2:** ~20% compatible - Slight improvement with better language features
+- **v0.3:** ~25% compatible - Enhanced language features don't address hardware needs
+- **v0.4:** ~30% compatible - Advanced language features still miss hardware APIs
+- **v0.5:** ~85% compatible - Hardware APIs enable full game implementation
+
+This analysis confirms that **v0.5 is the critical milestone** for enabling real-world C64 game development in Blend65.

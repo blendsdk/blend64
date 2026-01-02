@@ -119,9 +119,9 @@ zp var counter: byte`;
       expect(varDecl.storageClass).toBe('zp');
     });
 
-    it('should parse variable declaration with memory placement', () => {
+    it('should parse variable declaration with I/O storage class', () => {
       const source = `module Main
-io var VIC_REG: byte @ $D000`;
+io var VIC_REG: byte`;
       const ast = parseSource(source);
 
       expect(ast.type).toBe('Program');
@@ -132,7 +132,6 @@ io var VIC_REG: byte @ $D000`;
       expect(varDecl.type).toBe('VariableDeclaration');
       expect(varDecl.name).toBe('VIC_REG');
       expect(varDecl.storageClass).toBe('io');
-      expect(varDecl.placement?.type).toBe('MemoryPlacement');
     });
 
     it('should parse array variable declaration', () => {
@@ -423,7 +422,7 @@ import utils from core.helpers
 export function main(): void
   zp var counter: byte = 0
   ram var buffer: byte[256]
-  io var VIC_REG: byte @ $D000
+  io var VIC_REG: byte
 
   while counter < 10
     buffer[counter] = counter
@@ -472,7 +471,7 @@ zp var zpCounter: byte
 ram var ramBuffer: byte[100]
 data var dataTable: byte[256] = [1, 2, 3]
 const var SCREEN_COLOR: byte = $0E
-io var SID_VOICE1: byte @ $D400`;
+io var SID_VOICE1: byte`;
 
       const ast = parseSource(source);
 
@@ -496,7 +495,6 @@ io var SID_VOICE1: byte @ $D400`;
 
       const ioVar = program.body[4] as VariableDeclaration;
       expect(ioVar.storageClass).toBe('io');
-      expect(ioVar.placement).toBeDefined();
     });
   });
 

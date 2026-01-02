@@ -175,24 +175,13 @@ describe('Blend65Lexer Edge Cases', () => {
   });
 
   describe('Memory Address Edge Cases', () => {
-    it('should handle various memory address formats', () => {
-      const tokens = tokenize('@ $0000 @ $FFFF @ $D000 @ $0200');
-
-      expect(tokens[0].type).toBe(TokenType.AT);
-      expect(tokens[1].type).toBe(TokenType.NUMBER);
-      expect(tokens[1].value).toBe('$0000');
-
-      expect(tokens[2].type).toBe(TokenType.AT);
-      expect(tokens[3].type).toBe(TokenType.NUMBER);
-      expect(tokens[3].value).toBe('$FFFF');
+    it('should reject memory placement operator', () => {
+      expect(() => tokenize('@ $0000')).toThrow('Unexpected character \'@\' at line 1, column 1');
+      expect(() => tokenize('@ $FFFF')).toThrow('Unexpected character \'@\' at line 1, column 1');
     });
 
-    it('should handle memory addresses with expressions', () => {
-      const tokens = tokenize('@ $D000 + offset');
-      expect(tokens[0].type).toBe(TokenType.AT);
-      expect(tokens[1].type).toBe(TokenType.NUMBER);
-      expect(tokens[2].type).toBe(TokenType.PLUS);
-      expect(tokens[3].type).toBe(TokenType.IDENTIFIER);
+    it('should reject memory addresses with expressions', () => {
+      expect(() => tokenize('@ $D000 + offset')).toThrow('Unexpected character \'@\' at line 1, column 1');
     });
   });
 
@@ -226,7 +215,7 @@ end function`;
     it('should handle storage class combinations', () => {
       const source = `zp const var ZERO_PAGE_CONST: byte = $FF
 ram data var INITIALIZED_RAM: word[100] = [1, 2, 3]
-io var VIC_REGISTER: byte @ $D000 + $20`;
+io var VIC_REGISTER: byte`;
 
       const tokens = tokenize(source);
 
@@ -234,9 +223,9 @@ io var VIC_REGISTER: byte @ $D000 + $20`;
       expect(tokens[1].type).toBe(TokenType.CONST);
       expect(tokens[2].type).toBe(TokenType.VAR);
 
-      // Should handle array initialization with complex expressions
-      const atIndex = tokens.findIndex(t => t.type === TokenType.AT);
-      expect(atIndex).toBeGreaterThan(0);
+      // Should handle array initialization and storage classes without memory placement
+      expect(tokens.length).toBeGreaterThan(20);
+      expect(tokens[tokens.length - 1].type).toBe(TokenType.EOF);
     });
   });
 
@@ -248,7 +237,7 @@ io var VIC_REGISTER: byte @ $D000 + $20`;
     });
 
     it('should handle unexpected characters', () => {
-      expect(() => tokenize('var x @ #invalid')).toThrow();
+      expect(() => tokenize('var x @ #invalid')).toThrow('Unexpected character \'@\' at line 1, column 7');
       expect(() => tokenize('var `backtick`')).toThrow();
     });
   });
