@@ -43,7 +43,8 @@ blend65 --target=atari2600 game.blend → game.bin (Atari 2600)
 ### 0.4 Hardware abstraction
 
 -   **Function-based hardware APIs** instead of raw register access.
--   **Target-specific modules** (e.g., `c64:sprites`, `x16:vera`, `vic20:screen`).
+-   **Target-specific modules** (e.g., `c64.sprites`, `x16.vera`, `vic20.screen`).
+-   **Content-based module resolution** - modules resolved by `module` declaration, not file path.
 -   **Compile-time import resolution** based on selected target.
 -   **Zero-overhead inlining** for hardware function calls.
 
@@ -85,9 +86,9 @@ A program is a set of modules. Each file declares exactly one module.
 ```
 module Game.Main
 
-import joystickLeft, joystickRight from target:input
-import setSpritePosition, enableSprite from target:sprites
-import playNote from target:sound
+import joystickLeft, joystickRight from target.input
+import setSpritePosition, enableSprite from target.sprites
+import playNote from target.sound
 
 export function main(): void
     // Universal 6502 code with target-specific hardware
@@ -101,36 +102,47 @@ module         ::= "module" qualified_name newline
 qualified_name ::= ident { "." ident }*
 ```
 
-### 2.2 Target-aware imports
+### 2.2 Content-based module resolution
 
-Imports resolve based on the selected compilation target:
+Imports resolve by scanning project files for matching `module` declarations:
 
 ```
 // These imports resolve differently per target:
-import setSpritePosition from target:sprites
-import setBackgroundColor from target:video
-import readJoystick from target:input
+import setSpritePosition from target.sprites
+import setBackgroundColor from target.video
+import readJoystick from target.input
 
 // Explicit target modules also supported:
-import setSpritePosition from c64:sprites
-import setSprite from x16:vera
+import setSpritePosition from c64.sprites
+import setSprite from x16.vera
+
+// User modules resolved by content:
+import playerUpdate from game.player
+import renderLevel from game.graphics
 ```
 
 ```ebnf
 import_decl ::= "import" import_list "from" module_path newline
 import_list ::= ident { "," ident }*
-module_path ::= target_module | explicit_module | string_literal
+module_path ::= qualified_name
 
-target_module   ::= "target:" ident
-explicit_module ::= machine_id ":" ident
-machine_id      ::= "c64" | "x16" | "vic20" | "atari2600" | ...
+qualified_name ::= ident { "." ident }*
 ```
 
 **Resolution rules:**
 
--   `target:*` modules resolve to machine-specific implementations
--   Machine-specific imports (e.g., `c64:sprites`) work only on that target
--   Compilation fails if imported functions don't exist on selected target
+1. **Content-based resolution**: The compiler scans all `.blend65` files to find matching `module` declarations
+2. **File location independence**: Module files can be located anywhere in the project directory tree
+3. **Target resolution**: `target.*` modules resolve to `{current_target}.*` based on `--target` flag
+4. **Explicit target modules**: Direct target imports (e.g., `c64.sprites`) work only on that specific target
+5. **Compilation failure**: Missing modules or functions cause compilation errors
+
+**Module Discovery Process:**
+
+1. **Scan Phase**: Recursively scan project directory for all `.blend65` files
+2. **Index Phase**: Parse each file's `module` declaration and build module name → file path mapping
+3. **Resolution Phase**: When resolving imports, lookup module name in the index
+4. **Loading Phase**: Load target file and validate exported symbols exist
 
 ### 2.3 Exports
 
@@ -210,26 +222,26 @@ Valid targets depend on installed target definitions.
 **Universal pattern:**
 
 ```
-import functionName from target:module
+import functionName from target.module
 ```
 
 **Target-specific pattern:**
 
 ```
-import functionName from machine:module
+import functionName from machine.module
 ```
 
 **Examples:**
 
 ```
 // Works on targets that have sprites
-import setSpritePosition from target:sprites
+import setSpritePosition from target.sprites
 
 // C64-specific (fails on other targets)
-import setSpritePosition from c64:sprites
+import setSpritePosition from c64.sprites
 
 // Commander X16-specific
-import setSprite from x16:vera
+import setSprite from x16.vera
 ```
 
 ### 4.3 Target capabilities
@@ -238,27 +250,27 @@ Different targets provide different hardware modules:
 
 **Commodore 64:**
 
--   `c64:sprites` - 8 hardware sprites via VIC-II
--   `c64:sid` - Sound synthesis via SID chip
--   `c64:vic` - Screen colors, graphics modes
--   `c64:input` - Joystick/keyboard via CIA
+-   `c64.sprites` - 8 hardware sprites via VIC-II
+-   `c64.sid` - Sound synthesis via SID chip
+-   `c64.vic` - Screen colors, graphics modes
+-   `c64.input` - Joystick/keyboard via CIA
 
 **Commander X16:**
 
--   `x16:vera` - Modern graphics via VERA chip
--   `x16:ym2151` - FM synthesis via YM2151
--   `x16:input` - Modern input handling
+-   `x16.vera` - Modern graphics via VERA chip
+-   `x16.ym2151` - FM synthesis via YM2151
+-   `x16.input` - Modern input handling
 
 **VIC-20:**
 
--   `vic20:screen` - Character-based display
--   `vic20:vic` - Simple colors/modes (no sprites)
--   `vic20:input` - Basic input
+-   `vic20.screen` - Character-based display
+-   `vic20.vic` - Simple colors/modes (no sprites)
+-   `vic20.input` - Basic input
 
 **Atari 2600:**
 
--   `atari2600:tia` - Minimal graphics (2 sprites, playfield)
--   `atari2600:riot` - Sound and input
+-   `atari2600.tia` - Minimal graphics (2 sprites, playfield)
+-   `atari2600.riot` - Sound and input
 -   Extreme memory constraints (128 bytes RAM)
 
 ---
@@ -275,7 +287,7 @@ io var VIC_SPRITE0_X: byte @ $D000
 VIC_SPRITE0_X = playerX
 
 // NEW (function-based):
-import setSpritePosition from target:sprites
+import setSpritePosition from target.sprites
 setSpritePosition(0, playerX, playerY)
 ```
 
@@ -397,28 +409,28 @@ programmer.
 
 When compiling with `--target=MACHINE`:
 
-1. `target:module` imports resolve to `MACHINE:module`
-2. Direct `MACHINE:module` imports work only on that target
+1. `target.module` imports resolve to `MACHINE.module`
+2. Direct `MACHINE.module` imports work only on that target
 3. Compilation fails for unavailable target modules
 
 ### 10.2 Standard target modules
 
 **Graphics:**
 
--   `target:sprites` → `c64:sprites`, `x16:vera`, etc.
--   `target:screen` → `c64:vic`, `vic20:screen`, etc.
+-   `target.sprites` → `c64.sprites`, `x16.vera`, etc.
+-   `target.screen` → `c64.vic`, `vic20.screen`, etc.
 
 **Input:**
 
--   `target:input` → `c64:input`, `x16:input`, etc.
+-   `target.input` → `c64.input`, `x16.input`, etc.
 
 **Sound:**
 
--   `target:sound` → `c64:sid`, `x16:ym2151`, etc.
+-   `target.sound` → `c64.sid`, `x16.ym2151`, etc.
 
 **Memory:**
 
--   `target:memory` → Universal `peek`/`poke` functions
+-   `target.memory` → Universal `peek`/`poke` functions
 
 ### 10.3 Function signatures
 
@@ -498,9 +510,9 @@ var snakeLength: byte = 4
 var direction: byte = 0
 
 // Target-specific imports (resolved at compile time)
-import joystickUp, joystickDown, joystickLeft, joystickRight from target:input
-import setPixel, clearScreen from target:graphics
-import playTone from target:sound
+import joystickUp, joystickDown, joystickLeft, joystickRight from target.input
+import setPixel, clearScreen from target.graphics
+import playTone from target.sound
 
 export function main(): void
     initGame()
@@ -541,15 +553,15 @@ end function
 ```bash
 # Commodore 64 version
 blend65 --target=c64 snake.blend
-# → Resolves target:input to c64:input, target:graphics to c64:vic
+# → Resolves target.input to c64.input, target.graphics to c64.vic
 
 # Commander X16 version
 blend65 --target=x16 snake.blend
-# → Resolves target:input to x16:input, target:graphics to x16:vera
+# → Resolves target.input to x16.input, target.graphics to x16.vera
 
 # VIC-20 version
 blend65 --target=vic20 snake.blend
-# → Resolves target:input to vic20:input, target:graphics to vic20:screen
+# → Resolves target.input to vic20.input, target.graphics to vic20.screen
 ```
 
 ---

@@ -1,0 +1,33 @@
+module game.player
+
+// This file can be located anywhere in the project!
+// The compiler finds it by scanning for the "module game.player" declaration
+
+import setSpritePosition, setSpriteColor, enableSprite from target.sprites
+
+// Player state
+var playerX: word = 160
+var playerY: byte = 100
+var playerSprite: byte = 0
+
+export function initPlayer(): void
+    setSpritePosition(playerSprite, playerX, playerY)
+    setSpriteColor(playerSprite, 14)  // Light blue
+    enableSprite(playerSprite)
+end function
+
+export function updatePlayer(): void
+    // Update player logic here
+end function
+
+export function renderPlayer(): void
+    setSpritePosition(playerSprite, playerX, playerY)
+end function
+
+export function getPlayerX(): word
+    return playerX
+end function
+
+export function getPlayerY(): byte
+    return playerY
+end function

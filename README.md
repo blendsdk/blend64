@@ -247,7 +247,3 @@ x64 game.prg        # Run in VICE emulator
 ## License
 
 MIT License - see [LICENSE](LICENSE) for details
-
-```
-
-```

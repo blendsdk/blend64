@@ -1,0 +1,57 @@
+module Game.Main
+
+// Target-specific imports (resolved based on --target flag)
+import setSpritePosition, enableSprite from target.sprites
+import setBackgroundColor, setBorderColor from target.video
+import readJoystick from target.input
+import playNote from target.sound
+
+// User-defined modules (resolved by scanning for module declarations)
+import initPlayer, updatePlayer, renderPlayer from game.player
+import initLevel, renderLevel from game.level
+import updateGameState from game.logic
+
+// Direct target imports (only work on specific targets)
+import setSIDVolume from c64.sid  // Only available when compiling for C64
+
+// Universal 6502 variables
+var gameState: byte = 0
+var score: word = 0
+var lives: byte = 3
+
+export function main(): void
+    initGame()
+    gameLoop()
+end function
+
+function initGame(): void
+    setBackgroundColor(0)  // Black background
+    setBorderColor(14)     // Light blue border
+
+    initLevel()
+    initPlayer()
+
+    // C64-specific: Set SID volume (will only compile for C64 target)
+    setSIDVolume(15)
+
+    gameState = 1  // Running state
+end function
+
+function gameLoop(): void
+    while gameState > 0
+        handleInput()
+        updateGameState()
+        render()
+    end while
+end function
+
+function handleInput(): void
+    if readJoystick() and 1 then  // Fire button
+        // Handle fire input
+    end if
+end function
+
+function render(): void
+    renderLevel()
+    renderPlayer()
+end function
