@@ -130,11 +130,12 @@ blend65 game.blend  # → game.prg for Commodore 64
 
 ## Compiler Architecture
 
-Source → **Lexing & Parsing** → **AST Generation** → **Type Checking** → **C64 Hardware API Resolution** → **Memory Layout** → **6502 Optimization** → **C64 Code Generation** → **PRG Binary**
+Source → **Lexing** → **Parsing** → **AST Generation** → **Type Checking** → **C64 Hardware API Resolution** → **Memory Layout** → **6502 Optimization** → **C64 Code Generation** → **PRG Binary**
 
 ### Key Phases
 
--   **Parsing**: Convert Blend65 source to Abstract Syntax Tree
+-   **Lexing**: ✅ Convert Blend65 source to tokens with 6502-specific features
+-   **Parsing**: Convert tokens to Abstract Syntax Tree
 -   **Type Checking**: Validate types and memory constraints
 -   **Hardware API Resolution**: Resolve C64 hardware function calls
 -   **Memory Layout**: Apply C64 memory map and zero page allocation
@@ -210,12 +211,17 @@ x64 game.prg        # Run in VICE emulator
 -   [x] Language specification design
 -   [x] C64 target architecture design
 -   [x] 6502 family design principles
+-   [x] **Blend65 Lexer** - Complete lexical analyzer with 6502-specific features
+-   [x] **Token System** - Comprehensive token types including storage classes
+-   [x] **Number Parsing** - Multiple formats: decimal, hex ($XX, 0x), binary (0b)
+-   [x] **Package Structure** - Monorepo with TypeScript and testing framework
 
 ### What's In Progress
 
--   [ ] Core 6502 language implementation
+-   [ ] Parser implementation for AST generation
+-   [ ] Core 6502 language semantic analysis
 -   [ ] C64 hardware API implementation
--   [ ] C64 compiler implementation
+-   [ ] C64 compiler backend implementation
 -   [ ] Memory management and optimization
 
 ### What's Planned
@@ -227,6 +233,39 @@ x64 game.prg        # Run in VICE emulator
 ---
 
 ## Getting Started
+
+### Development Setup
+
+```bash
+# Install dependencies
+yarn install
+
+# Build the lexer package
+cd packages/lexer
+yarn build
+
+# Run tests
+yarn test
+```
+
+### Using the Lexer
+
+```javascript
+import { Blend65Lexer } from '@blend65/lexer';
+
+const source = `
+zp var frameCounter: byte = 0
+function updatePlayer(): void
+    frameCounter = frameCounter + 1
+end function
+`;
+
+const lexer = new Blend65Lexer(source);
+const tokens = lexer.tokenize();
+console.log(tokens);
+```
+
+### Full Compilation (Future)
 
 1. **Set up your C64 development environment**
 2. **Write Blend65 code** with C64 hardware imports
