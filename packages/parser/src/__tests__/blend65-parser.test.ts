@@ -238,6 +238,33 @@ end function`;
       expect(funcDecl.name).toBe('test');
       expect(funcDecl.body?.length).toBe(2);
     });
+
+    it('should reject storage classes inside functions', () => {
+      const source = `module Main
+function test(): void
+  zp var illegal: byte = 5
+end function`;
+
+      expect(() => parseSource(source)).toThrow(/Storage class 'zp' not allowed inside functions/);
+    });
+
+    it('should reject io variables inside functions', () => {
+      const source = `module Main
+function test(): void
+  io var VIC_REG: byte
+end function`;
+
+      expect(() => parseSource(source)).toThrow(/Storage class 'io' not allowed inside functions/);
+    });
+
+    it('should reject ram variables inside functions', () => {
+      const source = `module Main
+function test(): void
+  ram var buffer: byte[100]
+end function`;
+
+      expect(() => parseSource(source)).toThrow(/Storage class 'ram' not allowed inside functions/);
+    });
   });
 
   describe('Control Flow', () => {
@@ -414,7 +441,7 @@ end function`;
   });
 
   describe('Complex Sample Code', () => {
-    it('should parse complete Blend65 module with multiple constructs', () => {
+    it('should reject storage classes in function body', () => {
       const source = `module Game.Main
 import setSpritePosition from c64.sprites
 import utils from core.helpers
@@ -438,6 +465,38 @@ function helper(x: byte, y: byte): byte
   return x + y
 end function`;
 
+      // Should throw error because storage classes are not allowed inside functions
+      expect(() => parseSource(source)).toThrow(/Storage class 'zp' not allowed inside functions/);
+    });
+
+    it('should parse complete Blend65 module with correct storage class usage', () => {
+      const source = `module Game.Main
+import setSpritePosition from c64.sprites
+import utils from core.helpers
+
+// Global variables with storage classes
+zp var globalCounter: byte = 0
+ram var globalBuffer: byte[256]
+io var VIC_REG: byte
+
+export function main(): void
+  var counter: byte = 0
+  var buffer: byte[256]
+
+  while counter < 10
+    globalBuffer[counter] = counter
+    counter = counter + 1
+  end while
+
+  if counter == 10 then
+    VIC_REG = $FF
+  end if
+end function
+
+function helper(x: byte, y: byte): byte
+  return x + y
+end function`;
+
       const ast = parseSource(source);
 
       expect(ast.type).toBe('Program');
@@ -445,11 +504,19 @@ end function`;
       expect(program.module.name.parts).toEqual(['Game', 'Main']);
       expect(program.imports.length).toBe(2);
       expect(program.exports.length).toBe(1);
-      expect(program.body.length).toBe(1); // helper function
+      expect(program.body.length).toBe(4); // 3 global vars + helper function
 
       // Check imports
       expect(program.imports[0].type).toBe('ImportDeclaration');
       expect(program.imports[1].type).toBe('ImportDeclaration');
+
+      // Check global variables
+      expect(program.body[0].type).toBe('VariableDeclaration');
+      expect((program.body[0] as VariableDeclaration).storageClass).toBe('zp');
+      expect(program.body[1].type).toBe('VariableDeclaration');
+      expect((program.body[1] as VariableDeclaration).storageClass).toBe('ram');
+      expect(program.body[2].type).toBe('VariableDeclaration');
+      expect((program.body[2] as VariableDeclaration).storageClass).toBe('io');
 
       // Check export
       expect(program.exports[0].type).toBe('ExportDeclaration');
@@ -458,7 +525,7 @@ end function`;
       expect(mainFunc.exported).toBe(true);
 
       // Check body function
-      const helperFunc = program.body[0] as FunctionDeclaration;
+      const helperFunc = program.body[3] as FunctionDeclaration;
       expect(helperFunc.type).toBe('FunctionDeclaration');
       expect(helperFunc.name).toBe('helper');
       expect(helperFunc.params.length).toBe(2);

@@ -26,6 +26,74 @@
 3. **Incremental development:** Complete each task fully before moving to the next
 4. **Real-world validation:** Test with realistic Blend65 programs, not just unit tests
 
+### Language Specification Analysis
+
+**CRITICAL REQUIREMENT:** Before starting ANY compiler-related task (lexer, parser, AST, semantic analysis, code generation), you MUST read and analyze the Blend65 Language Specification:
+
+1. **Mandatory Specification Review:**
+   - **Always read** `docs/BLEND65_LANGUAGE_SPECIFICATION.md` completely before beginning implementation
+   - **Reference specific sections** relevant to your current task during development
+   - **Understand the complete context** of how your component fits into the overall language design
+
+2. **Task-Specific Analysis Focus:**
+
+   **For Lexer Tasks:**
+   - Study "Lexical Structure" section - keywords, identifiers, literals, operators, punctuation
+   - Understand token precedence and recognition rules
+   - Review number literal formats (decimal, hex, binary)
+   - Analyze string literal syntax and escape sequences
+   - Examine comment syntax (line and block comments)
+
+   **For Parser Tasks:**
+   - Study complete EBNF grammar in "Grammar Overview" section
+   - Understand program structure, module declarations, imports/exports
+   - Analyze expression precedence table and associativity rules
+   - Review statement syntax (if, while, for, match, return)
+   - Understand function and variable declaration syntax
+
+   **For AST Tasks:**
+   - Study "Program Structure" and type system organization
+   - Understand declaration types (variables, functions, types)
+   - Analyze expression tree structure and precedence
+   - Review statement block organization and nesting rules
+   - Study module system and import/export relationships
+
+   **For Semantic Analysis:**
+   - Study "Type System" section thoroughly - primitive types, arrays, named types
+   - Understand "Storage Classes" - zp, ram, data, const, io semantics
+   - Analyze scope rules, variable resolution, and type checking
+   - Review error handling and recovery strategies
+   - Study "6502 Specific Features" for memory layout considerations
+
+   **For Code Generation:**
+   - Study "6502 Specific Features" section completely
+   - Understand storage class memory mapping and optimization opportunities
+   - Analyze performance optimization features (fast multiplication, bit operations)
+   - Review memory layout considerations and target-specific optimizations
+   - Study inline assembly integration and hardware register access
+
+3. **Implementation Alignment Requirements:**
+   - **Match specification exactly** - every grammar rule, operator precedence, keyword
+   - **Test against specification examples** - use provided code samples as test cases
+   - **Document deviations** - if implementation differs from spec, document why
+   - **Reference spec sections** in code comments for complex grammar rules
+   - **Validate edge cases** mentioned in specification error handling section
+
+4. **Integration with Language Evolution:**
+   - **Understand current version scope** - what's in v0.1 vs planned for future versions
+   - **Design for forward compatibility** - avoid blocking future language features
+   - **Consider 6502 constraints** - memory, performance, and architecture limitations
+   - **Align with roadmap priorities** - ensure implementation supports evolution path
+
+5. **Specification-Driven Testing:**
+   - **Use specification examples** as the foundation for test cases
+   - **Test grammar compliance** - every production rule should have test coverage
+   - **Validate type system** - test all storage classes and type combinations
+   - **Test error conditions** - specification defines expected error behaviors
+   - **Cross-reference with evolution docs** - ensure compatibility with game analysis findings
+
+**Remember:** The language specification is the authoritative source for ALL compiler implementation decisions. When in doubt, the specification takes precedence over any other documentation or assumptions.
+
 ### File and Folder Conventions
 - **Package naming:** `@blend65/package-name` (kebab-case)
 - **File naming:** `kebab-case.ts` for implementation files
@@ -383,14 +451,15 @@ When the user provides these keywords, Cline should perform the following action
 
 ### Task Execution
 1. **Read task specification completely** before starting
-2. **Consult evolution documents** - Review roadmap and missing features matrix
-3. **Analyze version targeting** - Determine which Blend65 version this task affects
-4. **Understand requirements and success criteria** with evolution context
-5. **Implement core functionality as specified** while considering roadmap alignment
-6. **Write comprehensive tests covering all scenarios**
-7. **Validate against success criteria before proceeding**
-8. **Document any architectural decisions** including evolution impact
-9. **Update evolution documents** as required by Automatic Documentation Updates
+2. **Analyze Blend65 Language Specification** - For compiler tasks, read and analyze relevant specification sections
+3. **Consult evolution documents** - Review roadmap and missing features matrix
+4. **Analyze version targeting** - Determine which Blend65 version this task affects
+5. **Understand requirements and success criteria** with evolution and specification context
+6. **Implement core functionality as specified** - Follow specification exactly for compiler components
+7. **Write comprehensive tests covering all scenarios** - Include specification-driven test cases
+8. **Validate against success criteria and specification compliance** before proceeding
+9. **Document any architectural decisions** including evolution impact and specification alignment
+10. **Update evolution documents** as required by Automatic Documentation Updates
 
 ### Quality Gates
 - **All tests passing** before moving to next task

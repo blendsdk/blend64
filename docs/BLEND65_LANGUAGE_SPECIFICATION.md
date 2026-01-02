@@ -199,12 +199,15 @@ named_type = identifier ;
 statement_block = { statement } ;
 
 statement = expression_statement
-          | variable_declaration
+          | local_variable_declaration
           | if_statement
           | while_statement
           | for_statement
           | match_statement
           | return_statement ;
+
+local_variable_declaration = "var" identifier ":" type_annotation
+                           [ "=" expression ] statement_terminator ;
 
 expression_statement = expression statement_terminator ;
 
@@ -490,37 +493,66 @@ variable_declaration = [ storage_class ] "var" identifier ":" type_annotation
 
 **Semantic Rules:**
 - All variables must have explicit type annotations
-- Storage class affects memory layout and access patterns
+- **Storage classes are only allowed at global scope (module level)**
+- Local variables inside functions use automatic storage only
 - Initialization expressions must be compile-time constants for `data` and `const`
 - I/O variables typically map to specific hardware addresses
 
+**Scope Restrictions:**
+- `zp`, `ram`, `data`, `const`, `io` storage classes: **Global scope only**
+- Function parameters and local variables: **Automatic storage only**
+
 **Examples:**
 
-### Basic Variable Declaration
+### Global Variable Declarations (Module Level)
 ```js
-var score: word = 0
-var playerName: byte[20]
-var isGameOver: boolean = false
-```
-
-### With Storage Classes
-```js
-zp var x: byte                    // Zero page for speed
-ram var enemies: byte[50]         // RAM for dynamic data
+// Valid: Storage classes at global scope
+zp var hotCounter: byte              // Zero page for speed
+ram var enemies: byte[50]            // RAM for dynamic data
 data var levelData: byte[256] = [/* data */]  // Pre-initialized
-const var MAX_LIVES: byte = 3     // Constant value
-io var JOYSTICK: byte             // Hardware register
+const var MAX_LIVES: byte = 3        // Constant value
+io var VIC_BACKGROUND: byte          // Hardware register
+var globalVar: byte = 0              // Default storage (automatic)
 ```
 
-### Inside Functions (Local Variables)
+### Function Local Variables (Automatic Storage Only)
 ```js
 function calculateDistance(): word
-  var deltaX: byte              // Local variable (automatic storage)
-  var deltaY: byte              // Local variable (automatic storage)
-  var result: word              // Local variable (automatic storage)
+  var deltaX: byte                   // Local variable (automatic storage only)
+  var deltaY: byte                   // Local variable (automatic storage only)
+  var result: word                   // Local variable (automatic storage only)
+
+  // Storage classes NOT ALLOWED inside functions
+  // zp var illegal: byte            // ERROR: Storage class not allowed
+  // io var invalid: byte            // ERROR: Storage class not allowed
 
   // Implementation
   return result
+end function
+```
+
+### Storage Class Memory Allocation
+```js
+module Game.Main
+
+// All storage class variables declared at module level
+zp var playerX: byte                 // Allocated to zero page at compile time
+zp var playerY: byte                 // Allocated to zero page at compile time
+io var VIC_SPRITE_X: byte           // Mapped to hardware register
+ram var gameBuffer: byte[1000]       // Allocated to general RAM
+
+function updatePlayer(): void
+  var deltaX: byte                   // Local automatic variable
+  var deltaY: byte                   // Local automatic variable
+
+  // Use global storage class variables
+  deltaX = playerX + 1
+  deltaY = playerY + 1
+
+  if deltaX < 255 then
+    playerX = deltaX
+    VIC_SPRITE_X = playerX           // Update hardware register
+  end if
 end function
 ```
 
@@ -570,8 +602,8 @@ end function
 ### Complex Function Example
 ```blend65
 export function updatePlayer(deltaTime: byte): boolean
-  zp var newX: byte
-  zp var newY: byte
+  var newX: byte
+  var newY: byte
 
   // Calculate new position
   newX = playerX + playerVelocityX
@@ -1148,8 +1180,8 @@ module Game.Physics
 import sin, cos from core.math
 
 export function calculateTrajectory(angle: byte, velocity: byte): word
-  zp var vx: byte
-  zp var vy: byte
+  var vx: byte
+  var vy: byte
   var distance: word
 
   // Calculate velocity components using lookup tables

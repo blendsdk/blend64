@@ -40,6 +40,7 @@ import { ParserOptions } from '../core/base-parser.js';
  * Blend65-specific parser extending recursive descent strategy
  */
 export class Blend65Parser extends RecursiveDescentParser<Program> {
+  private isInsideFunction: boolean = false;
 
   constructor(tokens: Token[], options: ParserOptions = {}) {
     super(tokens, options);
@@ -231,7 +232,14 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
 
     this.consumeStatementTerminator();
 
+    // Set function context for body parsing
+    const wasInsideFunction = this.isInsideFunction;
+    this.isInsideFunction = true;
+
     const body = this.parseStatementBlock('function');
+
+    // Restore previous context
+    this.isInsideFunction = wasInsideFunction;
 
     this.consume(TokenType.END, "Expected 'end'");
     this.consumeLexeme('function', "Expected 'function' after 'end'");
@@ -280,7 +288,17 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
     // Parse storage class if present
     let storageClass: StorageClass | null = null;
     if (this.checkLexemes('zp', 'ram', 'data', 'const', 'io')) {
+      const storageClassToken = this.peek();
       storageClass = this.advance().value as StorageClass;
+
+      // Check if storage class is allowed in current context
+      if (this.isInsideFunction) {
+        throw new Error(
+          `Storage class '${storageClass}' not allowed inside functions. ` +
+          `Local variables must use automatic storage (no storage class). ` +
+          `Location: line ${storageClassToken.start.line}, column ${storageClassToken.start.column}`
+        );
+      }
     }
 
     this.consume(TokenType.VAR, "Expected 'var'");
@@ -390,14 +408,17 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
       case 'return':
         return this.parseReturnStatement();
       case 'var':
+        // Local variable declaration (storage classes handled in parseVariableDeclaration)
+        const varDecl = this.parseVariableDeclaration();
+        return this.factory.createExpressionStatement(varDecl as any);
       case 'zp':
       case 'ram':
       case 'data':
       case 'const':
       case 'io':
-        // Variable declarations in function bodies
-        const varDecl = this.parseVariableDeclaration();
-        return this.factory.createExpressionStatement(varDecl as any);
+        // Storage classes in statements - let parseVariableDeclaration handle the error
+        const storageVarDecl = this.parseVariableDeclaration();
+        return this.factory.createExpressionStatement(storageVarDecl as any);
       default:
         // Parse as expression statement
         const expr = this.parseExpression();
