@@ -60,7 +60,7 @@ end while
 
 ### **C64 Hardware Control**
 
-```
+```blend65
 // Direct access to C64 hardware
 import setSpritePosition, enableSprite from c64.sprites
 import setBackgroundColor, setBorderColor from c64.vic
@@ -75,6 +75,45 @@ setBorderColor(0)      // Black
 // Play sound
 setVolume(15)
 playNote(0, 440)  // Channel 0, 440Hz
+```
+
+### **v0.2 Language Features (Coming Soon)**
+
+```blend65
+// Enhanced control flow with break/continue
+for i = 0 to enemyCount - 1
+    if enemies[i].health <= 0 then
+        continue  // Skip dead enemies
+    end if
+    if playerHealth <= 0 then
+        break     // Exit loop immediately
+    end if
+    updateEnemy(i)
+next i
+
+// Pattern matching with match statements
+match gameState
+    case MENU:
+        handleMenuInput()
+    case PLAYING:
+        updateGameLogic()
+    case PAUSED:
+        showPauseScreen()
+    default:
+        handleUnknownState()
+end match
+
+// Organized constants with enums
+enum Direction
+    UP = 0, DOWN = 1, LEFT = 2, RIGHT = 3
+end enum
+
+enum GameState
+    MENU, PLAYING, PAUSED, GAME_OVER  // Auto-increment: 0, 1, 2, 3
+end enum
+
+var currentDirection: Direction = Direction.UP
+var state: GameState = GameState.MENU
 ```
 
 ### **Compilation**
@@ -395,7 +434,7 @@ play_beep_sound:
 
 ## Project Status
 
-**Current Phase:** Frontend Complete, Backend Implementation **Next Milestone:** Semantic Analysis & IL Generation
+**Current Phase:** Frontend Complete, **Immediate Next Milestone:** Blend65 v0.2 Language Features
 
 ### What's Implemented ✅
 
@@ -403,33 +442,42 @@ play_beep_sound:
 -   [x] **Blend65 Lexer** - Full tokenization with 6502-specific features (49 tests)
 -   [x] **Blend65 Parser** - Complete recursive descent parser (80 tests)
 -   [x] **Abstract Syntax Tree** - Full AST representation with factory (30 tests)
--   [x] **Language Support** - All Blend65 constructs: modules, functions, control flow, types
+-   [x] **Language Support** - All v0.1 Blend65 constructs: modules, functions, control flow, types
 -   [x] **Storage Classes** - Zero page, RAM, data, const, I/O variable declarations
 -   [x] **Module System** - Content-based resolution with dot notation imports
 -   [x] **Comprehensive Testing** - Edge cases, error conditions, real-world patterns
+-   [x] **v0.1 Validation** - Wild Boa Snake game analysis confirms 100% compatibility
 
-### What's In Progress 🔄
+### v0.2 Language Features (In Progress) 🔄
+
+**Timeline:** 6-8 weeks | **Complexity:** 3-4/10 with AI assistance | **Status:** Ready to implement
+
+-   [ ] **Break/Continue Statements** - Essential for complex game loops (HIGH Priority)
+-   [ ] **Complete Match Statement Implementation** - Clean pattern matching for game logic (MEDIUM Priority)
+-   [ ] **Enum Declarations** - Code organization for game states, colors, directions (MEDIUM Priority)
+
+### Compiler Backend (Parallel Development) 🔄
+
+**Timeline:** 11-15 weeks | **Complexity:** 6-8/10 | **Status:** Architecture complete, ready to implement
 
 -   [ ] **Semantic Analysis** - Symbol tables, type checking, validation (Phase 1: 8 tasks)
 -   [ ] **Intermediate Language** - IL definition and AST transformation (Phase 2: 6 tasks)
 -   [ ] **IL Optimization** - Dead code elimination, constant folding, inlining (Phase 3: 5 tasks)
 -   [ ] **Code Generation** - 6502 assembly generation and optimization (Phase 4: 7 tasks)
 
-### Implementation Roadmap 📋
+### Implementation Strategy 📋
 
-**Total Backend Tasks:** 26 tasks across 4 phases (11-15 weeks estimated)
+**Parallel Development Tracks:**
 
-1. **Phase 1:** Semantic Analysis - Symbol tables, type system, validation
-2. **Phase 2:** IL Definition - TypeScript-based intermediate language
-3. **Phase 3:** IL Optimization - Performance optimization passes
-4. **Phase 4:** Code Generation - Target-specific 6502 assembly output
+1. **Track 1 (v0.2):** Frontend language feature extensions - **IMMEDIATE FOCUS**
+2. **Track 2 (Backend):** Semantic Analysis → IL → Optimization → Code Generation - **PARALLEL DEVELOPMENT**
 
-### What's Planned 📝
+### Future Roadmap 📝
 
--   [ ] Advanced 6502 optimization passes
--   [ ] IDE integration and debugging support
--   [ ] Enhanced C64 hardware features
--   [ ] Multi-target support (Commander X16, VIC-20)
+-   [ ] **v0.3+:** Revolutionary local variable architecture with "Local Pool" concept
+-   [ ] **Advanced Optimizations:** Zero page intelligence and IL-based optimization
+-   [ ] **Multi-target Support:** Commander X16, VIC-20, Apple II
+-   [ ] **IDE Integration:** Advanced debugging and development tools
 
 ---
 

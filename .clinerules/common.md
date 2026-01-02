@@ -7,12 +7,14 @@
 ## Table of Contents
 
 1. [Core Development Practices](#core-development-practices)
-2. [Package Management](#package-management)
-3. [Code Quality Standards](#code-quality-standards)
-4. [Testing Requirements](#testing-requirements)
-5. [Architecture Principles](#architecture-principles)
-6. [Communication Standards](#communication-standards)
-7. [Git Workflow Automation](#git-workflow-automation)
+2. [Evolution-Driven Development](#evolution-driven-development)
+3. [Package Management](#package-management)
+4. [Code Quality Standards](#code-quality-standards)
+5. [Testing Requirements](#testing-requirements)
+6. [Architecture Principles](#architecture-principles)
+7. [Communication Standards](#communication-standards)
+8. [Automatic Documentation Updates](#automatic-documentation-updates)
+9. [Git Workflow Automation](#git-workflow-automation)
 
 ---
 
@@ -44,6 +46,56 @@ import { ASTNode } from './types'
 export { SemanticAnalyzer } from './semantic-analyzer'
 export type { SymbolTable, SemanticError } from './types'
 ```
+
+---
+
+## Evolution-Driven Development
+
+### Mandatory Evolution Context Analysis
+
+**Before starting ANY task**, always analyze the current state of Blend65 evolution:
+
+1. **Consult Evolution Documents:**
+   - `docs/research/BLEND65_EVOLUTION_ROADMAP.md` - Strategic development roadmap
+   - `docs/research/BLEND65_MISSING_FEATURES_MATRIX.md` - Consolidated missing feature tracking
+
+2. **Version Targeting:**
+   - Identify which Blend65 version this task targets (v0.1, v0.2, v0.3, etc.)
+   - Understand feature availability for target version
+   - Consider forward compatibility with planned versions
+
+3. **Missing Features Assessment:**
+   - Identify if task reveals new missing features
+   - Assess impact on existing game compatibility analysis
+   - Document any newly discovered compatibility requirements
+
+### Evolution Context Integration
+
+**During Analysis and Planning:**
+- Reference roadmap priorities when making design decisions
+- Consider how implementation affects game compatibility percentages
+- Align architectural choices with target version capabilities
+- Identify opportunities to enable higher-version features
+
+**During Implementation:**
+- Design for evolution - avoid blocking future enhancements
+- Consider performance implications for target 6502 platforms
+- Document evolution impact in code comments and commit messages
+- Test against real-world game requirements from analyzed repositories
+
+**Key Evolution Principles:**
+- **v0.1 Foundation:** Maintain stability of basic features for simple arcade games
+- **Hardware API Evolution:** Prioritize hardware features that enable real C64 games
+- **Language Feature Progression:** Add complexity only when proven necessary by game analysis
+- **Game-Driven Requirements:** All new features must be justified by actual game needs
+
+### Compatibility Impact Assessment
+
+For every task, document:
+- **Target Games Enabled:** Which analyzed games become portable
+- **Version Milestone Progress:** How this contributes to version completion
+- **Priority Validation:** Whether real games confirm feature importance
+- **Evolution Alignment:** How this supports the strategic roadmap
 
 ---
 
@@ -240,6 +292,62 @@ When in PLAN MODE, **always end responses with these 4 questions:**
 
 ---
 
+## Automatic Documentation Updates
+
+### Evolution Document Maintenance
+
+**At the end of each task**, always update the evolution documents:
+
+1. **Missing Features Matrix Updates:**
+   - Add any newly discovered missing features to `docs/research/BLEND65_MISSING_FEATURES_MATRIX.md`
+   - Update status of any features that were implemented or changed
+   - Recalculate priorities based on new game analysis or implementation insights
+   - Update the "Requesting Games" column if new games require existing missing features
+
+2. **Evolution Roadmap Updates:**
+   - Append task results to `docs/research/BLEND65_EVOLUTION_ROADMAP.md`
+   - Document any changes to version targeting or feature priorities
+   - Record new game compatibility findings or implementation milestones
+   - Update percentage estimates for version capabilities
+
+3. **Game Compatibility Impact:**
+   - Document which games become portable due to implemented features
+   - Update compatibility matrices with new implementation status
+   - Record performance implications for target platforms
+   - Note any architectural decisions that affect future evolution
+
+### Documentation Update Process
+
+**For Feature Implementation Tasks:**
+```markdown
+## [Task Name] Evolution Impact
+
+**Target Version:** v[X.Y]
+**Games Enabled:** [List specific games that become portable]
+**Missing Features Addressed:** [List features implemented or identified]
+**Priority Changes:** [Document any priority adjustments]
+**Next Steps:** [Identify follow-up requirements for evolution]
+```
+
+**For Analysis Tasks:**
+```markdown
+## [Game/Repository Name] Compatibility Analysis Update
+
+**Portability Status:** [PORTABLE/PARTIAL/NOT_PORTABLE]
+**Missing Features Discovered:** [List new gaps identified]
+**Priority Adjustments:** [Document priority changes based on analysis]
+**Version Requirements:** [Update version targeting based on findings]
+```
+
+### Evolution Document Synchronization
+
+- **Keep matrices current** - Update within 24 hours of task completion
+- **Maintain consistency** - Ensure roadmap and matrix align on priorities and timelines
+- **Cross-reference validation** - Verify game references exist in both documents
+- **Progress tracking** - Document incremental progress toward version milestones
+
+---
+
 ## Git Workflow Automation
 
 ### Cline Commands
@@ -275,11 +383,14 @@ When the user provides these keywords, Cline should perform the following action
 
 ### Task Execution
 1. **Read task specification completely** before starting
-2. **Understand requirements and success criteria**
-3. **Implement core functionality as specified**
-4. **Write comprehensive tests covering all scenarios**
-5. **Validate against success criteria before proceeding**
-6. **Document any architectural decisions**
+2. **Consult evolution documents** - Review roadmap and missing features matrix
+3. **Analyze version targeting** - Determine which Blend65 version this task affects
+4. **Understand requirements and success criteria** with evolution context
+5. **Implement core functionality as specified** while considering roadmap alignment
+6. **Write comprehensive tests covering all scenarios**
+7. **Validate against success criteria before proceeding**
+8. **Document any architectural decisions** including evolution impact
+9. **Update evolution documents** as required by Automatic Documentation Updates
 
 ### Quality Gates
 - **All tests passing** before moving to next task
