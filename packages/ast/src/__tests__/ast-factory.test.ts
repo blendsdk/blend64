@@ -231,6 +231,108 @@ describe('ASTNodeFactory', () => {
       expect(forStmt.body).toEqual(body);
       expect(forStmt.metadata).toEqual(mockMetadata);
     });
+
+    // v0.2 Statement Creation Tests
+    it('should create break statements', () => {
+      const breakStmt = factory.createBreakStatement(mockMetadata);
+
+      expect(breakStmt.type).toBe('BreakStatement');
+      expect(breakStmt.metadata).toEqual(mockMetadata);
+    });
+
+    it('should create continue statements', () => {
+      const continueStmt = factory.createContinueStatement(mockMetadata);
+
+      expect(continueStmt.type).toBe('ContinueStatement');
+      expect(continueStmt.metadata).toEqual(mockMetadata);
+    });
+
+    it('should create break statements without metadata', () => {
+      const breakStmt = factory.createBreakStatement();
+
+      expect(breakStmt.type).toBe('BreakStatement');
+      expect(breakStmt.metadata).toBeUndefined();
+    });
+
+    it('should create continue statements without metadata', () => {
+      const continueStmt = factory.createContinueStatement();
+
+      expect(continueStmt.type).toBe('ContinueStatement');
+      expect(continueStmt.metadata).toBeUndefined();
+    });
+
+    it('should create match statements with default cases', () => {
+      const discriminant = factory.createIdentifier('gameState');
+      const menuCase = factory.createMatchCase(
+        factory.createIdentifier('MENU'),
+        [factory.createExpressionStatement(factory.createIdentifier('showMenu'))]
+      );
+      const playingCase = factory.createMatchCase(
+        factory.createIdentifier('PLAYING'),
+        [factory.createExpressionStatement(factory.createIdentifier('updateGame'))]
+      );
+      const defaultCase = factory.createMatchCase(
+        null, // null test for default case
+        [factory.createExpressionStatement(factory.createIdentifier('handleError'))]
+      );
+
+      const matchStmt = factory.createMatchStatement(
+        discriminant,
+        [menuCase, playingCase],
+        defaultCase,
+        mockMetadata
+      );
+
+      expect(matchStmt.type).toBe('MatchStatement');
+      expect(matchStmt.discriminant).toBe(discriminant);
+      expect(matchStmt.cases).toEqual([menuCase, playingCase]);
+      expect(matchStmt.defaultCase).toBe(defaultCase);
+      expect(matchStmt.metadata).toEqual(mockMetadata);
+    });
+
+    it('should create match statements without default case', () => {
+      const discriminant = factory.createIdentifier('value');
+      const case1 = factory.createMatchCase(
+        factory.createLiteral(1, '1'),
+        [factory.createExpressionStatement(factory.createIdentifier('doOne'))]
+      );
+
+      const matchStmt = factory.createMatchStatement(
+        discriminant,
+        [case1],
+        null, // no default case
+        mockMetadata
+      );
+
+      expect(matchStmt.type).toBe('MatchStatement');
+      expect(matchStmt.discriminant).toBe(discriminant);
+      expect(matchStmt.cases).toEqual([case1]);
+      expect(matchStmt.defaultCase).toBe(null);
+      expect(matchStmt.metadata).toEqual(mockMetadata);
+    });
+
+    it('should create match cases with test expressions', () => {
+      const test = factory.createIdentifier('MENU');
+      const consequent = [factory.createExpressionStatement(factory.createIdentifier('showMenu'))];
+
+      const matchCase = factory.createMatchCase(test, consequent, mockMetadata);
+
+      expect(matchCase.type).toBe('MatchCase');
+      expect(matchCase.test).toBe(test);
+      expect(matchCase.consequent).toEqual(consequent);
+      expect(matchCase.metadata).toEqual(mockMetadata);
+    });
+
+    it('should create match cases for default (null test)', () => {
+      const consequent = [factory.createExpressionStatement(factory.createIdentifier('handleDefault'))];
+
+      const defaultMatchCase = factory.createMatchCase(null, consequent, mockMetadata);
+
+      expect(defaultMatchCase.type).toBe('MatchCase');
+      expect(defaultMatchCase.test).toBe(null);
+      expect(defaultMatchCase.consequent).toEqual(consequent);
+      expect(defaultMatchCase.metadata).toEqual(mockMetadata);
+    });
   });
 
   describe('Declaration Creation', () => {
@@ -292,6 +394,104 @@ describe('ASTNodeFactory', () => {
       expect(param.optional).toBe(true);
       expect(param.defaultValue).toBe(defaultValue);
       expect(param.metadata).toEqual(mockMetadata);
+    });
+
+    // v0.2 Declaration Creation Tests
+    it('should create enum declarations with explicit values', () => {
+      const redMember = factory.createEnumMember('RED', factory.createLiteral(1, '1'));
+      const greenMember = factory.createEnumMember('GREEN', factory.createLiteral(2, '2'));
+      const blueMember = factory.createEnumMember('BLUE', factory.createLiteral(3, '3'));
+      const members = [redMember, greenMember, blueMember];
+
+      const enumDecl = factory.createEnumDeclaration('Color', members, false, mockMetadata);
+
+      expect(enumDecl.type).toBe('EnumDeclaration');
+      expect(enumDecl.name).toBe('Color');
+      expect(enumDecl.members).toEqual(members);
+      expect(enumDecl.exported).toBe(false);
+      expect(enumDecl.metadata).toEqual(mockMetadata);
+    });
+
+    it('should create enum declarations with auto-increment', () => {
+      const upMember = factory.createEnumMember('UP', null); // auto-increment
+      const downMember = factory.createEnumMember('DOWN', null);
+      const leftMember = factory.createEnumMember('LEFT', null);
+      const rightMember = factory.createEnumMember('RIGHT', null);
+      const members = [upMember, downMember, leftMember, rightMember];
+
+      const enumDecl = factory.createEnumDeclaration('Direction', members, true, mockMetadata);
+
+      expect(enumDecl.type).toBe('EnumDeclaration');
+      expect(enumDecl.name).toBe('Direction');
+      expect(enumDecl.members).toEqual(members);
+      expect(enumDecl.exported).toBe(true);
+      expect(enumDecl.metadata).toEqual(mockMetadata);
+    });
+
+    it('should create enum declarations with mixed explicit and auto values', () => {
+      const menuMember = factory.createEnumMember('MENU', factory.createLiteral(0, '0'));
+      const playingMember = factory.createEnumMember('PLAYING', null); // auto-increment
+      const pausedMember = factory.createEnumMember('PAUSED', null); // auto-increment
+      const gameOverMember = factory.createEnumMember('GAME_OVER', factory.createLiteral(10, '10'));
+      const members = [menuMember, playingMember, pausedMember, gameOverMember];
+
+      const enumDecl = factory.createEnumDeclaration('GameState', members, false, mockMetadata);
+
+      expect(enumDecl.type).toBe('EnumDeclaration');
+      expect(enumDecl.name).toBe('GameState');
+      expect(enumDecl.members).toEqual(members);
+      expect(enumDecl.exported).toBe(false);
+      expect(enumDecl.metadata).toEqual(mockMetadata);
+    });
+
+    it('should create enum members with explicit values', () => {
+      const value = factory.createLiteral(42, '42');
+      const member = factory.createEnumMember('ANSWER', value, mockMetadata);
+
+      expect(member.type).toBe('EnumMember');
+      expect(member.name).toBe('ANSWER');
+      expect(member.value).toBe(value);
+      expect(member.metadata).toEqual(mockMetadata);
+    });
+
+    it('should create enum members without values (auto-increment)', () => {
+      const member = factory.createEnumMember('DEFAULT_VALUE', null, mockMetadata);
+
+      expect(member.type).toBe('EnumMember');
+      expect(member.name).toBe('DEFAULT_VALUE');
+      expect(member.value).toBe(null);
+      expect(member.metadata).toEqual(mockMetadata);
+    });
+
+    it('should create enum members without metadata', () => {
+      const value = factory.createLiteral(5, '5');
+      const member = factory.createEnumMember('TEST', value);
+
+      expect(member.type).toBe('EnumMember');
+      expect(member.name).toBe('TEST');
+      expect(member.value).toBe(value);
+      expect(member.metadata).toBeUndefined();
+    });
+
+    it('should create empty enum declarations', () => {
+      const enumDecl = factory.createEnumDeclaration('Empty', [], false, mockMetadata);
+
+      expect(enumDecl.type).toBe('EnumDeclaration');
+      expect(enumDecl.name).toBe('Empty');
+      expect(enumDecl.members).toEqual([]);
+      expect(enumDecl.exported).toBe(false);
+      expect(enumDecl.metadata).toEqual(mockMetadata);
+    });
+
+    it('should create exported enum declarations', () => {
+      const member = factory.createEnumMember('VALUE', factory.createLiteral(1, '1'));
+      const enumDecl = factory.createEnumDeclaration('ExportedEnum', [member], true, mockMetadata);
+
+      expect(enumDecl.type).toBe('EnumDeclaration');
+      expect(enumDecl.name).toBe('ExportedEnum');
+      expect(enumDecl.members).toEqual([member]);
+      expect(enumDecl.exported).toBe(true);
+      expect(enumDecl.metadata).toEqual(mockMetadata);
     });
   });
 

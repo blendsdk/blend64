@@ -25,7 +25,7 @@
 2. **Build verification before commits:** `yarn clean && yarn build && yarn test` from project root
 3. **Incremental development:** Complete each task fully before moving to the next
 4. **Real-world validation:** Test with realistic Blend65 programs, not just unit tests
-
+5. **File extension for blend sources** The file extension for Blend65 sources are `.blend`
 ### Language Specification Analysis
 
 **CRITICAL REQUIREMENT:** Before starting ANY compiler-related task (lexer, parser, AST, semantic analysis, code generation), you MUST read and analyze the Blend65 Language Specification:
@@ -335,13 +335,13 @@ type AnalysisResult<T> =
 ## Communication Standards
 
 ### Plan Mode Requirements
-When in PLAN MODE, **always end responses with these 4 questions:**
+When in PLAN MODE, **always ask yourself (the A.I.) these 4 questions:**
 
 ```
-1. Do you understand?
-2. Do you have any questions, if so place your questions with numbers so I can answer then easily?
-3. Answer any questions in my answers to you first
-4. What are your thoughts and recommendations
+1. Do you understand user query or the user question?
+2. Do you have any questions, if so place your questions with numbers (1,2,3,4...etc ) so the user can answer them easily?
+3. Answer any questions in user's answers to you (the A.I) first
+4. What are your thoughts and recommendations?
 ```
 
 ### Documentation Requirements

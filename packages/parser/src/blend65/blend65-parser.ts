@@ -7,25 +7,17 @@
 
 import { Token, TokenType } from '@blend65/lexer';
 import {
-  ASTNode,
   Program,
   ModuleDeclaration,
   QualifiedName,
   Expression,
   Statement,
   Declaration,
-  Identifier,
-  Literal,
-  BinaryExpr,
-  UnaryExpr,
-  CallExpr,
   IfStatement,
   WhileStatement,
   ForStatement,
   BreakStatement,
   ContinueStatement,
-  MatchStatement,
-  MatchCase,
   FunctionDeclaration,
   VariableDeclaration,
   EnumDeclaration,
@@ -34,12 +26,10 @@ import {
   ImportDeclaration,
   ImportSpecifier,
   ExportDeclaration,
-  PrimitiveType,
-  ArrayType,
   TypeAnnotation,
-  StorageClass
+  StorageClass,
 } from '@blend65/ast';
-import { RecursiveDescentParser, Precedence } from '../strategies/recursive-descent.js';
+import { RecursiveDescentParser } from '../strategies/recursive-descent.js';
 import { ParserOptions } from '../core/base-parser.js';
 
 /**
@@ -94,7 +84,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
 
     return this.factory.createProgram(module, imports, exports, body, {
       start: module.metadata?.start || { line: 1, column: 1, offset: 0 },
-      end: this.previous().end
+      end: this.previous().end,
     });
   }
 
@@ -108,7 +98,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
 
     return this.factory.createModuleDeclaration(name, {
       start: moduleToken.start,
-      end: this.previous().end
+      end: this.previous().end,
     });
   }
 
@@ -119,7 +109,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
     const startToken = this.peek();
     const parts: string[] = [];
 
-    parts.push(this.consume(TokenType.IDENTIFIER, "Expected identifier").value);
+    parts.push(this.consume(TokenType.IDENTIFIER, 'Expected identifier').value);
 
     while (this.match(TokenType.DOT)) {
       parts.push(this.consume(TokenType.IDENTIFIER, "Expected identifier after '.'").value);
@@ -127,7 +117,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
 
     return this.factory.createQualifiedName(parts, {
       start: startToken.start,
-      end: this.previous().end
+      end: this.previous().end,
     });
   }
 
@@ -141,7 +131,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
 
     // Parse import specifiers
     do {
-      const imported = this.consume(TokenType.IDENTIFIER, "Expected identifier").value;
+      const imported = this.consume(TokenType.IDENTIFIER, 'Expected identifier').value;
       let local: string | null = null;
 
       if (this.checkLexeme('as')) {
@@ -161,7 +151,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
 
     return this.factory.createImportDeclaration(specifiers, source, {
       start: importToken.start,
-      end: this.previous().end
+      end: this.previous().end,
     });
   }
 
@@ -177,13 +167,15 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
     }
 
     // Mark declaration as exported
-    if (declaration.type === 'FunctionDeclaration' || declaration.type === 'VariableDeclaration') {
+    if (declaration.type === 'FunctionDeclaration' ||
+        declaration.type === 'VariableDeclaration' ||
+        declaration.type === 'EnumDeclaration') {
       (declaration as any).exported = true;
     }
 
     return this.factory.createExportDeclaration(declaration, {
       start: exportToken.start,
-      end: declaration.metadata?.end || this.previous().end
+      end: declaration.metadata?.end || this.previous().end,
     });
   }
 
@@ -228,7 +220,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
    */
   private parseFunctionDeclaration(): FunctionDeclaration {
     const funcToken = this.consume(TokenType.FUNCTION, "Expected 'function'");
-    const name = this.consume(TokenType.IDENTIFIER, "Expected function name").value;
+    const name = this.consume(TokenType.IDENTIFIER, 'Expected function name').value;
 
     this.consume(TokenType.LEFT_PAREN, "Expected '('");
     const params = this.parseParameterList();
@@ -256,7 +248,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
 
     return this.factory.createFunctionDeclaration(name, params, returnType, body, false, {
       start: funcToken.start,
-      end: this.previous().end
+      end: this.previous().end,
     });
   }
 
@@ -271,7 +263,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
     }
 
     do {
-      const name = this.consume(TokenType.IDENTIFIER, "Expected parameter name").value;
+      const name = this.consume(TokenType.IDENTIFIER, 'Expected parameter name').value;
       this.consume(TokenType.COLON, "Expected ':' after parameter name");
       const paramType = this.parseTypeAnnotation();
 
@@ -304,14 +296,14 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
       if (this.isInsideFunction) {
         throw new Error(
           `Storage class '${storageClass}' not allowed inside functions. ` +
-          `Local variables must use automatic storage (no storage class). ` +
-          `Location: line ${storageClassToken.start.line}, column ${storageClassToken.start.column}`
+            `Local variables must use automatic storage (no storage class). ` +
+            `Location: line ${storageClassToken.start.line}, column ${storageClassToken.start.column}`
         );
       }
     }
 
     this.consume(TokenType.VAR, "Expected 'var'");
-    const name = this.consume(TokenType.IDENTIFIER, "Expected variable name").value;
+    const name = this.consume(TokenType.IDENTIFIER, 'Expected variable name').value;
     this.consume(TokenType.COLON, "Expected ':' after variable name");
     const varType = this.parseTypeAnnotation();
 
@@ -322,17 +314,10 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
 
     this.consumeStatementTerminator();
 
-    return this.factory.createVariableDeclaration(
-      name,
-      varType,
-      initializer,
-      storageClass,
-      false,
-      {
-        start: startToken.start,
-        end: this.previous().end
-      }
-    );
+    return this.factory.createVariableDeclaration(name, varType, initializer, storageClass, false, {
+      start: startToken.start,
+      end: this.previous().end,
+    });
   }
 
   /**
@@ -340,7 +325,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
    */
   private parseTypeDeclaration(): Declaration {
     // For now, skip type declarations as they're not fully implemented
-    throw new Error("Type declarations not yet implemented");
+    throw new Error('Type declarations not yet implemented');
   }
 
   /**
@@ -348,7 +333,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
    */
   private parseEnumDeclaration(): EnumDeclaration {
     const enumToken = this.consume(TokenType.ENUM, "Expected 'enum'");
-    const name = this.consume(TokenType.IDENTIFIER, "Expected enum name").value;
+    const name = this.consume(TokenType.IDENTIFIER, 'Expected enum name').value;
     this.consumeStatementTerminator();
 
     const members: EnumMember[] = [];
@@ -359,7 +344,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
 
       if (this.check(TokenType.END)) break;
 
-      const memberName = this.consume(TokenType.IDENTIFIER, "Expected enum member name").value;
+      const memberName = this.consume(TokenType.IDENTIFIER, 'Expected enum member name').value;
       let value: Expression | null = null;
 
       if (this.match(TokenType.ASSIGN)) {
@@ -377,18 +362,22 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
       members.push(this.factory.createEnumMember(memberName, value));
 
       if (!this.match(TokenType.COMMA)) {
+        // No more members, skip any trailing newlines before 'end'
+        this.skipNewlines();
         break;
       }
       this.skipNewlines();
     }
 
+    // Skip any final newlines before 'end'
+    this.skipNewlines();
     this.consume(TokenType.END, "Expected 'end'");
     this.consumeLexeme('enum', "Expected 'enum' after 'end'");
     this.consumeStatementTerminator();
 
     return this.factory.createEnumDeclaration(name, members, false, {
       start: enumToken.start,
-      end: this.previous().end
+      end: this.previous().end,
     });
   }
 
@@ -398,11 +387,12 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
   private parseTypeAnnotation(): TypeAnnotation {
     const token = this.peek();
 
+    // Primitive types
     if (this.checkLexemes('byte', 'word', 'boolean', 'void')) {
       const primType = this.advance().value as 'byte' | 'word' | 'boolean' | 'void';
       const baseType = this.factory.createPrimitiveType(primType, {
         start: token.start,
-        end: token.end
+        end: token.end,
       });
 
       // Check for array types: type[size]
@@ -412,11 +402,36 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
 
         return this.factory.createArrayType(baseType, size, {
           start: token.start,
-          end: rbracket.end
+          end: rbracket.end,
         });
       }
 
       return baseType;
+    }
+
+    // Named types (enum types, custom types)
+    if (this.check(TokenType.IDENTIFIER)) {
+      const typeName = this.advance().value;
+      const namedType = this.factory.create('NamedType', {
+        name: typeName,
+        metadata: {
+          start: token.start,
+          end: token.end,
+        }
+      }) as TypeAnnotation;
+
+      // Check for array types: NamedType[size]
+      if (this.match(TokenType.LEFT_BRACKET)) {
+        const size = this.parseExpression();
+        const rbracket = this.consume(TokenType.RIGHT_BRACKET, "Expected ']'");
+
+        return this.factory.createArrayType(namedType, size, {
+          start: token.start,
+          end: rbracket.end,
+        });
+      }
+
+      return namedType;
     }
 
     throw new Error(`Expected type annotation, got ${token.value}`);
@@ -463,6 +478,8 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
         return this.parseWhileStatement();
       case 'for':
         return this.parseForStatement();
+      case 'match':
+        return this.parseMatchStatement();
       case 'break':
         return this.parseBreakStatement();
       case 'continue':
@@ -513,7 +530,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
 
     return this.factory.createIfStatement(condition, thenBody, elseBody, {
       start: ifToken.start,
-      end: this.previous().end
+      end: this.previous().end,
     });
   }
 
@@ -536,7 +553,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
 
     return this.factory.createWhileStatement(condition, body, {
       start: whileToken.start,
-      end: this.previous().end
+      end: this.previous().end,
     });
   }
 
@@ -545,7 +562,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
    */
   private parseForStatement(): ForStatement {
     const forToken = this.consume(TokenType.FOR, "Expected 'for'");
-    const variable = this.consume(TokenType.IDENTIFIER, "Expected loop variable").value;
+    const variable = this.consume(TokenType.IDENTIFIER, 'Expected loop variable').value;
     this.consume(TokenType.ASSIGN, "Expected '='");
     const start = this.parseExpression();
     this.consume(TokenType.TO, "Expected 'to'");
@@ -573,7 +590,68 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
 
     return this.factory.createForStatement(variable, start, end, step, body, {
       start: forToken.start,
-      end: this.previous().end
+      end: this.previous().end,
+    });
+  }
+
+  /**
+   * Parse match statement: match expression case value: ... default: ... end match
+   */
+  private parseMatchStatement() {
+    const matchToken = this.consume(TokenType.MATCH, "Expected 'match'");
+    const discriminant = this.parseExpression();
+    this.consumeStatementTerminator();
+
+    const cases: any[] = [];
+    let defaultCase: any = null;
+
+    while (!this.isAtEnd() && !this.check(TokenType.END)) {
+      this.skipNewlines();
+
+      if (this.checkLexeme('case')) {
+        cases.push(this.parseMatchCase(false));
+      } else if (this.checkLexeme('default')) {
+        if (defaultCase !== null) {
+          throw new Error("Multiple default cases not allowed");
+        }
+        defaultCase = this.parseMatchCase(true);
+      } else {
+        break;
+      }
+    }
+
+    this.consume(TokenType.END, "Expected 'end'");
+    this.consumeLexeme('match', "Expected 'match' after 'end'");
+    this.consumeStatementTerminator();
+
+    return this.factory.createMatchStatement(discriminant, cases, defaultCase, {
+      start: matchToken.start,
+      end: this.previous().end,
+    });
+  }
+
+  /**
+   * Parse individual match case
+   */
+  private parseMatchCase(isDefault: boolean) {
+    const startToken = this.peek();
+
+    let test: any = null;
+    if (isDefault) {
+      this.advance(); // consume 'default'
+    } else {
+      this.advance(); // consume 'case'
+      test = this.parseExpression();
+    }
+
+    this.consume(TokenType.COLON, "Expected ':'");
+    this.consumeStatementTerminator();
+
+    const consequent = this.parseStatementBlock('match');
+
+    return this.factory.createMatchCase(test, consequent, {
+      start: startToken.start,
+      end: this.previous().end,
     });
   }
 
@@ -592,7 +670,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
 
     return this.factory.createReturnStatement(value, {
       start: returnToken.start,
-      end: this.previous().end
+      end: this.previous().end,
     });
   }
 
@@ -607,7 +685,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
     if (this.loopDepth === 0) {
       throw new Error(
         `break statement must be inside a loop (for, while). ` +
-        `Location: line ${breakToken.start.line}, column ${breakToken.start.column}`
+          `Location: line ${breakToken.start.line}, column ${breakToken.start.column}`
       );
     }
 
@@ -615,7 +693,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
 
     return this.factory.createBreakStatement({
       start: breakToken.start,
-      end: this.previous().end
+      end: this.previous().end,
     });
   }
 
@@ -630,7 +708,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
     if (this.loopDepth === 0) {
       throw new Error(
         `continue statement must be inside a loop (for, while). ` +
-        `Location: line ${continueToken.start.line}, column ${continueToken.start.column}`
+          `Location: line ${continueToken.start.line}, column ${continueToken.start.column}`
       );
     }
 
@@ -638,7 +716,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
 
     return this.factory.createContinueStatement({
       start: continueToken.start,
-      end: this.previous().end
+      end: this.previous().end,
     });
   }
 
@@ -655,14 +733,14 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
       const value = numToken.value.startsWith('$')
         ? parseInt(numToken.value.slice(1), 16)
         : numToken.value.startsWith('0x')
-        ? parseInt(numToken.value, 16)
-        : numToken.value.startsWith('0b')
-        ? parseInt(numToken.value.slice(2), 2)
-        : parseInt(numToken.value, 10);
+          ? parseInt(numToken.value, 16)
+          : numToken.value.startsWith('0b')
+            ? parseInt(numToken.value.slice(2), 2)
+            : parseInt(numToken.value, 10);
 
       return this.factory.createLiteral(value, numToken.value, {
         start: numToken.start,
-        end: numToken.end
+        end: numToken.end,
       });
     }
 
@@ -672,7 +750,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
       const value = strToken.value.slice(1, -1); // Remove quotes
       return this.factory.createLiteral(value, strToken.value, {
         start: strToken.start,
-        end: strToken.end
+        end: strToken.end,
       });
     }
 
@@ -682,7 +760,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
       const value = boolToken.value === 'true';
       return this.factory.createLiteral(value, boolToken.value, {
         start: boolToken.start,
-        end: boolToken.end
+        end: boolToken.end,
       });
     }
 
@@ -691,7 +769,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
       const idToken = this.advance();
       return this.factory.createIdentifier(idToken.value, {
         start: idToken.start,
-        end: idToken.end
+        end: idToken.end,
       });
     }
 
@@ -727,7 +805,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
     const rbracket = this.consume(TokenType.RIGHT_BRACKET, "Expected ']'");
     return this.factory.createArrayLiteral(elements, {
       start: lbracket.start,
-      end: rbracket.end
+      end: rbracket.end,
     });
   }
 }

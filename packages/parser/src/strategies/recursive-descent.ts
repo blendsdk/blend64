@@ -380,7 +380,7 @@ export abstract class RecursiveDescentParser<T extends ASTNode = ASTNode> extend
    * Helper: Check if current token is a Blend65 block terminator
    */
   protected isBlockTerminator(): boolean {
-    return this.checkLexemes('end', 'next', 'else', 'case');
+    return this.checkLexemes('end', 'next', 'else', 'case', 'default');
   }
 
   /**

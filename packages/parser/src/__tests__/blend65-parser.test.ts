@@ -335,6 +335,732 @@ end function`;
     });
   });
 
+  // v0.2 Control Flow Tests
+  describe('v0.2 Break and Continue Statements', () => {
+    it('should parse break statement in for loop', () => {
+      const source = `module Main
+function test(): void
+  for i = 0 to 10
+    if i == 5 then
+      break
+    end if
+  next i
+end function`;
+      const ast = parseSource(source);
+
+      expect(ast.type).toBe('Program');
+      const program = ast as Program;
+      const funcDecl = program.body[0] as FunctionDeclaration;
+      expect(funcDecl.body?.length).toBe(1);
+
+      const forStmt = funcDecl.body?.[0] as any;
+      expect(forStmt.type).toBe('ForStatement');
+      expect(forStmt.body.length).toBe(1);
+
+      const ifStmt = forStmt.body[0] as any;
+      expect(ifStmt.type).toBe('IfStatement');
+      expect(ifStmt.thenBody.length).toBe(1);
+      expect(ifStmt.thenBody[0].type).toBe('BreakStatement');
+    });
+
+    it('should parse continue statement in while loop', () => {
+      const source = `module Main
+function test(): void
+  while condition
+    if skip then
+      continue
+    end if
+    process()
+  end while
+end function`;
+      const ast = parseSource(source);
+
+      expect(ast.type).toBe('Program');
+      const program = ast as Program;
+      const funcDecl = program.body[0] as FunctionDeclaration;
+      expect(funcDecl.body?.length).toBe(1);
+
+      const whileStmt = funcDecl.body?.[0] as any;
+      expect(whileStmt.type).toBe('WhileStatement');
+      expect(whileStmt.body.length).toBe(2);
+
+      const ifStmt = whileStmt.body[0] as any;
+      expect(ifStmt.type).toBe('IfStatement');
+      expect(ifStmt.thenBody[0].type).toBe('ContinueStatement');
+    });
+
+    it('should parse break and continue in nested loops', () => {
+      const source = `module Main
+function test(): void
+  for i = 0 to 10
+    for j = 0 to 5
+      if condition1 then
+        break
+      end if
+      if condition2 then
+        continue
+      end if
+    next j
+    if outerCondition then
+      continue
+    end if
+  next i
+end function`;
+      const ast = parseSource(source);
+
+      expect(ast.type).toBe('Program');
+      const program = ast as Program;
+      const funcDecl = program.body[0] as FunctionDeclaration;
+      expect(funcDecl.body?.length).toBe(1);
+
+      const outerFor = funcDecl.body?.[0] as any;
+      expect(outerFor.type).toBe('ForStatement');
+
+      // Inner for loop should have break and continue
+      const innerFor = outerFor.body[0] as any;
+      expect(innerFor.type).toBe('ForStatement');
+    });
+
+    it('should error on break statement outside loop', () => {
+      const source = `module Main
+function test(): void
+  if condition then
+    break
+  end if
+end function`;
+
+      expect(() => parseSource(source)).toThrow(/break statement must be inside a loop/);
+    });
+
+    it('should error on continue statement outside loop', () => {
+      const source = `module Main
+function test(): void
+  if condition then
+    continue
+  end if
+end function`;
+
+      expect(() => parseSource(source)).toThrow(/continue statement must be inside a loop/);
+    });
+
+    it('should error on break statement in function without loop', () => {
+      const source = `module Main
+function test(): void
+  var x: byte = 5
+  break
+end function`;
+
+      expect(() => parseSource(source)).toThrow(/break statement must be inside a loop/);
+    });
+
+    it('should error on continue statement in function without loop', () => {
+      const source = `module Main
+function test(): void
+  var x: byte = 5
+  continue
+end function`;
+
+      expect(() => parseSource(source)).toThrow(/continue statement must be inside a loop/);
+    });
+  });
+
+  describe('v0.2 Enum Declarations', () => {
+    it('should parse enum with explicit values', () => {
+      const source = `module Main
+enum Color
+  RED = 1,
+  GREEN = 2,
+  BLUE = 3
+end enum`;
+      const ast = parseSource(source);
+
+      expect(ast.type).toBe('Program');
+      const program = ast as Program;
+      expect(program.body.length).toBe(1);
+
+      const enumDecl = program.body[0] as any;
+      expect(enumDecl.type).toBe('EnumDeclaration');
+      expect(enumDecl.name).toBe('Color');
+      expect(enumDecl.members.length).toBe(3);
+      expect(enumDecl.exported).toBe(false);
+
+      expect(enumDecl.members[0].name).toBe('RED');
+      expect(enumDecl.members[0].value.type).toBe('Literal');
+      expect(enumDecl.members[0].value.value).toBe(1);
+
+      expect(enumDecl.members[1].name).toBe('GREEN');
+      expect(enumDecl.members[1].value.value).toBe(2);
+
+      expect(enumDecl.members[2].name).toBe('BLUE');
+      expect(enumDecl.members[2].value.value).toBe(3);
+    });
+
+    it('should parse enum with auto-increment values', () => {
+      const source = `module Main
+enum Direction
+  UP,
+  DOWN,
+  LEFT,
+  RIGHT
+end enum`;
+      const ast = parseSource(source);
+
+      expect(ast.type).toBe('Program');
+      const program = ast as Program;
+      expect(program.body.length).toBe(1);
+
+      const enumDecl = program.body[0] as any;
+      expect(enumDecl.type).toBe('EnumDeclaration');
+      expect(enumDecl.name).toBe('Direction');
+      expect(enumDecl.members.length).toBe(4);
+
+      // Auto-increment should start at 0
+      expect(enumDecl.members[0].name).toBe('UP');
+      expect(enumDecl.members[0].value.value).toBe(0);
+
+      expect(enumDecl.members[1].name).toBe('DOWN');
+      expect(enumDecl.members[1].value.value).toBe(1);
+
+      expect(enumDecl.members[2].name).toBe('LEFT');
+      expect(enumDecl.members[2].value.value).toBe(2);
+
+      expect(enumDecl.members[3].name).toBe('RIGHT');
+      expect(enumDecl.members[3].value.value).toBe(3);
+    });
+
+    it('should parse enum with mixed explicit and auto values', () => {
+      const source = `module Main
+enum GameState
+  MENU = 0,
+  PLAYING,
+  PAUSED,
+  GAME_OVER = 10
+end enum`;
+      const ast = parseSource(source);
+
+      expect(ast.type).toBe('Program');
+      const program = ast as Program;
+      expect(program.body.length).toBe(1);
+
+      const enumDecl = program.body[0] as any;
+      expect(enumDecl.type).toBe('EnumDeclaration');
+      expect(enumDecl.name).toBe('GameState');
+      expect(enumDecl.members.length).toBe(4);
+
+      expect(enumDecl.members[0].name).toBe('MENU');
+      expect(enumDecl.members[0].value.value).toBe(0);
+
+      // Auto-increment should continue from 0
+      expect(enumDecl.members[1].name).toBe('PLAYING');
+      expect(enumDecl.members[1].value.value).toBe(1);
+
+      expect(enumDecl.members[2].name).toBe('PAUSED');
+      expect(enumDecl.members[2].value.value).toBe(2);
+
+      // Explicit value should reset auto-increment
+      expect(enumDecl.members[3].name).toBe('GAME_OVER');
+      expect(enumDecl.members[3].value.value).toBe(10);
+    });
+
+    it('should parse exported enum declaration', () => {
+      const source = `module Main
+export enum Status
+  SUCCESS,
+  ERROR
+end enum`;
+      const ast = parseSource(source);
+
+      expect(ast.type).toBe('Program');
+      const program = ast as Program;
+      expect(program.exports.length).toBe(1);
+
+      const exportDecl = program.exports[0];
+      expect(exportDecl.type).toBe('ExportDeclaration');
+      const enumDecl = exportDecl.declaration as any;
+      expect(enumDecl.type).toBe('EnumDeclaration');
+      expect(enumDecl.name).toBe('Status');
+      expect(enumDecl.exported).toBe(true);
+    });
+
+    it('should parse empty enum declaration', () => {
+      const source = `module Main
+enum Empty
+end enum`;
+      const ast = parseSource(source);
+
+      expect(ast.type).toBe('Program');
+      const program = ast as Program;
+      expect(program.body.length).toBe(1);
+
+      const enumDecl = program.body[0] as any;
+      expect(enumDecl.type).toBe('EnumDeclaration');
+      expect(enumDecl.name).toBe('Empty');
+      expect(enumDecl.members.length).toBe(0);
+    });
+  });
+
+  describe('v0.2 Enhanced Match Statements', () => {
+    it('should parse match statement with default case', () => {
+      const source = `module Main
+function test(): void
+  match gameState
+    case MENU:
+      showMenu()
+    case PLAYING:
+      updateGame()
+    default:
+      handleError()
+  end match
+end function`;
+      const ast = parseSource(source);
+
+      expect(ast.type).toBe('Program');
+      const program = ast as Program;
+      const funcDecl = program.body[0] as FunctionDeclaration;
+      expect(funcDecl.body?.length).toBe(1);
+
+      const matchStmt = funcDecl.body?.[0] as any;
+      expect(matchStmt.type).toBe('MatchStatement');
+      expect(matchStmt.discriminant.type).toBe('Identifier');
+      expect(matchStmt.discriminant.name).toBe('gameState');
+      expect(matchStmt.cases.length).toBe(2);
+      expect(matchStmt.defaultCase).toBeDefined();
+
+      // Check regular cases
+      expect(matchStmt.cases[0].test.name).toBe('MENU');
+      expect(matchStmt.cases[1].test.name).toBe('PLAYING');
+
+      // Check default case
+      expect(matchStmt.defaultCase.test).toBe(null);
+      expect(matchStmt.defaultCase.consequent.length).toBe(1);
+    });
+
+    it('should parse match statement without default case', () => {
+      const source = `module Main
+function test(): void
+  match value
+    case 1:
+      doOne()
+    case 2:
+      doTwo()
+  end match
+end function`;
+      const ast = parseSource(source);
+
+      expect(ast.type).toBe('Program');
+      const program = ast as Program;
+      const funcDecl = program.body[0] as FunctionDeclaration;
+      expect(funcDecl.body?.length).toBe(1);
+
+      const matchStmt = funcDecl.body?.[0] as any;
+      expect(matchStmt.type).toBe('MatchStatement');
+      expect(matchStmt.cases.length).toBe(2);
+      expect(matchStmt.defaultCase).toBe(null);
+    });
+
+    it('should parse match statement with multiple statements in cases', () => {
+      const source = `module Main
+function test(): void
+  match action
+    case ATTACK:
+      playSound()
+      dealDamage()
+      updateAnimation()
+    case DEFEND:
+      raiseShield()
+      reduceSpeed()
+    default:
+      standIdle()
+      resetState()
+  end match
+end function`;
+      const ast = parseSource(source);
+
+      expect(ast.type).toBe('Program');
+      const program = ast as Program;
+      const funcDecl = program.body[0] as FunctionDeclaration;
+      expect(funcDecl.body?.length).toBe(1);
+
+      const matchStmt = funcDecl.body?.[0] as any;
+      expect(matchStmt.type).toBe('MatchStatement');
+      expect(matchStmt.cases.length).toBe(2);
+
+      // Check case with multiple statements
+      expect(matchStmt.cases[0].consequent.length).toBe(3);
+      expect(matchStmt.cases[1].consequent.length).toBe(2);
+
+      // Check default case with multiple statements
+      expect(matchStmt.defaultCase.consequent.length).toBe(2);
+    });
+
+    it('should error on multiple default cases', () => {
+      const source = `module Main
+function test(): void
+  match value
+    case 1:
+      doOne()
+    default:
+      handleDefault1()
+    default:
+      handleDefault2()
+  end match
+end function`;
+
+      expect(() => parseSource(source)).toThrow(/Multiple default cases not allowed/);
+    });
+
+    it('should parse nested match statements', () => {
+      const source = `module Main
+function test(): void
+  match outerValue
+    case 1:
+      match innerValue
+        case A:
+          doA()
+        default:
+          doDefault()
+      end match
+    default:
+      doOuter()
+  end match
+end function`;
+      const ast = parseSource(source);
+
+      expect(ast.type).toBe('Program');
+      const program = ast as Program;
+      const funcDecl = program.body[0] as FunctionDeclaration;
+      expect(funcDecl.body?.length).toBe(1);
+
+      const outerMatch = funcDecl.body?.[0] as any;
+      expect(outerMatch.type).toBe('MatchStatement');
+      expect(outerMatch.cases.length).toBe(1);
+
+      // Inner match should be in the consequent of the first case
+      const innerMatch = outerMatch.cases[0].consequent[0] as any;
+      expect(innerMatch.type).toBe('MatchStatement');
+      expect(innerMatch.cases.length).toBe(1);
+      expect(innerMatch.defaultCase).toBeDefined();
+    });
+  });
+
+  describe('v0.2 Complete Integration Tests', () => {
+    it('should parse complete game state management with all v0.2 features', () => {
+      const source = `module GameEngine
+enum GameState
+  MENU = 0,
+  PLAYING,
+  PAUSED,
+  GAME_OVER = 10
+end enum
+
+enum Direction
+  UP, DOWN, LEFT, RIGHT
+end enum
+
+function gameLoop(): void
+  while true
+    match currentState
+      case GameState.MENU:
+        handleMenu()
+        if startPressed then
+          currentState = GameState.PLAYING
+        end if
+      case GameState.PLAYING:
+        for i = 0 to enemyCount - 1
+          if enemies[i].health <= 0 then
+            continue
+          end if
+          updateEnemy(i)
+          if playerHealth <= 0 then
+            currentState = GameState.GAME_OVER
+            break
+          end if
+        next i
+      case GameState.PAUSED:
+        if resumePressed then
+          currentState = GameState.PLAYING
+        end if
+      default:
+        currentState = GameState.MENU
+    end match
+  end while
+end function`;
+
+      const ast = parseSource(source);
+
+      expect(ast.type).toBe('Program');
+      const program = ast as Program;
+      expect(program.body.length).toBe(3); // 2 enums + 1 function
+
+      // Check GameState enum
+      const gameStateEnum = program.body[0] as any;
+      expect(gameStateEnum.type).toBe('EnumDeclaration');
+      expect(gameStateEnum.name).toBe('GameState');
+      expect(gameStateEnum.members.length).toBe(4);
+
+      // Check Direction enum
+      const directionEnum = program.body[1] as any;
+      expect(directionEnum.type).toBe('EnumDeclaration');
+      expect(directionEnum.name).toBe('Direction');
+      expect(directionEnum.members.length).toBe(4);
+
+      // Check function with all control flow features
+      const funcDecl = program.body[2] as any;
+      expect(funcDecl.type).toBe('FunctionDeclaration');
+      expect(funcDecl.name).toBe('gameLoop');
+      expect(funcDecl.body.length).toBe(1);
+
+      // Should contain while loop with match statement
+      const whileStmt = funcDecl.body[0] as any;
+      expect(whileStmt.type).toBe('WhileStatement');
+      expect(whileStmt.body[0].type).toBe('MatchStatement');
+
+      // Match statement should have cases and default
+      const matchStmt = whileStmt.body[0] as any;
+      expect(matchStmt.cases.length).toBe(3);
+      expect(matchStmt.defaultCase).toBeDefined();
+    });
+
+    it('should parse nested loops with break/continue and match statements', () => {
+      const source = `module AI
+enum ActionType
+  ATTACK, DEFEND, MOVE, IDLE
+end enum
+
+function processAI(): void
+  for entityId = 0 to maxEntities - 1
+    if entities[entityId].active == false then
+      continue
+    end if
+
+    for actionId = 0 to maxActions - 1
+      match entities[entityId].actionQueue[actionId]
+        case ActionType.ATTACK:
+          if executeAttack(entityId) then
+            break
+          end if
+        case ActionType.DEFEND:
+          if executeDefend(entityId) then
+            continue
+          end if
+        case ActionType.MOVE:
+          if executeMove(entityId) then
+            break
+          end if
+        default:
+          entities[entityId].state = ActionType.IDLE
+      end match
+    next actionId
+  next entityId
+end function`;
+
+      const ast = parseSource(source);
+
+      expect(ast.type).toBe('Program');
+      const program = ast as Program;
+      expect(program.body.length).toBe(2); // 1 enum + 1 function
+
+      const enumDecl = program.body[0] as any;
+      expect(enumDecl.type).toBe('EnumDeclaration');
+      expect(enumDecl.name).toBe('ActionType');
+
+      const funcDecl = program.body[1] as any;
+      expect(funcDecl.type).toBe('FunctionDeclaration');
+      expect(funcDecl.name).toBe('processAI');
+
+      // Should have nested for loops
+      const outerFor = funcDecl.body[0] as any;
+      expect(outerFor.type).toBe('ForStatement');
+
+      // Inner structure should contain match statement
+      let foundMatch = false;
+      let foundInnerFor = false;
+      function searchStatements(statements: any[]): void {
+        for (const stmt of statements) {
+          if (stmt.type === 'MatchStatement') foundMatch = true;
+          if (stmt.type === 'ForStatement') foundInnerFor = true;
+          if (stmt.body) searchStatements(stmt.body);
+          if (stmt.thenBody) searchStatements(stmt.thenBody);
+          if (stmt.elseBody) searchStatements(stmt.elseBody);
+          if (stmt.cases) {
+            for (const caseStmt of stmt.cases) {
+              searchStatements(caseStmt.consequent);
+            }
+          }
+          if (stmt.defaultCase) {
+            searchStatements(stmt.defaultCase.consequent);
+          }
+        }
+      }
+      searchStatements(outerFor.body);
+
+      expect(foundMatch).toBe(true);
+      expect(foundInnerFor).toBe(true);
+    });
+
+    it('should parse exported enums with functions using all v0.2 features', () => {
+      const source = `module PublicAPI
+export enum PlayerAction
+  JUMP = 1,
+  RUN = 2,
+  SHOOT = 3,
+  CROUCH = 4
+end enum
+
+export enum EnemyType
+  GOOMBA, KOOPA, PIRANHA_PLANT
+end enum
+
+export function handleInput(action: PlayerAction): void
+  match action
+    case PlayerAction.JUMP:
+      for frame = 0 to jumpDuration - 1
+        if collision then
+          break
+        end if
+        updateJumpFrame()
+      next frame
+    case PlayerAction.RUN:
+      while running
+        if obstacle then
+          break
+        end if
+        if powerUp then
+          continue
+        end if
+        updateRunning()
+      end while
+    case PlayerAction.SHOOT:
+      for bullet = 0 to maxBullets - 1
+        if bullets[bullet].active then
+          continue
+        end if
+        fireBullet(bullet)
+        break
+      next bullet
+    default:
+      setIdle()
+  end match
+end function`;
+
+      const ast = parseSource(source);
+
+      expect(ast.type).toBe('Program');
+      const program = ast as Program;
+      expect(program.exports.length).toBe(3); // 2 enums + 1 function
+
+      // All exports should be properly marked
+      const exports = program.exports;
+      expect(exports[0].declaration.type).toBe('EnumDeclaration');
+      expect((exports[0].declaration as any).name).toBe('PlayerAction');
+      expect((exports[0].declaration as any).exported).toBe(true);
+
+      expect(exports[1].declaration.type).toBe('EnumDeclaration');
+      expect((exports[1].declaration as any).name).toBe('EnemyType');
+      expect((exports[1].declaration as any).exported).toBe(true);
+
+      expect(exports[2].declaration.type).toBe('FunctionDeclaration');
+      expect((exports[2].declaration as any).name).toBe('handleInput');
+      expect((exports[2].declaration as any).exported).toBe(true);
+
+      // Function should use all v0.2 features
+      const funcDecl = exports[2].declaration as any;
+      expect(funcDecl.body[0].type).toBe('MatchStatement');
+    });
+
+    it('should handle complex v0.2 error scenarios correctly', () => {
+      // Test break outside nested loop structure
+      const breakOutsideLoop = `module Test
+enum State ACTIVE, INACTIVE end enum
+function test(): void
+  match state
+    case State.ACTIVE:
+      break
+  end match
+end function`;
+
+      expect(() => parseSource(breakOutsideLoop)).toThrow(/break statement must be inside a loop/);
+
+      // Test continue outside nested loop structure
+      const continueOutsideLoop = `module Test
+function test(): void
+  match value
+    case 1:
+      continue
+  end match
+end function`;
+
+      expect(() => parseSource(continueOutsideLoop)).toThrow(/continue statement must be inside a loop/);
+
+      // Test multiple defaults in match
+      const multipleDefaults = `module Test
+enum Action MOVE, STOP end enum
+function test(): void
+  match action
+    case Action.MOVE:
+      doMove()
+    default:
+      doDefault1()
+    default:
+      doDefault2()
+  end match
+end function`;
+
+      expect(() => parseSource(multipleDefaults)).toThrow(/Multiple default cases not allowed/);
+    });
+
+    it('should parse deeply nested v0.2 constructs', () => {
+      const source = `module ComplexNesting
+enum GameMode SINGLE, MULTI end enum
+enum PlayerType HUMAN, AI end enum
+
+function complexLogic(): void
+  match gameMode
+    case GameMode.SINGLE:
+      for playerId = 0 to maxPlayers - 1
+        if players[playerId].active then
+          while players[playerId].health > 0
+            match players[playerId].playerType
+              case PlayerType.HUMAN:
+                for inputId = 0 to inputBufferSize - 1
+                  if inputs[inputId].processed then
+                    continue
+                  end if
+                  if processInput(inputId) then
+                    break
+                  end if
+                next inputId
+              case PlayerType.AI:
+                for decision = 0 to aiDecisions - 1
+                  if makeAIDecision(decision) then
+                    break
+                  end if
+                next decision
+              default:
+                setPlayerInactive(playerId)
+                continue
+            end match
+          end while
+        end if
+      next playerId
+    default:
+      handleMultiplayer()
+  end match
+end function`;
+
+      const ast = parseSource(source);
+
+      expect(ast.type).toBe('Program');
+      const program = ast as Program;
+      expect(program.body.length).toBe(3); // 2 enums + 1 function
+
+      // Should parse without errors and have proper nesting
+      const funcDecl = program.body[2] as any;
+      expect(funcDecl.type).toBe('FunctionDeclaration');
+      expect(funcDecl.body[0].type).toBe('MatchStatement');
+    });
+  });
+
   describe('Expressions', () => {
     it('should parse binary expression', () => {
       const source = `module Main

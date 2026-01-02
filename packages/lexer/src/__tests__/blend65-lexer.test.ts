@@ -58,6 +58,70 @@ describe('Blend65Lexer', () => {
       expect(tokens[1].type).toBe(TokenType.OR);
       expect(tokens[2].type).toBe(TokenType.NOT);
     });
+
+    // v0.2 Keywords Tests
+    it('should recognize v0.2 control flow keywords', () => {
+      const source = 'break continue default enum';
+      const tokens = tokenize(source);
+
+      expect(tokens[0].type).toBe(TokenType.BREAK);
+      expect(tokens[0].value).toBe('break');
+      expect(tokens[1].type).toBe(TokenType.CONTINUE);
+      expect(tokens[1].value).toBe('continue');
+      expect(tokens[2].type).toBe(TokenType.DEFAULT);
+      expect(tokens[2].value).toBe('default');
+      expect(tokens[3].type).toBe(TokenType.ENUM);
+      expect(tokens[3].value).toBe('enum');
+      expect(tokens[4].type).toBe(TokenType.EOF);
+    });
+
+    it('should distinguish v0.2 keywords from identifiers', () => {
+      const source = 'break breakable continue continuous default defaultValue enum enumeration';
+      const tokens = tokenize(source);
+
+      // Keywords should be recognized as such
+      expect(tokens[0].type).toBe(TokenType.BREAK);
+      expect(tokens[0].value).toBe('break');
+      expect(tokens[2].type).toBe(TokenType.CONTINUE);
+      expect(tokens[2].value).toBe('continue');
+      expect(tokens[4].type).toBe(TokenType.DEFAULT);
+      expect(tokens[4].value).toBe('default');
+      expect(tokens[6].type).toBe(TokenType.ENUM);
+      expect(tokens[6].value).toBe('enum');
+
+      // Similar words should be identifiers
+      expect(tokens[1].type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[1].value).toBe('breakable');
+      expect(tokens[3].type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[3].value).toBe('continuous');
+      expect(tokens[5].type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[5].value).toBe('defaultValue');
+      expect(tokens[7].type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[7].value).toBe('enumeration');
+    });
+
+    it('should handle v0.2 keywords in string literals', () => {
+      const source = '"break continue default enum" \'loop break continue\'';
+      const tokens = tokenize(source);
+
+      // Keywords inside strings should remain as string content
+      expect(tokens[0].type).toBe(TokenType.STRING);
+      expect(tokens[0].value).toBe('break continue default enum');
+      expect(tokens[1].type).toBe(TokenType.STRING);
+      expect(tokens[1].value).toBe('loop break continue');
+      expect(tokens[2].type).toBe(TokenType.EOF);
+    });
+
+    it('should handle v0.2 keywords with different casing', () => {
+      const source = 'BREAK Break bReAk CONTINUE Continue cOnTiNuE DEFAULT Default dEfAuLt ENUM Enum eNuM';
+      const tokens = tokenize(source);
+
+      // All variations should be treated as identifiers (case-sensitive keywords)
+      for (let i = 0; i < 12; i++) {
+        expect(tokens[i].type).toBe(TokenType.IDENTIFIER);
+      }
+      expect(tokens[12].type).toBe(TokenType.EOF);
+    });
   });
 
   describe('Numbers', () => {
@@ -318,6 +382,140 @@ io var VIC_REG: byte`;
       expect(tokens[18].type).toBe(TokenType.COLON);
       expect(tokens[19].type).toBe(TokenType.BYTE);
       expect(tokens[20].type).toBe(TokenType.EOF);
+    });
+
+    // v0.2 Sample Code Tests
+    it('should tokenize v0.2 break and continue statements', () => {
+      const source = `for i = 0 to 10
+  if i == 5 then
+    break
+  end if
+  if i == 3 then
+    continue
+  end if
+next i`;
+
+      const tokens = tokenize(source);
+
+      // Find break and continue tokens
+      const breakTokenIndex = tokens.findIndex(t => t.type === TokenType.BREAK);
+      const continueTokenIndex = tokens.findIndex(t => t.type === TokenType.CONTINUE);
+
+      expect(breakTokenIndex).toBeGreaterThan(-1);
+      expect(tokens[breakTokenIndex].type).toBe(TokenType.BREAK);
+      expect(tokens[breakTokenIndex].value).toBe('break');
+
+      expect(continueTokenIndex).toBeGreaterThan(-1);
+      expect(tokens[continueTokenIndex].type).toBe(TokenType.CONTINUE);
+      expect(tokens[continueTokenIndex].value).toBe('continue');
+    });
+
+    it('should tokenize v0.2 enum declarations', () => {
+      const source = `enum Direction
+  UP = 0,
+  DOWN = 1,
+  LEFT,
+  RIGHT
+end enum`;
+
+      const tokens = tokenize(source);
+
+      // Find enum-related tokens
+      expect(tokens[0].type).toBe(TokenType.ENUM);
+      expect(tokens[0].value).toBe('enum');
+      expect(tokens[1].type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[1].value).toBe('Direction');
+
+      // Find identifiers for enum members
+      const upIndex = tokens.findIndex(t => t.value === 'UP');
+      const downIndex = tokens.findIndex(t => t.value === 'DOWN');
+      const leftIndex = tokens.findIndex(t => t.value === 'LEFT');
+      const rightIndex = tokens.findIndex(t => t.value === 'RIGHT');
+
+      expect(upIndex).toBeGreaterThan(-1);
+      expect(tokens[upIndex].type).toBe(TokenType.IDENTIFIER);
+      expect(downIndex).toBeGreaterThan(-1);
+      expect(tokens[downIndex].type).toBe(TokenType.IDENTIFIER);
+      expect(leftIndex).toBeGreaterThan(-1);
+      expect(tokens[leftIndex].type).toBe(TokenType.IDENTIFIER);
+      expect(rightIndex).toBeGreaterThan(-1);
+      expect(tokens[rightIndex].type).toBe(TokenType.IDENTIFIER);
+    });
+
+    it('should tokenize v0.2 match statements with default case', () => {
+      const source = `match gameState
+  case MENU:
+    showMenu()
+  case PLAYING:
+    updateGame()
+  default:
+    handleError()
+end match`;
+
+      const tokens = tokenize(source);
+
+      // Find match-related tokens
+      expect(tokens[0].type).toBe(TokenType.MATCH);
+      expect(tokens[0].value).toBe('match');
+
+      const caseIndices = tokens
+        .map((token, index) => token.type === TokenType.CASE ? index : -1)
+        .filter(index => index !== -1);
+
+      expect(caseIndices.length).toBe(2); // Two case statements
+
+      const defaultIndex = tokens.findIndex(t => t.type === TokenType.DEFAULT);
+      expect(defaultIndex).toBeGreaterThan(-1);
+      expect(tokens[defaultIndex].type).toBe(TokenType.DEFAULT);
+      expect(tokens[defaultIndex].value).toBe('default');
+    });
+
+    it('should tokenize complete v0.2 game state management example', () => {
+      const source = `enum GameState
+  MENU, PLAYING, PAUSED, GAME_OVER
+end enum
+
+function gameLoop(): void
+  while true
+    match currentState
+      case GameState.MENU:
+        handleMenu()
+      case GameState.PLAYING:
+        for i = 0 to enemyCount - 1
+          if enemies[i].health <= 0 then
+            continue
+          end if
+          updateEnemy(i)
+          if playerHealth <= 0 then
+            currentState = GameState.GAME_OVER
+            break
+          end if
+        next i
+      default:
+        currentState = GameState.MENU
+    end match
+  end while
+end function`;
+
+      const tokens = tokenize(source);
+
+      // Verify all v0.2 tokens are present
+      const hasEnum = tokens.some(t => t.type === TokenType.ENUM);
+      const hasMatch = tokens.some(t => t.type === TokenType.MATCH);
+      const hasCase = tokens.some(t => t.type === TokenType.CASE);
+      const hasDefault = tokens.some(t => t.type === TokenType.DEFAULT);
+      const hasContinue = tokens.some(t => t.type === TokenType.CONTINUE);
+      const hasBreak = tokens.some(t => t.type === TokenType.BREAK);
+
+      expect(hasEnum).toBe(true);
+      expect(hasMatch).toBe(true);
+      expect(hasCase).toBe(true);
+      expect(hasDefault).toBe(true);
+      expect(hasContinue).toBe(true);
+      expect(hasBreak).toBe(true);
+
+      // Ensure proper EOF termination
+      expect(tokens[tokens.length - 1].type).toBe(TokenType.EOF);
     });
   });
 });
