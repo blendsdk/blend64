@@ -149,7 +149,6 @@ export class Blend65Lexer {
     }
 
     // Unknown character
-    const token = this.createToken(TokenType.IDENTIFIER, char, start);
     this.advance();
     throw new Error(`Unexpected character '${char}' at line ${start.line}, column ${start.column}`);
   }

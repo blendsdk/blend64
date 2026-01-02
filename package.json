@@ -37,17 +37,17 @@
   },
   "devDependencies": {
     "@manypkg/get-packages": "^3.1.0",
-    "@typescript-eslint/eslint-plugin": "^8.49.0",
-    "@typescript-eslint/parser": "^8.49.0",
-    "eslint": "^9.39.1",
+    "@typescript-eslint/eslint-plugin": "^8.51.0",
+    "@typescript-eslint/parser": "^8.51.0",
+    "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
     "npm-check-updates": "^19.2.0",
     "prettier": "^3.7.4",
     "tsx": "^4.21.0",
-    "turbo": "^2.6.3",
+    "turbo": "^2.7.2",
     "typescript": "^5.9.3",
-    "vitest": "^2.1.8"
+    "vitest": "^4.0.16"
   },
   "repository": {
     "type": "git",
