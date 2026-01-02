@@ -64,7 +64,7 @@ digit = "0".."9" ;
 ```
 
 **Examples:**
-```blend65
+```js
 counter
 playerX
 VIC_REGISTER
@@ -86,7 +86,7 @@ binary_digit = "0" | "1" ;
 ```
 
 **Examples:**
-```blend65
+```js
 255          // Decimal
 $FF          // Hexadecimal (6502 style)
 0xFF         // Hexadecimal (C style)
@@ -102,7 +102,7 @@ escape_sequence = "\\" ( "n" | "t" | "r" | "\\" | '"' | "'" ) ;
 ```
 
 **Examples:**
-```blend65
+```js
 "Hello, World!"
 'Single quoted string'
 "Line with\nnewline"
@@ -116,7 +116,7 @@ boolean_literal = "true" | "false" ;
 ```
 
 **Examples:**
-```blend65
+```js
 true
 false
 ```
@@ -310,7 +310,7 @@ program = module_declaration
 **Examples:**
 
 ### Simple Program
-```blend65
+```js
 module Game.Main
 
 function main(): void
@@ -319,7 +319,7 @@ end function
 ```
 
 ### Complex Program
-```blend65
+```js
 module Game.Player
 import setSpritePosition from c64.sprites
 import utils from core.helpers
@@ -353,17 +353,17 @@ qualified_name = identifier { "." identifier } ;
 **Examples:**
 
 ### Single Level Module
-```blend65
+```js
 module Main
 ```
 
 ### Hierarchical Module
-```blend65
+```js
 module Game.Player.Movement
 ```
 
 ### Platform-Specific Module
-```blend65
+```js
 module C64.Graphics.Sprites
 ```
 
@@ -398,21 +398,21 @@ named_type = identifier ;
 **Examples:**
 
 ### Basic Types
-```blend65
+```js
 var counter: byte = 0
 var address: word = $C000
 var enabled: boolean = true
 ```
 
 ### Array Types
-```blend65
+```js
 var buffer: byte[256]          // Fixed-size byte array
 var screenData: byte[1000]     // Large data array
 var coordinates: word[100]     // Array of 16-bit values
 ```
 
 ### Function Return Types
-```blend65
+```js
 function getByte(): byte       // Returns a byte
   return 42
 end function
@@ -448,19 +448,19 @@ variable_declaration = [ storage_class ] "var" identifier ":" type_annotation
 **Examples:**
 
 ### Zero Page Variables (Fastest Access)
-```blend65
+```js
 zp var counter: byte = 0           // Fast loop counter
 zp var tempPtr: word              // Fast pointer arithmetic
 ```
 
 ### RAM Variables (General Storage)
-```blend65
+```js
 ram var gameState: byte           // General game data
 ram var buffer: byte[1000]        // Large working buffer
 ```
 
 ### Data Variables (Pre-initialized)
-```blend65
+```js
 data var palette: byte[16] = [
   $00, $01, $02, $03, $04, $05, $06, $07,
   $08, $09, $0A, $0B, $0C, $0D, $0E, $0F
@@ -468,13 +468,13 @@ data var palette: byte[16] = [
 ```
 
 ### Constant Variables (Read-only)
-```blend65
+```js
 const var SCREEN_WIDTH: byte = 40
 const var SIN_TABLE: byte[256] = [/* sine values */]
 ```
 
 ### I/O Variables (Hardware Registers)
-```blend65
+```js
 io var VIC_BACKGROUND: byte       // $D020 - Background color
 io var SID_VOLUME: byte           // $D418 - Sound volume
 ```
@@ -497,14 +497,14 @@ variable_declaration = [ storage_class ] "var" identifier ":" type_annotation
 **Examples:**
 
 ### Basic Variable Declaration
-```blend65
+```js
 var score: word = 0
 var playerName: byte[20]
 var isGameOver: boolean = false
 ```
 
 ### With Storage Classes
-```blend65
+```js
 zp var x: byte                    // Zero page for speed
 ram var enemies: byte[50]         // RAM for dynamic data
 data var levelData: byte[256] = [/* data */]  // Pre-initialized
@@ -513,7 +513,7 @@ io var JOYSTICK: byte             // Hardware register
 ```
 
 ### Inside Functions (Local Variables)
-```blend65
+```js
 function calculateDistance(): word
   var deltaX: byte              // Local variable (automatic storage)
   var deltaY: byte              // Local variable (automatic storage)

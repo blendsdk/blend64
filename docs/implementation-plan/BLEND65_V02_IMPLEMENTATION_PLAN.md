@@ -601,7 +601,7 @@ describe('Enum Declarations', () => {
 ### Task 4.4: Documentation and Examples
 **Files:** Update documentation with v0.2 examples
 **Requirements:**
-```blend65
+```js
 // Example: Game state management with enums and match
 enum GameState
   MENU = 0,

@@ -41,7 +41,7 @@ Basically, the goal is the power of assembly with the convenience of a modern la
 
 ### **Core 6502 Language**
 
-```
+```js
 // Modern syntax for 6502 development
 var lives: byte = 3
 var score: word = 0
@@ -125,12 +125,12 @@ blend65 game.blend  # → game.prg for Commodore 64
 
 ## What Blend65 Is NOT
 
--   Not a VM or bytecode language
--   Not an interpreter
--   Not a C replacement
--   Not a BASIC replacement
--   Not a scripting language
--   Not focused on modern platforms
+- Not a VM or bytecode language
+- Not an interpreter
+- Not a C replacement
+- Not a BASIC replacement
+- Not a scripting language
+- Not focused on modern platforms
 
 ---
 
@@ -139,24 +139,29 @@ blend65 game.blend  # → game.prg for Commodore 64
 Currently focusing on the C64 as the primary target, but Blend65 should eventually work on other 6502 systems too. Here's the roadmap:
 
 **Current focus:**
+
 - **Commodore 64** - The main target. VIC-II graphics, SID sound, sprites, the whole deal.
 
 **Likely next targets:**
+
 - **VIC-20** - Simpler than the C64, so it should be easier to support
 - **Commander X16** - This is a modern 6502 computer that's actually being sold today
 - **Apple II** - Lots of documentation and a huge game library
 
 **Future possibilities:**
+
 - **NES** - Would be cool but the graphics system is pretty complex
 - **Atari 8-bit computers** - The 400/800 series had some great games
 - **Commodore 128** - Basically a souped-up C64
 
 **Ambitious long-term goals:**
+
 - **Atari 2600** - This would be a nightmare due to the constraints, but imagine the bragging rights
 - **BBC Micro** - Popular in the UK, different from other systems
 - **Plus/4** - Commodore's weird TED chip system
 
 For the C64, the plan is to support all the important hardware:
+
 - Full VIC-II control (sprites, scrolling, raster interrupts)
 - SID sound chip (all 3 voices, filters, everything)
 - Proper memory management (zero page optimization, custom memory layouts)
@@ -203,7 +208,7 @@ Create .prg file for target system
 
 ## Example: C64 Game
 
-```
+```js
 module Game.Main
 
 // Game variables in different memory regions
@@ -434,6 +439,7 @@ play_beep_sound:
 The front-end of the compiler is essentially complete! The parser can handle any Blend65 code and turn it into a clean abstract syntax tree. All the language features for v0.1 are working:
 
 **What's built and tested (159 tests passing):**
+
 - ✅ Lexer that understands all Blend65 syntax
 - ✅ Parser that builds a proper AST
 - ✅ Support for modules, functions, variables, control flow
@@ -446,12 +452,14 @@ Even analyzed a real C64 Snake game written in assembly and confirmed that Blend
 ## What's Next
 
 **v0.2 Language Features:**
+
 - Break/continue statements (really need these for game loops)
 - Complete match/case implementation
 - Enums for organizing constants
 
 **The Big Challenge - The Backend:**
 This is where it gets interesting. Still need to build:
+
 - Semantic analysis (type checking, symbol tables)
 - Intermediate language representation
 - Optimization passes (dead code removal, constant folding)
@@ -463,6 +471,7 @@ The language part is fun, but the code generation is where this project will suc
 ## Future Ideas
 
 Once the basic compiler works, there are some cool possibilities:
+
 - Support for other 6502 systems (VIC-20, Apple II, Commander X16)
 - Smart zero page allocation
 - Advanced optimizations
@@ -532,11 +541,11 @@ console.log('AST:', ast);
 
 ## Documentation
 
--   **[Blend65 Language Specification](docs/BLEND65_LANGUAGE_SPECIFICATION.md)** - **Complete language reference** (authoritative specification)
--   [6502 Core Features](docs/research/6502-core-features.md) - 6502 architecture details
--   [Implementation Plan](docs/implementation-plan/MASTER_PLAN.md) - Development roadmap
--   [Compiler Backend Plan](docs/implementation-plan/COMPILER_BACKEND_PLAN.md) - Detailed backend implementation (26 tasks)
--   [Target System Design](docs/research/target-system-design.md) - Architecture design
+- **[Blend65 Language Specification](docs/BLEND65_LANGUAGE_SPECIFICATION.md)** - **Complete language reference** (authoritative specification)
+- [6502 Core Features](docs/research/6502-core-features.md) - 6502 architecture details
+- [Implementation Plan](docs/implementation-plan/MASTER_PLAN.md) - Development roadmap
+- [Compiler Backend Plan](docs/implementation-plan/COMPILER_BACKEND_PLAN.md) - Detailed backend implementation (26 tasks)
+- [Target System Design](docs/research/target-system-design.md) - Architecture design
 
 ---
 
