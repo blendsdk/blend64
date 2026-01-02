@@ -86,9 +86,9 @@ A program is a set of modules. Each file declares exactly one module.
 ```
 module Game.Main
 
-import joystickLeft, joystickRight from target.input
-import setSpritePosition, enableSprite from target.sprites
-import playNote from target.sound
+import joystickLeft, joystickRight from c64.input
+import setSpritePosition, enableSprite from c64.sprites
+import playNote from c64.sid
 
 export function main(): void
     // Universal 6502 code with target-specific hardware
@@ -107,14 +107,14 @@ qualified_name ::= ident { "." ident }*
 Imports resolve by scanning project files for matching `module` declarations:
 
 ```
-// These imports resolve differently per target:
-import setSpritePosition from target.sprites
-import setBackgroundColor from target.video
-import readJoystick from target.input
-
-// Explicit target modules also supported:
+// Target-specific imports use direct dot notation:
 import setSpritePosition from c64.sprites
+import setBackgroundColor from c64.vic
+import readJoystick from c64.input
+
+// Commander X16 imports:
 import setSprite from x16.vera
+import playSound from x16.ym2151
 
 // User modules resolved by content:
 import playerUpdate from game.player
@@ -133,8 +133,8 @@ qualified_name ::= ident { "." ident }*
 
 1. **Content-based resolution**: The compiler scans all `.blend` files to find matching `module` declarations
 2. **File location independence**: Module files can be located anywhere in the project directory tree
-3. **Target resolution**: `target.*` modules resolve to `{current_target}.*` based on `--target` flag
-4. **Explicit target modules**: Direct target imports (e.g., `c64.sprites`) work only on that specific target
+3. **Direct target imports**: Target imports use explicit dot notation (e.g., `c64.sprites`, `x16.vera`)
+4. **Target-specific compilation**: Only modules for the selected target are available
 5. **Compilation failure**: Missing modules or functions cause compilation errors
 
 **Module Discovery Process:**
@@ -169,6 +169,8 @@ Blend65 types are **target-defined** and have fixed sizes. All 6502 targets shar
 |    `word` | 16-bit | unsigned 0..65535 |
 | `boolean` |  8-bit | 0 or 1            |
 |    `void` |      — | no value          |
+
+**Note:** Blend65 v0.1 does not have a separate `string` type. String data is stored as byte arrays.
 
 Optional (target-dependent):
 
@@ -287,7 +289,7 @@ io var VIC_SPRITE0_X: byte @ $D000
 VIC_SPRITE0_X = playerX
 
 // NEW (function-based):
-import setSpritePosition from target.sprites
+import setSpritePosition from c64.sprites
 setSpritePosition(0, playerX, playerY)
 ```
 
@@ -322,7 +324,7 @@ Every variable is static. Storage is expressed via **storage prefix** and option
 zp   var frame: byte
 ram  var bulletsX: byte[8]
 data var palette: byte[16] = [ 0x00, 0x06, 0x0E, 0x0B ]
-const var msg: string(16) = "SCORE:"
+const var msg: byte[7] = "SCORE:"
 io   var CUSTOM_REG: byte @ $D800  // Target-specific address
 ```
 
@@ -366,7 +368,7 @@ end while
 
 for i = 0 to 255
     // ...
-next
+next i
 ```
 
 ### 8.2 Match statement
@@ -509,10 +511,10 @@ var snakeY: byte[64]
 var snakeLength: byte = 4
 var direction: byte = 0
 
-// Target-specific imports (resolved at compile time)
-import joystickUp, joystickDown, joystickLeft, joystickRight from target.input
-import setPixel, clearScreen from target.graphics
-import playTone from target.sound
+// Target-specific imports (C64 version)
+import joystickUp, joystickDown, joystickLeft, joystickRight from c64.input
+import setPixel, clearScreen from c64.vic
+import playTone from c64.sid
 
 export function main(): void
     initGame()
@@ -544,7 +546,7 @@ function renderSnake(): void
     clearScreen()
     for i = 0 to snakeLength - 1
         setPixel(snakeX[i], snakeY[i])
-    next
+    next i
 end function
 ```
 
