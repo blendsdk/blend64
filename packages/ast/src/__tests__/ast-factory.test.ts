@@ -347,7 +347,8 @@ describe('ASTNodeFactory', () => {
         params,
         returnType,
         body,
-        true,
+        true,         // exported
+        false,        // callback
         mockMetadata
       );
 
@@ -358,6 +359,32 @@ describe('ASTNodeFactory', () => {
       expect(funcDecl.body).toEqual(body);
       expect(funcDecl.exported).toBe(true);
       expect(funcDecl.metadata).toEqual(mockMetadata);
+    });
+
+    it('should create callback function declarations', () => {
+      const paramType = factory.createPrimitiveType('byte');
+      const params = [factory.createParameter('x', paramType)];
+      const returnType = factory.createPrimitiveType('void');
+      const body = [factory.createExpressionStatement(factory.createIdentifier('test'))];
+
+      const callbackFuncDecl = factory.createFunctionDeclaration(
+        'rasterHandler',
+        params,
+        returnType,
+        body,
+        false,        // exported
+        true,         // callback
+        mockMetadata
+      );
+
+      expect(callbackFuncDecl.type).toBe('FunctionDeclaration');
+      expect(callbackFuncDecl.name).toBe('rasterHandler');
+      expect(callbackFuncDecl.params).toEqual(params);
+      expect(callbackFuncDecl.returnType).toBe(returnType);
+      expect(callbackFuncDecl.body).toEqual(body);
+      expect(callbackFuncDecl.exported).toBe(false);
+      expect(callbackFuncDecl.callback).toBe(true);  // NEW: Test callback flag
+      expect(callbackFuncDecl.metadata).toEqual(mockMetadata);
     });
 
     it('should create variable declarations', () => {
@@ -570,6 +597,26 @@ describe('ASTNodeFactory', () => {
       expect(arrayType.elementType).toBe(elementType);
       expect(arrayType.size).toBe(size);
       expect(arrayType.metadata).toEqual(mockMetadata);
+    });
+
+    it('should create callback primitive type', () => {
+      const callbackType = factory.createPrimitiveType('callback', mockMetadata);
+
+      expect(callbackType.type).toBe('PrimitiveType');
+      expect(callbackType.name).toBe('callback');
+      expect(callbackType.metadata).toEqual(mockMetadata);
+    });
+
+    it('should create callback array type', () => {
+      const callbackElementType = factory.createPrimitiveType('callback');
+      const size = factory.createLiteral(4, '4');
+      const callbackArrayType = factory.createArrayType(callbackElementType, size, mockMetadata);
+
+      expect(callbackArrayType.type).toBe('ArrayType');
+      expect(callbackArrayType.elementType.type).toBe('PrimitiveType');
+      expect((callbackArrayType.elementType as any).name).toBe('callback');
+      expect(callbackArrayType.size).toBe(size);
+      expect(callbackArrayType.metadata).toEqual(mockMetadata);
     });
 
   });

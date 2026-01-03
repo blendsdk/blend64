@@ -51,6 +51,7 @@ export enum TokenType {
   BYTE = 'BYTE',
   WORD = 'WORD',
   VOID = 'VOID',
+  CALLBACK = 'CALLBACK',        // NEW: Callback keyword token
 
   // Operators - Arithmetic
   PLUS = 'PLUS',
@@ -171,6 +172,7 @@ export const KEYWORDS = new Set([
   'byte',
   'word',
   'void',
+  'callback',                    // NEW: Add callback keyword
   'and',
   'or',
   'not',
@@ -194,6 +196,7 @@ export const PRIMITIVE_TYPES = new Set([
   'byte',
   'word',
   'void',
+  'callback',                    // NEW: Add callback primitive type
 ]);
 
 /**
@@ -213,4 +216,5 @@ export const CONTROL_FLOW_KEYWORDS = new Set([
   'continue',
   'default',
   'end',
+  'callback',                    // NEW: Add to control flow keywords
 ]);

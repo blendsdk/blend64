@@ -189,9 +189,22 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
 
     const current = this.peek();
 
+    // NEW: Handle 'callback' keyword
+    const callback = this.checkLexeme('callback');
+    if (callback) {
+      this.advance(); // consume 'callback'
+
+      // After 'callback', must be followed by 'function'
+      if (this.checkLexeme('function')) {
+        return this.parseFunctionDeclaration(false, true); // exported=false, callback=true
+      } else {
+        throw new Error("Expected 'function' after 'callback'");
+      }
+    }
+
     switch (current.value) {
       case 'function':
-        return this.parseFunctionDeclaration();
+        return this.parseFunctionDeclaration(false, false); // exported=false, callback=false
       case 'var':
       case 'zp':
       case 'ram':
@@ -216,9 +229,9 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
   }
 
   /**
-   * Parse function declaration
+   * Parse function declaration with callback support
    */
-  private parseFunctionDeclaration(): FunctionDeclaration {
+  private parseFunctionDeclaration(exported: boolean = false, callback: boolean = false): FunctionDeclaration {
     const funcToken = this.consume(TokenType.FUNCTION, "Expected 'function'");
     const name = this.consume(TokenType.IDENTIFIER, 'Expected function name').value;
 
@@ -246,7 +259,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
     this.consumeLexeme('function', "Expected 'function' after 'end'");
     this.consumeStatementTerminator();
 
-    return this.factory.createFunctionDeclaration(name, params, returnType, body, false, {
+    return this.factory.createFunctionDeclaration(name, params, returnType, body, exported, callback, {
       start: funcToken.start,
       end: this.previous().end,
     });
@@ -387,9 +400,9 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
   private parseTypeAnnotation(): TypeAnnotation {
     const token = this.peek();
 
-    // Primitive types
-    if (this.checkLexemes('byte', 'word', 'boolean', 'void')) {
-      const primType = this.advance().value as 'byte' | 'word' | 'boolean' | 'void';
+    // Primitive types including callback
+    if (this.checkLexemes('byte', 'word', 'boolean', 'void', 'callback')) {
+      const primType = this.advance().value as 'byte' | 'word' | 'boolean' | 'void' | 'callback';
       const baseType = this.factory.createPrimitiveType(primType, {
         start: token.start,
         end: token.end,

@@ -331,7 +331,8 @@ export interface Parameter extends Blend65ASTNode {
 }
 
 /**
- * Function declaration: `function name(params): returnType ... end function`
+ * Function declaration with optional callback modifier
+ * Enhanced to support callback functions for interrupts and function pointers
  */
 export interface FunctionDeclaration extends Blend65ASTNode {
   type: 'FunctionDeclaration';
@@ -340,6 +341,7 @@ export interface FunctionDeclaration extends Blend65ASTNode {
   returnType: TypeAnnotation;
   body: Statement[];
   exported: boolean;
+  callback: boolean;              // NEW: Callback function flag
 }
 
 /**
@@ -443,11 +445,11 @@ export type TypeAnnotation =
   | NamedType;
 
 /**
- * Primitive type: `byte`, `word`, `boolean`, `void`
+ * Primitive type annotation - add callback type
  */
 export interface PrimitiveType extends Blend65ASTNode {
   type: 'PrimitiveType';
-  name: 'byte' | 'word' | 'boolean' | 'void';
+  name: 'byte' | 'word' | 'boolean' | 'void' | 'callback';  // Add 'callback'
 }
 
 /**

@@ -316,6 +316,7 @@ export class Blend65Lexer {
       case 'byte': return TokenType.BYTE;
       case 'word': return TokenType.WORD;
       case 'void': return TokenType.VOID;
+      case 'callback': return TokenType.CALLBACK;  // NEW: Add callback keyword mapping
       case 'and': return TokenType.AND;
       case 'or': return TokenType.OR;
       case 'not': return TokenType.NOT;

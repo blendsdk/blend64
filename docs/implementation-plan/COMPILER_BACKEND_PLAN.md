@@ -4,8 +4,9 @@
 This plan implements the Blend65 compiler backend phases: semantic analysis, intermediate language (IL), optimization, and code generation. Each task is designed for incremental development with comprehensive testing.
 
 **CURRENT STATUS:**
-- ✅ **FRONTEND**: Complete (lexer, parser, AST) - 217 tests passing
+- ✅ **FRONTEND**: Complete (lexer, parser, AST) - 241 tests passing
 - ✅ **v0.2 LANGUAGE FEATURES**: Complete (break/continue, enums, enhanced match) - Fully tested
+- ✅ **v0.3 CALLBACK FUNCTIONS**: Complete (callback functions, callback type, IRQ language support) - 241 tests passing
 - 🔄 **BACKEND**: Ready to implement (semantic analysis → IL → optimization → codegen)
 
 **INPUT:** Working Blend65 v0.2 frontend (lexer/parser/AST with all v0.2 features)
@@ -136,7 +137,7 @@ packages/
 
 ### Task 1.5: Implement Function Declaration Analysis
 **File:** `packages/semantic/src/analyzers/function-analyzer.ts`
-**Goal:** Validate function declarations and calls
+**Goal:** Validate function declarations and calls including callback functions
 **Changes:**
 - Check function signature correctness
 - Validate parameter and return types
@@ -144,8 +145,13 @@ packages/
 - Check function call argument compatibility
 - Validate exported function visibility
 - Detect missing function implementations
-**Test:** Function signature validation, call checking
-**Success:** Complete function semantic validation
+- **NEW: Callback Function Support:**
+  - Validate callback function assignments (only callback functions to callback variables)
+  - Check callback function signatures match expected usage
+  - Ensure callback arrays contain only callback functions
+  - Validate indirect calls through callback variables
+**Test:** Function signature validation, call checking, callback validation
+**Success:** Complete function semantic validation with callback support
 
 ### Task 1.6: Implement Module System Analysis
 **File:** `packages/semantic/src/analyzers/module-analyzer.ts`

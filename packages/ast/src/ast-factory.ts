@@ -332,6 +332,7 @@ export class ASTNodeFactory {
     returnType: TypeAnnotation,
     body: Statement[],
     exported: boolean = false,
+    callback: boolean = false,      // NEW: Callback flag parameter
     metadata?: NodeMetadata
   ): FunctionDeclaration {
     return this.addMetadata({
@@ -340,7 +341,8 @@ export class ASTNodeFactory {
       params,
       returnType,
       body,
-      exported
+      exported,
+      callback                      // NEW: Include callback flag
     }, metadata);
   }
 
@@ -460,7 +462,7 @@ export class ASTNodeFactory {
   // ============================================================================
 
   createPrimitiveType(
-    name: 'byte' | 'word' | 'boolean' | 'void',
+    name: 'byte' | 'word' | 'boolean' | 'void' | 'callback',  // Add 'callback'
     metadata?: NodeMetadata
   ): PrimitiveType {
     return this.addMetadata({
