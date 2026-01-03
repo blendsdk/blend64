@@ -66,6 +66,7 @@ export type SymbolType = 'Variable' | 'Function' | 'Module' | 'Type' | 'Enum';
  * Educational Note:
  * - Storage classes are unique to Blend65 for 6502 memory management
  * - Initial values must be compile-time constants for 'data' and 'const'
+ * - Task 1.8: Enhanced with optimization metadata for 6502 code generation
  */
 export interface VariableSymbol extends Symbol {
   symbolType: 'Variable';
@@ -81,6 +82,9 @@ export interface VariableSymbol extends Symbol {
 
   /** Whether this is a local variable (function parameter or local declaration) */
   isLocal: boolean;
+
+  /** Task 1.8: Optimization metadata for 6502 code generation */
+  optimizationMetadata?: VariableOptimizationMetadata;
 }
 
 /**
@@ -353,10 +357,12 @@ export interface SemanticError {
 export type SemanticErrorType =
   | 'UndefinedSymbol'      // Using a symbol that doesn't exist
   | 'DuplicateSymbol'      // Defining a symbol that already exists
+  | 'DuplicateIdentifier'  // Identifier conflicts with existing symbol
   | 'TypeMismatch'         // Type incompatibility (e.g., assigning string to byte)
   | 'InvalidStorageClass'  // Invalid storage class usage
   | 'ImportNotFound'       // Imported symbol doesn't exist
   | 'ExportNotFound'       // Exported symbol doesn't exist
+  | 'ModuleNotFound'       // Module doesn't exist
   | 'InvalidScope'         // Symbol used in wrong scope
   | 'ConstantRequired'     // Compile-time constant required
   | 'CallbackMismatch'     // Callback function signature mismatch
@@ -381,6 +387,571 @@ export type SemanticResult<T> = {
   errors: SemanticError[];
   warnings?: SemanticError[];
 };
+
+// ============================================================================
+// TASK 1.8: VARIABLE OPTIMIZATION METADATA
+// ============================================================================
+
+/**
+ * Comprehensive optimization metadata for variables.
+ * Collects all information needed for zero page promotion, register allocation,
+ * and 6502-specific memory layout optimization.
+ *
+ * Educational Note:
+ * - Zero page promotion: Move frequently accessed variables to fast zero page memory
+ * - Register allocation: Assign short-lived variables to A/X/Y registers
+ * - Lifetime analysis: Determine when variables are live for interference detection
+ * - Usage patterns: Optimize based on access frequency and loop usage
+ */
+export interface VariableOptimizationMetadata {
+  /** Usage pattern analysis */
+  usageStatistics: VariableUsageStatistics;
+
+  /** Zero page promotion analysis */
+  zeroPageCandidate: ZeroPageCandidateInfo;
+
+  /** Register allocation analysis */
+  registerCandidate: RegisterCandidateInfo;
+
+  /** Variable lifetime analysis */
+  lifetimeInfo: VariableLifetimeInfo;
+
+  /** 6502-specific optimization hints */
+  sixtyTwoHints: Variable6502OptimizationHints;
+
+  /** Memory layout preferences */
+  memoryLayout: VariableMemoryLayoutInfo;
+}
+
+/**
+ * Usage pattern statistics for a variable.
+ */
+export interface VariableUsageStatistics {
+  /** Total number of times this variable is accessed */
+  accessCount: number;
+
+  /** Number of read accesses */
+  readCount: number;
+
+  /** Number of write accesses */
+  writeCount: number;
+
+  /** Number of read-modify-write accesses (++, +=, etc.) */
+  modifyCount: number;
+
+  /** Loop nesting levels where this variable is used */
+  loopUsage: LoopUsageInfo[];
+
+  /** Hot path usage (frequently executed code) */
+  hotPathUsage: number;
+
+  /** Average access frequency estimate */
+  estimatedAccessFrequency: AccessFrequency;
+
+  /** Access pattern type */
+  accessPattern: VariableAccessPattern;
+}
+
+/**
+ * Information about variable usage within loops.
+ */
+export interface LoopUsageInfo {
+  /** Nesting level of the loop (1 = outermost, 2 = nested, etc.) */
+  loopLevel: number;
+
+  /** Number of accesses within this loop level */
+  accessesInLoop: number;
+
+  /** Whether the variable is loop-invariant at this level */
+  isLoopInvariant: boolean;
+
+  /** Whether this might be an induction variable */
+  isInductionVariable: boolean;
+
+  /** Estimated loop iteration count */
+  estimatedIterations: number;
+}
+
+/**
+ * Access frequency classification.
+ */
+export type AccessFrequency = 'rare' | 'normal' | 'frequent' | 'very_frequent' | 'hot';
+
+/**
+ * Variable access pattern classification.
+ */
+export type VariableAccessPattern =
+  | 'single_use'          // Used only once
+  | 'multiple_read'       // Read multiple times
+  | 'read_write'          // Both read and written
+  | 'loop_dependent'      // Access depends on loop variables
+  | 'sequential_array'    // Sequential array access pattern
+  | 'random_array'        // Random array access pattern
+  | 'hot_path'            // Frequently accessed in hot paths
+  | 'induction_variable'  // Loop induction variable
+  | 'accumulator';        // Accumulator pattern (frequent read-modify-write)
+
+/**
+ * Zero page promotion candidate information.
+ */
+export interface ZeroPageCandidateInfo {
+  /** Whether this variable is a good zero page candidate */
+  isCandidate: boolean;
+
+  /** Zero page promotion priority score (0-100, higher is better) */
+  promotionScore: number;
+
+  /** Estimated benefit of zero page promotion (cycle savings) */
+  estimatedBenefit: number;
+
+  /** Size requirement in zero page (bytes) */
+  sizeRequirement: number;
+
+  /** Factors contributing to promotion decision */
+  promotionFactors: ZeroPagePromotionFactor[];
+
+  /** Factors against promotion */
+  antiPromotionFactors: ZeroPageAntiPromotionFactor[];
+
+  /** Final recommendation */
+  recommendation: ZeroPageRecommendation;
+}
+
+/**
+ * Factors that favor zero page promotion.
+ */
+export interface ZeroPagePromotionFactor {
+  factor: ZeroPagePromotionFactorType;
+  weight: number;
+  description: string;
+}
+
+export type ZeroPagePromotionFactorType =
+  | 'high_access_frequency'    // Variable accessed very frequently
+  | 'loop_usage'              // Variable used inside loops
+  | 'hot_path_usage'          // Variable used in hot execution paths
+  | 'small_size'              // Variable fits easily in zero page
+  | 'arithmetic_operations'   // Variable used in arithmetic (A register operations)
+  | 'index_operations'        // Variable used for array indexing
+  | 'no_storage_class'        // Variable has no explicit storage class
+  | 'short_lifetime';         // Variable has short lifetime
+
+/**
+ * Factors that discourage zero page promotion.
+ */
+export interface ZeroPageAntiPromotionFactor {
+  factor: ZeroPageAntiPromotionFactorType;
+  weight: number;
+  description: string;
+}
+
+export type ZeroPageAntiPromotionFactorType =
+  | 'already_zp'              // Variable already has 'zp' storage class
+  | 'large_size'              // Variable is too large for efficient zero page use
+  | 'io_access'               // Variable accesses I/O (should use 'io' storage class)
+  | 'const_data'              // Variable is constant data (should use 'data'/'const')
+  | 'low_frequency'           // Variable accessed infrequently
+  | 'single_use'              // Variable used only once
+  | 'zero_page_pressure';     // Too many other zero page candidates
+
+/**
+ * Zero page promotion recommendation.
+ */
+export type ZeroPageRecommendation =
+  | 'strongly_recommended'    // High benefit, should definitely promote
+  | 'recommended'             // Good candidate for promotion
+  | 'neutral'                 // No strong preference
+  | 'not_recommended'         // Better left in normal memory
+  | 'strongly_discouraged';   // Should not be promoted
+
+/**
+ * Register allocation candidate information.
+ */
+export interface RegisterCandidateInfo {
+  /** Whether this variable is suitable for register allocation */
+  isCandidate: boolean;
+
+  /** Preferred register for allocation */
+  preferredRegister: PreferredRegister;
+
+  /** Alternative registers that could be used */
+  alternativeRegisters: PreferredRegister[];
+
+  /** Register allocation benefit score (0-100) */
+  allocationScore: number;
+
+  /** Estimated benefit of register allocation (cycle savings) */
+  estimatedBenefit: number;
+
+  /** Variable's interference with other register candidates */
+  interferenceInfo: RegisterInterferenceInfo;
+
+  /** Register usage patterns */
+  usagePatterns: RegisterUsagePattern[];
+
+  /** Final allocation recommendation */
+  recommendation: RegisterAllocationRecommendation;
+}
+
+/**
+ * Preferred register types for 6502.
+ */
+export type PreferredRegister = 'A' | 'X' | 'Y' | 'zero_page' | 'memory';
+
+/**
+ * Register interference information.
+ */
+export interface RegisterInterferenceInfo {
+  /** Other variables that interfere with this one */
+  interferingVariables: string[];
+
+  /** Register pressure at allocation sites */
+  registerPressure: RegisterPressureLevel[];
+
+  /** Whether allocation would require spilling other variables */
+  requiresSpilling: boolean;
+
+  /** Cost of potential spilling */
+  spillingCost: number;
+}
+
+/**
+ * Register pressure level information.
+ */
+export interface RegisterPressureLevel {
+  location: SourcePosition;
+  pressure: 'low' | 'medium' | 'high' | 'critical';
+  availableRegisters: PreferredRegister[];
+}
+
+/**
+ * Register usage patterns.
+ */
+export interface RegisterUsagePattern {
+  pattern: RegisterUsagePatternType;
+  frequency: number;
+  benefit: number;
+}
+
+export type RegisterUsagePatternType =
+  | 'arithmetic_accumulator'   // Used in arithmetic operations (A register)
+  | 'array_index'             // Used for array indexing (X/Y registers)
+  | 'loop_counter'            // Used as loop counter (X/Y registers)
+  | 'temporary_storage'       // Short-term temporary storage
+  | 'function_parameter'      // Function parameter passing
+  | 'function_return'         // Function return value
+  | 'address_calculation';    // Address calculation (X/Y registers)
+
+/**
+ * Register allocation recommendation.
+ */
+export type RegisterAllocationRecommendation =
+  | 'strongly_recommended'    // High benefit, allocate to preferred register
+  | 'recommended'             // Good candidate, consider for allocation
+  | 'conditional'             // Allocate only if registers available
+  | 'not_recommended'         // Better left in memory
+  | 'impossible';             // Cannot be allocated due to constraints
+
+/**
+ * Variable lifetime information for interference analysis.
+ */
+export interface VariableLifetimeInfo {
+  /** Program points where variable is defined */
+  definitionPoints: SourcePosition[];
+
+  /** Program points where variable is used */
+  usePoints: SourcePosition[];
+
+  /** Program points where variable is live */
+  liveRanges: LiveRange[];
+
+  /** Whether variable lifetime spans function calls */
+  spansFunctionCalls: boolean;
+
+  /** Whether variable lifetime spans loops */
+  spansLoops: boolean;
+
+  /** Estimated lifetime duration (in basic blocks) */
+  estimatedDuration: number;
+
+  /** Variables that interfere with this one */
+  interferingVariables: string[];
+}
+
+/**
+ * Live range information for a variable.
+ */
+export interface LiveRange {
+  /** Start of live range */
+  start: SourcePosition;
+
+  /** End of live range */
+  end: SourcePosition;
+
+  /** Whether this range spans a loop */
+  spansLoop: boolean;
+
+  /** Whether this range is in a hot path */
+  isHotPath: boolean;
+}
+
+/**
+ * 6502-specific optimization hints for variables.
+ */
+export interface Variable6502OptimizationHints {
+  /** Preferred addressing mode for this variable */
+  addressingMode: AddressingModeHint;
+
+  /** Memory bank preference */
+  memoryBank: MemoryBank;
+
+  /** Whether variable should be aligned */
+  alignmentPreference: AlignmentPreference;
+
+  /** Hardware interaction hints */
+  hardwareInteraction: HardwareInteractionHint;
+
+  /** Optimization opportunities */
+  optimizationOpportunities: VariableOptimizationOpportunity[];
+
+  /** Performance characteristics */
+  performanceHints: VariablePerformanceHint[];
+}
+
+/**
+ * Addressing mode hints for 6502.
+ */
+export type AddressingModeHint =
+  | 'zero_page'               // $00-$FF (3 cycles)
+  | 'absolute'                // $0000-$FFFF (4 cycles)
+  | 'zero_page_x'             // $00,X (4 cycles)
+  | 'zero_page_y'             // $00,Y (4 cycles)
+  | 'absolute_x'              // $0000,X (4+ cycles)
+  | 'absolute_y'              // $0000,Y (4+ cycles)
+  | 'indirect'                // ($00) (5 cycles)
+  | 'indexed_indirect'        // ($00,X) (6 cycles)
+  | 'indirect_indexed';       // ($00),Y (5+ cycles)
+
+/**
+ * Memory bank preferences for 6502.
+ */
+export type MemoryBank =
+  | 'zero_page'               // $00-$FF
+  | 'stack'                   // $0100-$01FF
+  | 'low_ram'                 // $0200-$7FFF
+  | 'high_ram'                // $8000-$BFFF
+  | 'io_area'                 // $D000-$DFFF
+  | 'rom_area'                // $E000-$FFFF
+  | 'cartridge';              // External cartridge space
+
+/**
+ * Variable alignment preferences.
+ */
+export interface AlignmentPreference {
+  /** Required alignment (1, 2, 4, 8, etc.) */
+  requiredAlignment: number;
+
+  /** Preferred alignment for performance */
+  preferredAlignment: number;
+
+  /** Whether variable benefits from page boundary alignment */
+  preferPageBoundary: boolean;
+
+  /** Reason for alignment requirement */
+  reason: AlignmentReason;
+}
+
+export type AlignmentReason =
+  | 'none'                    // No special alignment needed
+  | 'word_access'             // 16-bit access benefits from even alignment
+  | 'array_optimization'      // Array access optimization
+  | 'hardware_requirement'    // Hardware register requires specific alignment
+  | 'performance'             // General performance benefit
+  | 'cache_line';             // Cache line alignment (future 65816 support)
+
+/**
+ * Hardware interaction hints.
+ */
+export interface HardwareInteractionHint {
+  /** Whether variable interacts with hardware registers */
+  isHardwareRegister: boolean;
+
+  /** Whether variable is memory-mapped I/O */
+  isMemoryMappedIO: boolean;
+
+  /** Whether variable is timing-critical */
+  isTimingCritical: boolean;
+
+  /** Whether variable is used in interrupt handlers */
+  usedInInterrupts: boolean;
+
+  /** Hardware components this variable interacts with */
+  hardwareComponents: HardwareComponent[];
+}
+
+export type HardwareComponent =
+  | 'vic_ii'                  // VIC-II graphics chip
+  | 'sid'                     // SID sound chip
+  | 'cia1'                    // CIA1 (keyboard, joystick)
+  | 'cia2'                    // CIA2 (serial, user port)
+  | 'color_ram'               // Color RAM
+  | 'sprite_data'             // Sprite data area
+  | 'character_rom'           // Character ROM
+  | 'kernel_rom'              // KERNAL ROM
+  | 'basic_rom';              // BASIC ROM
+
+/**
+ * Variable optimization opportunities.
+ */
+export interface VariableOptimizationOpportunity {
+  opportunity: VariableOptimizationOpportunityType;
+  benefit: number; // Estimated cycle savings
+  complexity: OptimizationComplexity;
+  description: string;
+}
+
+export type VariableOptimizationOpportunityType =
+  | 'constant_propagation'    // Variable has constant value
+  | 'dead_store_elimination'  // Stores that are never read
+  | 'common_subexpression'    // Variable involved in repeated calculations
+  | 'loop_invariant_motion'   // Variable calculation can be moved out of loop
+  | 'strength_reduction'      // Expensive operations can be reduced
+  | 'induction_variable'      // Loop induction variable optimization
+  | 'register_promotion'      // Variable should be kept in register
+  | 'memory_layout'           // Variable placement optimization
+  | 'addressing_mode';        // Better addressing mode available
+
+export type OptimizationComplexity = 'simple' | 'moderate' | 'complex' | 'very_complex';
+
+/**
+ * Variable performance hints.
+ */
+export interface VariablePerformanceHint {
+  hint: VariablePerformanceHintType;
+  impact: PerformanceImpact;
+  description: string;
+}
+
+export type VariablePerformanceHintType =
+  | 'hot_variable'            // Variable accessed very frequently
+  | 'cold_variable'           // Variable accessed infrequently
+  | 'cache_friendly'          // Variable access pattern is cache-friendly
+  | 'cache_unfriendly'        // Variable access pattern hurts cache
+  | 'memory_bandwidth'        // Variable access affects memory bandwidth
+  | 'critical_path'           // Variable is on performance critical path
+  | 'spill_candidate'         // Variable likely to be spilled from registers
+  | 'prefetch_candidate';     // Variable could benefit from prefetching
+
+export type PerformanceImpact = 'low' | 'medium' | 'high' | 'critical';
+
+/**
+ * Variable memory layout information.
+ */
+export interface VariableMemoryLayoutInfo {
+  /** Preferred memory region */
+  preferredRegion: MemoryRegion;
+
+  /** Size in bytes */
+  sizeInBytes: number;
+
+  /** Alignment requirements */
+  alignment: AlignmentPreference;
+
+  /** Whether variable should be grouped with related variables */
+  groupingPreference: VariableGroupingInfo;
+
+  /** Memory access patterns */
+  accessPatterns: MemoryAccessPattern[];
+
+  /** Locality characteristics */
+  localityInfo: MemoryLocalityInfo;
+}
+
+/**
+ * Memory regions for variable placement.
+ */
+export type MemoryRegion =
+  | 'zero_page_high_priority' // Most valuable zero page locations
+  | 'zero_page_normal'        // Standard zero page usage
+  | 'ram_fast'                // Fast RAM access areas
+  | 'ram_normal'              // Standard RAM
+  | 'ram_slow'                // Slower RAM areas
+  | 'data_section'            // Pre-initialized data area
+  | 'bss_section'             // Uninitialized data area
+  | 'io_region';              // Memory-mapped I/O area
+
+/**
+ * Variable grouping preferences.
+ */
+export interface VariableGroupingInfo {
+  /** Whether this variable should be grouped */
+  shouldGroup: boolean;
+
+  /** Variables that should be grouped together */
+  groupWith: string[];
+
+  /** Reason for grouping */
+  groupingReason: VariableGroupingReason;
+
+  /** Preferred group layout */
+  layoutPreference: GroupLayoutPreference;
+}
+
+export type VariableGroupingReason =
+  | 'cache_locality'          // Variables accessed together
+  | 'struct_members'          // Members of the same logical structure
+  | 'array_elements'          // Elements of the same array
+  | 'related_state'           // Variables representing related state
+  | 'hardware_registers'      // Hardware register group
+  | 'function_locals';        // Local variables in same function
+
+export type GroupLayoutPreference =
+  | 'sequential'              // Place variables sequentially
+  | 'interleaved'             // Interleave for better access patterns
+  | 'aligned'                 // Align group to specific boundary
+  | 'packed'                  // Pack tightly to save space
+  | 'scattered';              // Don't group (better distributed)
+
+/**
+ * Memory access patterns for variables.
+ */
+export interface MemoryAccessPattern {
+  pattern: MemoryAccessPatternType;
+  frequency: number;
+  spatialLocality: SpatialLocality;
+  temporalLocality: TemporalLocality;
+}
+
+export type MemoryAccessPatternType =
+  | 'sequential'              // Sequential access pattern
+  | 'random'                  // Random access pattern
+  | 'strided'                 // Fixed stride access pattern
+  | 'clustered'               // Clustered access pattern
+  | 'sparse'                  // Sparse access pattern
+  | 'single_shot';            // Single access then done
+
+export type SpatialLocality = 'none' | 'low' | 'medium' | 'high';
+export type TemporalLocality = 'none' | 'low' | 'medium' | 'high';
+
+/**
+ * Memory locality characteristics.
+ */
+export interface MemoryLocalityInfo {
+  /** Spatial locality (nearby addresses accessed together) */
+  spatialLocality: SpatialLocality;
+
+  /** Temporal locality (same address accessed again soon) */
+  temporalLocality: TemporalLocality;
+
+  /** Variables frequently accessed together */
+  coAccessedVariables: string[];
+
+  /** Working set size estimate */
+  workingSetSize: number;
+
+  /** Whether variable is part of hot data structures */
+  isHotData: boolean;
+}
 
 // ============================================================================
 // HELPER TYPES AND INTERFACES

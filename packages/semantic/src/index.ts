@@ -76,6 +76,23 @@ export {
   analyzeVariableDeclaration
 } from './analyzers/variable-analyzer.js';
 
+// Function analyzer exports
+export {
+  FunctionAnalyzer
+} from './analyzers/function-analyzer.js';
+
+// Module analyzer exports
+export {
+  ModuleAnalyzer
+} from './analyzers/module-analyzer.js';
+
+// Main semantic analyzer exports
+export {
+  SemanticAnalyzer,
+  analyzeProgram,
+  analyzePrograms
+} from './semantic-analyzer.js';
+
 /**
  * Package version and metadata
  */

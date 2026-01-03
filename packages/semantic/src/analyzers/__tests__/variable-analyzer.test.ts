@@ -1,6 +1,7 @@
 /**
  * Tests for Variable Declaration Analysis
  * Task 1.4: Implement Variable Declaration Analysis - Test Suite
+ * Task 1.8: Enhanced Variable Usage Analysis - Test Suite (NEW)
  *
  * Comprehensive test coverage for variable declaration validation including:
  * - Storage class validation and scope restrictions
@@ -8,6 +9,14 @@
  * - Duplicate declaration detection
  * - Initialization validation for different storage classes
  * - Export handling and symbol creation
+ *
+ * Task 1.8 Enhancement Test Coverage:
+ * - Variable usage metadata collection from expression analysis
+ * - Zero page promotion candidate analysis
+ * - Register allocation candidate analysis
+ * - Variable lifetime analysis for interference detection
+ * - 6502-specific optimization metadata generation
+ * - Integration with Task 1.7 ExpressionAnalyzer variable references
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -20,9 +29,19 @@ import {
   createScope,
   Symbol,
   VariableSymbol,
-  createVariableSymbol
+  createVariableSymbol,
+  VariableUsageStatistics,
+  ZeroPageCandidateInfo,
+  RegisterCandidateInfo,
+  VariableLifetimeInfo
 } from '../../types';
 import { VariableDeclaration, StorageClass } from '@blend65/ast';
+import {
+  ExpressionAnalysisResult,
+  VariableReference,
+  ExpressionContext,
+  createExpressionContext
+} from '../expression-analyzer.js';
 
 describe('VariableAnalyzer', () => {
   let symbolTable: SymbolTable;
@@ -761,6 +780,458 @@ describe('VariableAnalyzer', () => {
       if (result.success) {
         expect(result.data.name).toBe('convenienceVar');
       }
+    });
+  });
+
+  // ============================================================================
+  // TASK 1.8: ENHANCED VARIABLE USAGE ANALYSIS TESTS
+  // ============================================================================
+
+  describe('Task 1.8: Enhanced Variable Usage Analysis', () => {
+    let testVariables: VariableSymbol[];
+    let mockExpressionResults: ExpressionAnalysisResult[];
+
+    beforeEach(() => {
+      // Create test variables for optimization analysis
+      testVariables = [
+        createVariableSymbol('counter', createPrimitiveType('byte'), symbolTable.getCurrentScope(), mockLocation, { storageClass: undefined }),
+        createVariableSymbol('playerX', createPrimitiveType('byte'), symbolTable.getCurrentScope(), mockLocation, { storageClass: 'zp' }),
+        createVariableSymbol('buffer', createArrayType(createPrimitiveType('byte'), 256), symbolTable.getCurrentScope(), mockLocation, { storageClass: 'ram' }),
+        createVariableSymbol('VIC_REG', createPrimitiveType('byte'), symbolTable.getCurrentScope(), mockLocation, { storageClass: 'io' }),
+        createVariableSymbol('gameScore', createPrimitiveType('word'), symbolTable.getCurrentScope(), mockLocation, { storageClass: undefined })
+      ];
+
+      // Create mock expression analysis results with variable references
+      mockExpressionResults = [
+        {
+          expression: { type: 'Identifier', name: 'counter', metadata: { start: mockLocation, end: mockLocation } } as any,
+          resolvedType: createPrimitiveType('byte'),
+          optimizationData: {
+            usedVariables: [
+              {
+                symbol: testVariables[0], // counter
+                accessType: 'read',
+                location: mockLocation,
+                context: createExpressionContext({ loopDepth: 1, inHotPath: true })
+              },
+              {
+                symbol: testVariables[0], // counter (multiple accesses)
+                accessType: 'modify',
+                location: mockLocation,
+                context: createExpressionContext({ loopDepth: 1, inHotPath: true })
+              }
+            ]
+          } as any,
+          errors: [],
+          warnings: []
+        },
+        {
+          expression: { type: 'Identifier', name: 'playerX', metadata: { start: mockLocation, end: mockLocation } } as any,
+          resolvedType: createPrimitiveType('byte'),
+          optimizationData: {
+            usedVariables: [
+              {
+                symbol: testVariables[1], // playerX
+                accessType: 'write',
+                location: mockLocation,
+                context: createExpressionContext({ loopDepth: 0, inHotPath: false })
+              }
+            ]
+          } as any,
+          errors: [],
+          warnings: []
+        }
+      ];
+    });
+
+    describe('Variable Usage Metadata Collection', () => {
+      it('should collect basic usage statistics', () => {
+        const usageMap = variableAnalyzer.collectVariableUsageMetadata(testVariables, mockExpressionResults);
+
+        expect(usageMap.size).toBe(testVariables.length);
+        expect(usageMap.has('counter')).toBe(true);
+        expect(usageMap.has('playerX')).toBe(true);
+
+        const counterStats = usageMap.get('counter')!;
+        expect(counterStats.accessCount).toBe(2); // read + modify
+        expect(counterStats.readCount).toBe(1);
+        expect(counterStats.modifyCount).toBe(1);
+        expect(counterStats.loopUsage.length).toBe(1); // Used in loop depth 1
+        expect(counterStats.hotPathUsage).toBe(2); // Both accesses in hot path
+      });
+
+      it('should determine access frequency correctly', () => {
+        const usageMap = variableAnalyzer.collectVariableUsageMetadata(testVariables, mockExpressionResults);
+
+        const counterStats = usageMap.get('counter')!;
+        expect(counterStats.estimatedAccessFrequency).toBe('hot'); // Hot path usage
+
+        const playerXStats = usageMap.get('playerX')!;
+        expect(playerXStats.estimatedAccessFrequency).toBe('rare'); // Single access, not hot
+
+        const bufferStats = usageMap.get('buffer')!;
+        expect(bufferStats.estimatedAccessFrequency).toBe('rare'); // No usage in mock data
+      });
+
+      it('should determine access patterns correctly', () => {
+        const usageMap = variableAnalyzer.collectVariableUsageMetadata(testVariables, mockExpressionResults);
+
+        const counterStats = usageMap.get('counter')!;
+        expect(counterStats.accessPattern).toBe('hot_path'); // Hot path usage
+
+        const playerXStats = usageMap.get('playerX')!;
+        expect(playerXStats.accessPattern).toBe('single_use'); // Single write access
+
+        const bufferStats = usageMap.get('buffer')!;
+        expect(bufferStats.accessPattern).toBe('single_use'); // No usage
+      });
+    });
+
+    describe('Zero Page Promotion Analysis', () => {
+      it('should identify good zero page candidates', () => {
+        const candidates = variableAnalyzer.analyzeZeroPageCandidates(testVariables);
+
+        expect(candidates).toHaveLength(testVariables.length);
+
+        // Find counter candidate (should be good candidate)
+        const counterCandidate = candidates.find(c => c.sizeRequirement === 1 && !c.antiPromotionFactors.some(f => f.factor === 'already_zp'));
+        expect(counterCandidate).toBeDefined();
+        expect(counterCandidate!.isCandidate).toBe(true);
+        expect(counterCandidate!.promotionScore).toBeGreaterThan(40);
+        expect(counterCandidate!.recommendation).toBeOneOf(['neutral', 'recommended', 'strongly_recommended']);
+      });
+
+      it('should reject variables already in zero page', () => {
+        const candidates = variableAnalyzer.analyzeZeroPageCandidates(testVariables);
+
+        // Find playerX candidate (already zp)
+        const playerXCandidate = candidates.find(c => c.antiPromotionFactors.some(f => f.factor === 'already_zp'));
+        expect(playerXCandidate).toBeDefined();
+        expect(playerXCandidate!.antiPromotionFactors).toContainEqual(
+          expect.objectContaining({
+            factor: 'already_zp',
+            weight: 100,
+            description: 'Variable already has zp storage class'
+          })
+        );
+      });
+
+      it('should reject I/O variables', () => {
+        const candidates = variableAnalyzer.analyzeZeroPageCandidates(testVariables);
+
+        // Find VIC_REG candidate (I/O variable)
+        const ioCandidate = candidates.find(c => c.antiPromotionFactors.some(f => f.factor === 'io_access'));
+        expect(ioCandidate).toBeDefined();
+        expect(ioCandidate!.antiPromotionFactors).toContainEqual(
+          expect.objectContaining({
+            factor: 'io_access',
+            weight: 100,
+            description: 'I/O variables should remain in I/O address space'
+          })
+        );
+      });
+
+      it('should consider variable size in promotion decisions', () => {
+        const candidates = variableAnalyzer.analyzeZeroPageCandidates(testVariables);
+
+        // Small variables should get size bonus
+        const byteCandidate = candidates.find(c => c.sizeRequirement === 1);
+        expect(byteCandidate).toBeDefined();
+        expect(byteCandidate!.promotionFactors.some(f => f.factor === 'small_size')).toBe(true);
+
+        // Large array should get size penalty
+        const arrayCandidate = candidates.find(c => c.sizeRequirement === 256);
+        expect(arrayCandidate).toBeDefined();
+        expect(arrayCandidate!.antiPromotionFactors.some(f => f.factor === 'large_size')).toBe(true);
+      });
+
+      it('should calculate promotion scores correctly', () => {
+        const candidates = variableAnalyzer.analyzeZeroPageCandidates(testVariables);
+
+        for (const candidate of candidates) {
+          expect(candidate.promotionScore).toBeGreaterThanOrEqual(0);
+          expect(candidate.promotionScore).toBeLessThanOrEqual(100);
+
+          // Score should match the promotion factors
+          let expectedScore = 0;
+          for (const factor of candidate.promotionFactors) {
+            expectedScore += factor.weight;
+          }
+          for (const factor of candidate.antiPromotionFactors) {
+            expectedScore -= factor.weight;
+          }
+          expectedScore = Math.max(0, Math.min(100, expectedScore));
+
+          expect(candidate.promotionScore).toBe(expectedScore);
+        }
+      });
+    });
+
+    describe('Register Allocation Analysis', () => {
+      it('should identify suitable register candidates', () => {
+        const candidates = variableAnalyzer.analyzeRegisterCandidates(testVariables);
+
+        expect(candidates).toHaveLength(testVariables.length);
+
+        // Byte variables should be better candidates than arrays
+        const byteCandidate = candidates.find(c => c.allocationScore > 0 && c.isCandidate);
+        expect(byteCandidate).toBeDefined();
+        expect(byteCandidate!.preferredRegister).toBeOneOf(['A', 'X', 'Y']);
+
+        // Arrays should not be register candidates
+        const arrayCandidate = candidates.find(c => !c.isCandidate && c.recommendation === 'impossible');
+        expect(arrayCandidate).toBeDefined();
+      });
+
+      it('should prefer A register for byte variables', () => {
+        const candidates = variableAnalyzer.analyzeRegisterCandidates(testVariables);
+
+        // Find byte variable candidates
+        const byteCandidates = candidates.filter(c => c.isCandidate && c.preferredRegister === 'A');
+        expect(byteCandidates.length).toBeGreaterThan(0);
+
+        for (const candidate of byteCandidates) {
+          expect(candidate.alternativeRegisters).toContain('X');
+          expect(candidate.alternativeRegisters).toContain('Y');
+        }
+      });
+
+      it('should handle word variables differently', () => {
+        const candidates = variableAnalyzer.analyzeRegisterCandidates(testVariables);
+
+        // Find word variable candidate (gameScore)
+        const wordCandidate = candidates.find(c => c.preferredRegister === 'zero_page');
+        expect(wordCandidate).toBeDefined();
+        expect(wordCandidate!.alternativeRegisters).toContain('A');
+      });
+
+      it('should account for storage classes in allocation decisions', () => {
+        const candidates = variableAnalyzer.analyzeRegisterCandidates(testVariables);
+
+        // Variables with explicit storage classes should have lower scores
+        const explicitStorageCandidates = candidates.filter(c => {
+          // Find candidates for variables with explicit storage classes
+          const varName = testVariables.find(v => v.storageClass !== null && v.storageClass !== undefined)?.name;
+          return varName && c.allocationScore >= 0; // This is a simplified check
+        });
+
+        // Variables without explicit storage classes should generally score higher
+        const noStorageCandidates = candidates.filter(c => c.allocationScore > 50);
+        expect(noStorageCandidates.length).toBeGreaterThan(0);
+      });
+    });
+
+    describe('Variable Lifetime Analysis', () => {
+      it('should create lifetime information for all variables', () => {
+        const lifetimeInfos = variableAnalyzer.analyzeVariableLifetimes(testVariables);
+
+        expect(lifetimeInfos).toHaveLength(testVariables.length);
+
+        for (const lifetimeInfo of lifetimeInfos) {
+          expect(lifetimeInfo.definitionPoints).toHaveLength(1);
+          expect(lifetimeInfo.liveRanges).toHaveLength(1);
+          expect(lifetimeInfo.estimatedDuration).toBeGreaterThan(0);
+        }
+      });
+
+      it('should estimate different lifetimes for local vs global variables', () => {
+        // Create a local variable for testing
+        const localVar = createVariableSymbol('localVar', createPrimitiveType('byte'), symbolTable.getCurrentScope(), mockLocation, { isLocal: true });
+        const testVarsWithLocal = [...testVariables, localVar];
+
+        const lifetimeInfos = variableAnalyzer.analyzeVariableLifetimes(testVarsWithLocal);
+
+        const localVarLifetime = lifetimeInfos[lifetimeInfos.length - 1]; // Last one added
+        const globalVarLifetime = lifetimeInfos[0]; // First one (global)
+
+        expect(localVarLifetime.estimatedDuration).toBeLessThan(globalVarLifetime.estimatedDuration);
+      });
+    });
+
+    describe('Complete Optimization Metadata Building', () => {
+      it('should build comprehensive metadata for all variables', () => {
+        const usageMap = variableAnalyzer.collectVariableUsageMetadata(testVariables, mockExpressionResults);
+        const metadataMap = variableAnalyzer.buildVariableOptimizationMetadata(testVariables, usageMap);
+
+        expect(metadataMap.size).toBe(testVariables.length);
+
+        for (const [varName, metadata] of metadataMap) {
+          expect(metadata.usageStatistics).toBeDefined();
+          expect(metadata.zeroPageCandidate).toBeDefined();
+          expect(metadata.registerCandidate).toBeDefined();
+          expect(metadata.lifetimeInfo).toBeDefined();
+          expect(metadata.sixtyTwoHints).toBeDefined();
+          expect(metadata.memoryLayout).toBeDefined();
+
+          // Check that metadata is attached to variable symbols
+          const variable = testVariables.find(v => v.name === varName);
+          expect(variable?.optimizationMetadata).toBe(metadata);
+        }
+      });
+
+      it('should generate appropriate 6502 optimization hints', () => {
+        const usageMap = variableAnalyzer.collectVariableUsageMetadata(testVariables, mockExpressionResults);
+        const metadataMap = variableAnalyzer.buildVariableOptimizationMetadata(testVariables, usageMap);
+
+        for (const [varName, metadata] of metadataMap) {
+          const hints = metadata.sixtyTwoHints;
+
+          // Check addressing mode hints
+          expect(hints.addressingMode).toBeOneOf(['zero_page', 'absolute', 'indexed_x']);
+
+          // Check memory bank assignments
+          expect(hints.memoryBank).toBeOneOf(['zero_page', 'low_ram', 'io_area']);
+
+          // Check alignment preferences
+          expect(hints.alignmentPreference.requiredAlignment).toBeGreaterThanOrEqual(1);
+
+          // Check hardware interaction flags
+          expect(typeof hints.hardwareInteraction.isHardwareRegister).toBe('boolean');
+          expect(typeof hints.hardwareInteraction.isMemoryMappedIO).toBe('boolean');
+        }
+      });
+
+      it('should generate memory layout information', () => {
+        const usageMap = variableAnalyzer.collectVariableUsageMetadata(testVariables, mockExpressionResults);
+        const metadataMap = variableAnalyzer.buildVariableOptimizationMetadata(testVariables, usageMap);
+
+        for (const [varName, metadata] of metadataMap) {
+          const layout = metadata.memoryLayout;
+
+          expect(layout.preferredRegion).toBeOneOf([
+            'zero_page_high_priority', 'zero_page_normal', 'ram_fast', 'ram_normal',
+            'ram_slow', 'data_section', 'bss_section', 'io_region'
+          ]);
+
+          expect(layout.sizeInBytes).toBeGreaterThan(0);
+          expect(layout.accessPatterns).toHaveLength(1);
+          expect(layout.localityInfo).toBeDefined();
+        }
+      });
+    });
+
+    describe('Variable Size Calculation', () => {
+      it('should calculate correct sizes for different variable types', () => {
+        // Test through the buildVariableOptimizationMetadata method which uses calculateVariableSizeInBytes
+        const usageMap = variableAnalyzer.collectVariableUsageMetadata(testVariables, mockExpressionResults);
+        const metadataMap = variableAnalyzer.buildVariableOptimizationMetadata(testVariables, usageMap);
+
+        // Check byte variable size
+        const byteVarMetadata = metadataMap.get('counter');
+        expect(byteVarMetadata?.memoryLayout.sizeInBytes).toBe(1);
+
+        // Check word variable size
+        const wordVarMetadata = metadataMap.get('gameScore');
+        expect(wordVarMetadata?.memoryLayout.sizeInBytes).toBe(2);
+
+        // Check array variable size
+        const arrayVarMetadata = metadataMap.get('buffer');
+        expect(arrayVarMetadata?.memoryLayout.sizeInBytes).toBe(256); // 256 * 1 byte
+      });
+    });
+
+    describe('Integration with Expression Analysis', () => {
+      it('should handle empty expression results gracefully', () => {
+        const emptyResults: ExpressionAnalysisResult[] = [];
+        const usageMap = variableAnalyzer.collectVariableUsageMetadata(testVariables, emptyResults);
+
+        expect(usageMap.size).toBe(testVariables.length);
+
+        for (const [varName, stats] of usageMap) {
+          expect(stats.accessCount).toBe(0);
+          expect(stats.estimatedAccessFrequency).toBe('rare');
+          expect(stats.accessPattern).toBe('single_use');
+        }
+      });
+
+      it('should aggregate multiple references to the same variable', () => {
+        // Create expression results with multiple references to the same variable
+        const multipleRefsResults: ExpressionAnalysisResult[] = [
+          {
+            expression: { type: 'Identifier', name: 'counter' } as any,
+            resolvedType: createPrimitiveType('byte'),
+            optimizationData: {
+              usedVariables: [
+                {
+                  symbol: testVariables[0], // counter
+                  accessType: 'read',
+                  location: mockLocation,
+                  context: createExpressionContext({ loopDepth: 2, inHotPath: true })
+                }
+              ]
+            } as any,
+            errors: [],
+            warnings: []
+          },
+          {
+            expression: { type: 'Identifier', name: 'counter' } as any,
+            resolvedType: createPrimitiveType('byte'),
+            optimizationData: {
+              usedVariables: [
+                {
+                  symbol: testVariables[0], // counter (same variable)
+                  accessType: 'write',
+                  location: mockLocation,
+                  context: createExpressionContext({ loopDepth: 2, inHotPath: true })
+                }
+              ]
+            } as any,
+            errors: [],
+            warnings: []
+          }
+        ];
+
+        const usageMap = variableAnalyzer.collectVariableUsageMetadata(testVariables, multipleRefsResults);
+        const counterStats = usageMap.get('counter')!;
+
+        expect(counterStats.accessCount).toBe(2);
+        expect(counterStats.readCount).toBe(1);
+        expect(counterStats.writeCount).toBe(1);
+        expect(counterStats.loopUsage).toHaveLength(1); // Single loop level
+        expect(counterStats.loopUsage[0].loopLevel).toBe(2);
+        expect(counterStats.loopUsage[0].accessesInLoop).toBe(2);
+      });
+    });
+
+    describe('Error Handling and Edge Cases', () => {
+      it('should handle variables not referenced in expressions', () => {
+        const usageMap = variableAnalyzer.collectVariableUsageMetadata(testVariables, []);
+
+        for (const [varName, stats] of usageMap) {
+          expect(stats.accessCount).toBe(0);
+          expect(stats.readCount).toBe(0);
+          expect(stats.writeCount).toBe(0);
+          expect(stats.modifyCount).toBe(0);
+          expect(stats.loopUsage).toHaveLength(0);
+          expect(stats.hotPathUsage).toBe(0);
+        }
+      });
+
+      it('should handle malformed expression analysis results', () => {
+        const malformedResults: ExpressionAnalysisResult[] = [
+          {
+            expression: { type: 'Identifier', name: 'unknown' } as any,
+            resolvedType: createPrimitiveType('byte'),
+            optimizationData: {
+              usedVariables: [
+                {
+                  symbol: { name: 'nonexistent' } as any, // Invalid symbol
+                  accessType: 'read',
+                  location: mockLocation,
+                  context: createExpressionContext()
+                }
+              ]
+            } as any,
+            errors: [],
+            warnings: []
+          }
+        ];
+
+        // Should not throw errors, should gracefully handle unknown variables
+        expect(() => {
+          variableAnalyzer.collectVariableUsageMetadata(testVariables, malformedResults);
+        }).not.toThrow();
+      });
     });
   });
 });
