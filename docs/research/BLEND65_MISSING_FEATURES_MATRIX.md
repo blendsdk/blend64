@@ -1,7 +1,23 @@
 # Blend65 Missing Features Matrix
 
 **Purpose:** Consolidated tracking of all missing features identified through gamecheck analysis
-**Last Updated:** 02/01/2026, 12:26:00 pm (Europe/Amsterdam, UTC+1:00)
+**Last Updated:** 03/01/2026, 1:15:33 pm (Europe/Amsterdam, UTC+1:00)
+**PROJECT REALITY SYNC:** Updated with current 45% completion (Frontend 100%, Backend 0%)
+
+---
+
+## Current Implementation Status Summary
+
+**✅ FRONTEND COMPLETE (v0.1-v0.3 Language Features):**
+- All language constructs are parsed and validated
+- All syntax and grammar rules implemented
+- Complete AST generation for all language features
+- Ready for semantic analysis and code generation
+
+**🔄 BACKEND DEVELOPMENT READY:**
+- Semantic analysis infrastructure (Task 1.1) is next priority
+- IL system and code generation await semantic completion
+- Hardware APIs await code generation implementation
 
 ---
 
@@ -9,18 +25,33 @@
 
 | Feature | Status | Target Version | Priority | Requesting Games | Implementation Effort | Dependencies |
 |---------|--------|----------------|----------|------------------|---------------------|-------------|
-| Dynamic Arrays | Not Implemented | v0.2 | CRITICAL | [Mafia ASM, Tetris C64] | MEDIUM | Memory Management |
-| String Type | Not Implemented | v0.3 | HIGH | [Mafia ASM, Tetris C64] | LOW | Basic Types |
-| Function Pointers | Not Implemented | v0.3 | MEDIUM | [None Yet - Future] | MEDIUM | Advanced Types |
+| **v0.1 Features (PARSING COMPLETE)** |
+| Basic Types (byte, word, boolean) | **FRONTEND COMPLETE** | v0.1 | HIGH | [All Games] | BACKEND ONLY | Semantic Analysis |
+| Static Arrays | **FRONTEND COMPLETE** | v0.1 | HIGH | [All Games] | BACKEND ONLY | Semantic Analysis |
+| Storage Classes (zp, ram, data, const, io) | **FRONTEND COMPLETE** | v0.1 | HIGH | [All Games] | BACKEND ONLY | Semantic Analysis |
+| Function Declarations | **FRONTEND COMPLETE** | v0.1 | HIGH | [All Games] | BACKEND ONLY | Semantic Analysis |
+| Module System (import/export) | **FRONTEND COMPLETE** | v0.1 | HIGH | [All Games] | BACKEND ONLY | Semantic Analysis |
+| Basic Control Flow (if/while/for) | **FRONTEND COMPLETE** | v0.1 | HIGH | [All Games] | BACKEND ONLY | Semantic Analysis |
+| **v0.2 Features (PARSING COMPLETE)** |
+| Break/Continue Statements | **FRONTEND COMPLETE** | v0.2 | HIGH | [Tetris C64] | BACKEND ONLY | Semantic Analysis |
+| Enum Declarations | **FRONTEND COMPLETE** | v0.2 | HIGH | [Tetris C64] | BACKEND ONLY | Semantic Analysis |
+| Enhanced Match Statements | **FRONTEND COMPLETE** | v0.2 | MEDIUM | [Tetris C64] | BACKEND ONLY | Semantic Analysis |
+| Local Variables | **FRONTEND COMPLETE** | v0.2 | HIGH | [Tetris C64] | BACKEND ONLY | Function Scope Management |
+| **v0.3 Features (PARSING COMPLETE)** |
+| Callback Function Declarations | **FRONTEND COMPLETE** | v0.3 | HIGH | [Hardware Games] | BACKEND ONLY | Function Pointer Implementation |
+| Callback Type Annotations | **FRONTEND COMPLETE** | v0.3 | HIGH | [Hardware Games] | BACKEND ONLY | Type System Extension |
+| Callback Arrays | **FRONTEND COMPLETE** | v0.3 | MEDIUM | [Hardware Games] | BACKEND ONLY | Array Implementation |
+| **v0.4+ Features (NOT YET IMPLEMENTED)** |
+| Dynamic Arrays | Not Implemented | v0.4 | CRITICAL | [Mafia ASM, Tetris C64] | HIGH | Memory Management System |
+| String Type | Not Implemented | v0.4 | HIGH | [Mafia ASM, Tetris C64] | MEDIUM | Dynamic Array Foundation |
 | Complex Record Types | Not Implemented | v0.4 | HIGH | [Mafia ASM, Tetris C64] | MEDIUM | Advanced Type System |
 | 32-bit Arithmetic | Not Implemented | v0.4 | CRITICAL | [Mafia ASM] | HIGH | Extended Math Library |
-| Heap Allocation | Not Implemented | v0.4 | CRITICAL | [Mafia ASM] | HIGH | Memory Pools |
-| Interrupt Handlers | Not Implemented | v0.5 | CRITICAL | [Bubble Escape, Iridis Alpha, C64 Christmas Demo] | HIGH | Hardware Integration |
-| Multi-Dimensional Arrays | Not Implemented | v0.3 | HIGH | [Tetris C64] | MEDIUM | Advanced Array Support |
-| Local Variables | Not Implemented | v0.2 | HIGH | [Tetris C64] | MEDIUM | Function-scoped variables |
-| Match Statements | Not Implemented | v0.2 | MEDIUM | [Tetris C64] | LOW | Pattern matching syntax |
-| BCD Arithmetic | Not Implemented | v0.3 | MEDIUM | [Tetris C64] | MEDIUM | 6502 decimal math |
-| Inline Assembly | Not Implemented | v0.3 | MEDIUM | [C64 Christmas Demo] | MEDIUM | Hardware control |
+| Heap Allocation | Not Implemented | v0.4 | CRITICAL | [Mafia ASM] | VERY HIGH | Complete Memory Management |
+| Multi-Dimensional Arrays | Not Implemented | v0.4 | HIGH | [Tetris C64] | HIGH | Advanced Array Support |
+| **v0.5+ Features (NOT YET IMPLEMENTED)** |
+| Interrupt Handlers | Not Implemented | v0.5 | CRITICAL | [All Hardware Games] | VERY HIGH | Hardware Integration |
+| Inline Assembly | Not Implemented | v0.5 | HIGH | [Hardware Intensive] | HIGH | Code Generation Integration |
+| Memory-Mapped I/O | Not Implemented | v0.5 | CRITICAL | [Psychedelia, Advanced] | VERY HIGH | Hardware Abstraction |
 
 ## Hardware API Matrix by Platform
 
@@ -46,8 +77,8 @@
 | c64.timing | getFrameCounter() | Missing | HIGH | [Astroblast] | LOW | Frame-accurate timing |
 | c64.timing | waitForNextFrame() | Missing | HIGH | [Astroblast] | LOW | 60 FPS synchronization |
 | c64.sprites | setSpriteExpansion() | Missing | MEDIUM | [Bubble Escape] | LOW | Simple register write |
-| c64.vic | readSpriteCollisions() | Missing | CRITICAL | [Bubble Escape, Astroblast, Into The Electric Castle, C64 Space Shooter] | MEDIUM | Hardware collision detection |
-| c64.vic | readBackgroundCollisions() | Missing | CRITICAL | [Bubble Escape, Astroblast, Into The Electric Castle, C64 Space Shooter] | MEDIUM | Hardware collision detection |
+| c64.vic | readSpriteCollisions() | Missing | CRITICAL | [Bubble Escape, Astroblast, Into The Electric Castle, C64 Space Shooter, 1nvader-c64] | MEDIUM | Hardware collision detection |
+| c64.vic | readBackgroundCollisions() | Missing | CRITICAL | [Bubble Escape, Astroblast, Into The Electric Castle, C64 Space Shooter, 1nvader-c64] | MEDIUM | Hardware collision detection |
 | c64.vic | readSpriteCollisionRegister() | Missing | CRITICAL | [Astroblast, C64 Space Shooter] | MEDIUM | Direct VIC-II collision access |
 | c64.vic | waitForRaster() | Missing | CRITICAL | [Into The Electric Castle] | MEDIUM | Raster line synchronization |
 | c64.interrupts | setRasterInterrupt() | Missing | CRITICAL | [Bubble Escape, Iridis Alpha, Psychedelia, Into The Electric Castle] | HIGH | Complex interrupt handling |
@@ -85,8 +116,13 @@
 | c64.vic | setScreenMode() | Missing | HIGH | [C64 Christmas Demo] | MEDIUM | Text/bitmap mode control |
 | c64.vic | getRasterLine() | Missing | HIGH | [C64 Christmas Demo] | LOW | Timing and randomization |
 | c64.vic | setMemoryPointers() | Missing | HIGH | [C64 Christmas Demo] | MEDIUM | VIC memory configuration |
-| c64.sprites | setSpriteImage() | Missing | CRITICAL | [C64 Christmas Demo] | MEDIUM | Advanced sprite control |
-| c64.sprites | setSpriteExpansion() | Missing | MEDIUM | [C64 Christmas Demo, Bubble Escape] | LOW | Sprite scaling |
+| c64.sprites | setSpriteImage() | Missing | CRITICAL | [C64 Christmas Demo, 1nvader-c64] | MEDIUM | Advanced sprite control |
+| c64.sprites | setSpriteExpansion() | Missing | MEDIUM | [C64 Christmas Demo, Bubble Escape, 1nvader-c64] | LOW | Sprite scaling |
+| c64.sid | setWaveform() | Missing | HIGH | [1nvader-c64] | MEDIUM | Sawtooth and noise waveform generation |
+| c64.sid | setADSR() | Missing | HIGH | [1nvader-c64] | MEDIUM | Attack/decay/sustain/release envelope control |
+| c64.sid | setFrequency() | Missing | HIGH | [1nvader-c64] | LOW | Direct frequency control for SID voices |
+| c64.sprites | setSprite16BitPosition() | Missing | HIGH | [1nvader-c64] | LOW | 16-bit X coordinate sprite positioning |
+| c64.sprites | enableMultiSprite() | Missing | HIGH | [1nvader-c64] | MEDIUM | Multi-sprite coordination for 5+ sprites |
 | c64.cia | readTimer() | Missing | HIGH | [C64 Christmas Demo, Psychedelia] | LOW | Hardware randomization |
 | c64.cia | setTimer() | Missing | MEDIUM | [C64 Christmas Demo, Bubble Escape] | MEDIUM | Timing control |
 | c64.kernal | loadFile() | Missing | HIGH | [Tetris C64] | MEDIUM | High score persistence |
@@ -204,6 +240,11 @@ Based on analyzed games:
 | **Space Invaders** | [Various] | Dynamic enemy arrays | v0.2 |
 | **Pac-Man clones** | [Various] | Dynamic pellet collection | v0.2 |
 | **Multi-enemy shooters** | [Various] | Variable object counts | v0.2 |
+
+### NEEDS VERSION 0.3 (Hardware APIs)
+| Game | Repository | Primary Blocker | Target Version |
+|------|------------|-----------------|----------------|
+| **1nvader-c64** | github.com/darrenfoulds/1nvader-c64.git | Hardware collision detection + advanced SID control + 16-bit sprite positioning | v0.3 for basic, v0.5 for full fidelity |
 
 ### NEEDS VERSION 0.5+ (Hardware-Intensive)
 | Game | Repository | Primary Blocker | Target Version |

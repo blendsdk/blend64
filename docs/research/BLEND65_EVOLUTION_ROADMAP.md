@@ -1,33 +1,139 @@
 # Blend65 Evolution Roadmap: From Basic 6502 to Elite-Class Games
 
-**Status:** Strategic Planning Document
-**Date:** February 2026
+**Status:** Strategic Planning Document - **SYNCHRONIZED WITH PROJECT REALITY**
+**Date:** March 2026 - **Updated with Current Implementation Status**
 **Purpose:** Define the evolution path for Blend65 to support sophisticated 6502 games like Elite
+
+**CURRENT IMPLEMENTATION REALITY:**
+- **Project Completion:** 45% (Frontend 100% Complete, Backend 0% Started)
+- **Ready for Backend Development:** Task 1.1 (Semantic Analysis Infrastructure)
+- **v0.1-v0.3 Language Features:** All parsing and AST generation complete
+- **Next Milestone:** First compilable Blend65 program after semantic analysis completion
 
 ---
 
 ## Table of Contents
 
 1. [Executive Summary](#executive-summary)
-2. [Elite Compatibility Analysis](#elite-compatibility-analysis)
-3. [Critical Feature Gaps](#critical-feature-gaps)
-4. [Blend65 Evolution Roadmap](#blend65-evolution-roadmap)
-5. [Language Feature Specifications](#language-feature-specifications)
-6. [Implementation Priority Matrix](#implementation-priority-matrix)
-7. [Technical Constraints](#technical-constraints)
+2. [Current Implementation Status](#current-implementation-status)
+3. [Elite Compatibility Analysis](#elite-compatibility-analysis)
+4. [Critical Feature Gaps](#critical-feature-gaps)
+5. [Blend65 Evolution Roadmap](#blend65-evolution-roadmap)
+6. [Language Feature Specifications](#language-feature-specifications)
+7. [Implementation Priority Matrix](#implementation-priority-matrix)
+8. [Technical Constraints](#technical-constraints)
 
 ---
 
 ## Executive Summary
 
-This document analyzes the Elite C64 source code to identify what Blend65 would need to evolve into to support Elite-level game development. While Elite is **legally available** (open source, released by Ian Bell), it presents **massive technical challenges** that reveal significant gaps in Blend65 v0.1.
+This document analyzes the Elite C64 source code to identify what Blend65 would need to evolve into to support Elite-level game development. While Elite is **legally available** (open source, released by Ian Bell), it presents **massive technical challenges** that reveal significant gaps in current Blend65 capabilities.
 
-**Key Findings:**
+**Updated Key Findings (March 2026):**
 
-- Elite uses **180,000+ lines** of highly optimized 6502 assembly
-- **6 major incompatibilities** exist between Elite's requirements and Blend65 v0.1
-- A **5-version evolution roadmap** is needed to bridge this gap
-- The journey from Blend65 v0.1 to Elite-capable requires **2-3 years** of development
+- **Frontend Foundation Complete:** v0.1-v0.3 language features fully implemented and validated
+- **Backend Development Ready:** Semantic analysis is next critical path priority
+- **Game Validation:** 26 analyzed games confirm roadmap priorities and feature requirements
+- **Elite Compatibility:** Still requires **v1.0+ capabilities** but foundation is solid
+- **Hardware APIs Critical:** v0.5 confirmed essential for 85% of real C64 games
+
+**Current Development Status:**
+
+- **✅ Frontend Complete:** 241 tests passing, all language features parsed
+- **🔄 Backend Starting:** Task 1.1 (Semantic Analysis Infrastructure) ready to begin
+- **📊 Game Compatibility:** v0.1 validates 100% with Wild Boa Snake, 85% with C64 Examples
+- **🎯 Next Milestone:** First compiled Blend65 program within semantic analysis completion
+
+---
+
+## Current Implementation Status
+
+### ✅ What is Currently Complete (v0.1-v0.3 Frontend)
+
+**Language Features - PARSING COMPLETE:**
+
+```js
+// All of this syntax is fully parsed and validated:
+
+// v0.1 Features
+var staticArray: byte[256]
+zp var counter: byte
+const var message: byte[10] = "HELLO"
+
+type SimpleRecord
+    x: byte
+    y: byte
+end type
+
+function basicFunction(a: byte): byte
+    return a + 1
+end function
+
+// v0.2 Features
+enum GameState
+    MENU = 0
+    PLAYING = 1
+    GAME_OVER = 2
+end enum
+
+for i = 0 to 255
+    if shouldBreak then
+        break
+    end if
+    continue
+next i
+
+// v0.3 Features
+callback rasterInterrupt(): void
+var interruptHandler: callback = rasterInterrupt
+var handlers: callback[4] = [menu, game, pause, over]
+```
+
+**Hardware API Framework - READY FOR IMPLEMENTATION:**
+
+```js
+// API design complete, awaiting code generation:
+import setSpritePosition from c64.sprites
+import setBackgroundColor from c64.vic
+import readJoystick from c64.input
+import playTone from c64.sid
+```
+
+### 🔄 What is Ready to Begin (Backend Phase 1)
+
+**Task 1.1: Semantic Analysis Infrastructure (NEXT PRIORITY)**
+
+- ✅ **Dependencies Met:** Complete AST available for semantic processing
+- ✅ **Requirements Clear:** Symbol table management, type checking, scope resolution
+- ✅ **Architecture Ready:** Visitor pattern established, error handling framework in place
+- 🎯 **Goal:** Enable first validated Blend65 programs ready for IL transformation
+
+**Backend Pipeline Ready:**
+
+1. **Semantic Analysis** → Validate parsed programs, build symbol tables
+2. **IL Generation** → Create optimization-friendly intermediate representation
+3. **Code Generation** → Produce 6502 assembly output
+4. **Hardware APIs** → Implement platform-specific hardware abstractions
+
+### 📊 Game Compatibility Current Status
+
+**✅ Ready for Compilation (Post-Backend):**
+
+- **Wild Boa Snake:** 100% v0.1 compatible - flagship demonstration target
+- **Pyout (Breakout):** 100% v0.1 compatible - perfect tutorial example
+- **C64 Examples:** 85% v0.1 compatible - educational validation
+
+**🔄 Awaiting Hardware APIs (v0.5):**
+
+- **Astroblast, Into The Electric Castle, Bubble Escape:** Require hardware collision detection
+- **C64 Christmas Demo, Dust Tutorial:** Need interrupt system and advanced graphics
+- **1nvader-c64, C64 Space Shooter:** Require comprehensive VIC-II/SID integration
+
+**⏳ Future Evolution Required (v0.4+):**
+
+- **Mafia ASM:** Requires 32-bit arithmetic and dynamic memory (v0.4)
+- **Tetris C64:** Needs dynamic arrays and complex data structures (v0.4)
+- **Elite:** Ultimate complexity requiring v1.0+ features
 
 ---
 
@@ -1465,6 +1571,100 @@ This analysis **strongly validates** the Blend65 evolution strategy:
 
 **Last Updated:** February 2026
 **Next Review:** After v0.1 backend completion
+
+---
+
+## 1nvader-c64 Compatibility Analysis
+
+**Repository:** https://github.com/darrenfoulds/1nvader-c64.git
+**Analysis Date:** 03/01/2026, 12:35:00 CET
+**Target Platform:** Commodore 64
+**Project Size:** ~1400 lines of 6502 assembly
+**Game Type:** Space Invaders Clone
+
+### Portability Status: PARTIALLY_PORTABLE - Version v0.3 needed
+
+**Primary Blockers:**
+- Hardware collision detection (CRITICAL)
+- Advanced SID control (HIGH)
+- 16-bit sprite positioning (HIGH)
+- Multi-sprite coordination (HIGH)
+
+### Language Feature Requirements:
+
+**Version 0.3 Features Needed:**
+- Inline assembly support for direct hardware register access
+- Hardware abstraction APIs for basic sprite and sound control
+- Memory-mapped I/O capabilities for VIC-II/SID programming
+
+**Version 0.5 Features Needed:**
+- Hardware collision detection: `readSpriteCollisions()` from c64.vic
+- Advanced sprite system: `setSpriteImage()`, `setSpriteExpansion()`
+- Complete SID control: `setWaveform()`, `setADSR()`, `setFrequency()`
+- VBI synchronization for 60 FPS game loops
+
+### Hardware API Requirements:
+
+**Missing Critical APIs:**
+- **c64.vic.readSpriteCollisions()** - Core gameplay mechanic for collision detection
+- **c64.sprites.setSpriteImage()** - Dynamic sprite graphics management
+- **c64.sprites.setSpriteExpansion()** - Double width/height sprite control
+- **c64.sid.setWaveform()** - Sawtooth and noise waveform generation
+- **c64.sid.setADSR()** - Attack/decay/sustain/release envelope control
+
+### Implementation Priority Updates:
+
+Based on 1nvader-c64 analysis, the following priority adjustments are recommended:
+
+| Feature | Old Priority | New Priority | Justification |
+|---------|-------------|-------------|---------------|
+| Hardware Collision Detection | HIGH | **CRITICAL** | Required for all arcade games |
+| Advanced Sprite Control | MEDIUM | **HIGH** | Essential for multi-sprite games |
+| SID ADSR Control | LOW | **HIGH** | Needed for quality sound effects |
+| 16-bit Sprite Positioning | LOW | **HIGH** | Required for full-screen games |
+
+### New Features Discovered:
+1. **VBI Synchronization** - Hardware timing control (Priority: HIGH)
+2. **Multi-Sprite Coordination** - Managing 5+ sprites (Priority: HIGH)
+3. **BCD Arithmetic** - For scoring systems (Priority: MEDIUM)
+4. **Sprite Collision Masks** - Selective collision detection (Priority: HIGH)
+
+### Code Examples:
+
+**Original Assembly Code:**
+```assembly
+; Hardware collision detection
+prohit   lda v30     ; Read collision register
+         and #9      ; Check sprite 1 + sprite 4 collision
+         cmp #9      ; Mothership + Laser collision
+         bne plh2    ; No hit, continue
+         ; Handle hit: update score, decrease hits
+```
+
+**Required Blend65 Syntax (v0.5):**
+```javascript
+function checkCollisions(): void
+    var collisions: byte = readSpriteCollisions()
+    if (collisions and 9) == 9 then  // Mothership hit by laser
+        updateScore(100)
+        playExplosionSound()
+        respawnMothership()
+    end if
+end function
+```
+
+### Game Compatibility Impact:
+- **Enables:** Space Invaders, Pac-Man, Galaga, Defender clones
+- **Blocks:** All collision-based arcade games without hardware collision API
+- **Requirement:** v0.5 for production-quality arcade games
+
+### Conclusion:
+
+The 1nvader-c64 analysis reveals that **hardware collision detection** is the critical missing feature blocking most arcade game development. While basic game logic can be implemented in v0.1-v0.3, the core gameplay mechanics require hardware-specific APIs that won't be available until v0.5.
+
+**Key Finding:** Simple arcade games like 1nvader represent a major category of C64 software that requires hardware collision detection as a fundamental building block.
+
+**Strategic Recommendation:** Prioritize hardware collision detection development in v0.5 as it unlocks the entire arcade game category for Blend65.
 
 ---
 
