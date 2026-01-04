@@ -632,6 +632,57 @@ export {
   PatternReadinessAnalyzer
 } from './analysis/pattern-readiness-analyzer.js';
 
+// ============================================================================
+// TASK 2.5: IL OPTIMIZATION FRAMEWORK
+// ============================================================================
+
+// Optimization framework functionality
+export {
+  ILOptimizationFramework,
+  optimizeIL,
+  optimizeFunction
+} from './optimization/optimization-framework.js';
+
+// Pattern registry functionality
+export {
+  OptimizationPatternRegistryImpl,
+  createDefaultPatternRegistry,
+  PatternBuilder,
+  createPattern
+} from './optimization/pattern-registry.js';
+
+// Optimization types (using aliases to avoid conflicts with metrics types)
+export type * from './optimization/types.js';
+
+export {
+  OptimizationLevel as ILOptimizationLevel,
+  OptimizationCategory as ILOptimizationCategory,
+  OptimizationPriority,
+  OptimizationSafety,
+  OptimizationErrorType,
+  OptimizationWarningType,
+  DEFAULT_OPTIMIZATION_CONFIG
+} from './optimization/types.js';
+
+// ============================================================================
+// TASK 2.4.5: COMPREHENSIVE IL ANALYTICS TESTING AND INTEGRATION
+// ============================================================================
+
+// Complete IL analytics suite functionality
+export {
+  ILAnalyticsSuite
+} from './analysis/il-analytics-suite.js';
+
+export type {
+  ComprehensiveAnalyticsResult,
+  AnalyticsSummary,
+  OptimizationRecommendation,
+  AnalyticsIssue,
+  AnalyticsPerformanceMetrics,
+  AnalyticsPerformanceBenchmarks,
+  AnalyticsAccuracyStandards
+} from './analysis/il-analytics-suite.js';
+
 export type {
   PatternReadinessAnalysisResult,
   RankedPatternRecommendation,
@@ -685,3 +736,26 @@ export type {
   ExpertiseRequirement,
   RiskLevel
 } from './analysis/pattern-readiness-analyzer.js';
+
+// ============================================================================
+// TASK 2.6: IL BUILDER HELPER FUNCTIONS
+// ============================================================================
+
+// IL Builder functionality for convenient IL construction
+export {
+  ILProgramBuilder,
+  ILModuleBuilder,
+  ILFunctionBuilder,
+  createILBuilderContext,
+  quickProgram,
+  quickFunction,
+  createArithmeticExpression,
+  createIfThenElse,
+  createAssignment,
+  createFunctionPrologue,
+  createFunctionEpilogue
+} from './il-builder.js';
+
+export type {
+  ILBuilderContext
+} from './il-builder.js';
