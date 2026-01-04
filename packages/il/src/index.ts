@@ -512,3 +512,38 @@ export type {
   OptimizationComplexity,
   InstructionLocation
 } from './analysis/types/control-flow-types.js';
+
+// ============================================================================
+// TASK 2.4.2: 6502-SPECIFIC DEEP VALIDATION SYSTEM
+// ============================================================================
+
+// 6502-specific analysis functionality
+export {
+  SixtyTwo6502Analyzer,
+  analyze6502
+} from './analysis/6502-analyzer.js';
+
+export type {
+  SixtyTwo6502ValidationResult,
+  SixtyTwo6502AnalysisOptions,
+  ProcessorVariant,
+  PlatformTarget,
+  CycleTimingResult,
+  MemoryLayoutValidationResult,
+  RegisterAllocationAnalysis,
+  PerformanceHotspotAnalysis,
+  HardwareConstraintValidation,
+  SixtyTwo6502Optimization,
+  ValidationIssue,
+  InstructionTimingInfo,
+  TimingAccuracy,
+  MemoryModelAccuracy
+} from './analysis/types/6502-analysis-types.js';
+
+// 6502 processor variant analyzers
+export {
+  Base6502Analyzer,
+  VIC20_6502Analyzer,
+  C64_6510Analyzer,
+  X16_65C02Analyzer
+} from './analysis/6502-variants/index.js';

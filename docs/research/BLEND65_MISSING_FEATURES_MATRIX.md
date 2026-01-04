@@ -52,6 +52,12 @@
 | Interrupt Handlers | Not Implemented | v0.5 | CRITICAL | [All Hardware Games] | VERY HIGH | Hardware Integration |
 | Inline Assembly | Not Implemented | v0.5 | HIGH | [Hardware Intensive] | HIGH | Code Generation Integration |
 | Memory-Mapped I/O | Not Implemented | v0.5 | CRITICAL | [Psychedelia, Advanced] | VERY HIGH | Hardware Abstraction |
+| **v0.6+ Features (NOT YET IMPLEMENTED)** |
+| REU Storage Classes | Not Implemented | v0.6 | HIGH | [Modern C64 Systems] | MEDIUM | REU Memory Management |
+| REU Memory Management | Not Implemented | v0.6 | HIGH | [Massive Game Worlds] | HIGH | DMA Transfer System |
+| REU Detection APIs | Not Implemented | v0.6 | MEDIUM | [Backward Compatibility] | LOW | Runtime Hardware Detection |
+| Background DMA | Not Implemented | v0.6 | HIGH | [Performance Enhancement] | MEDIUM | Automatic Asset Streaming |
+| REU-Aware Optimization | Not Implemented | v0.6 | MEDIUM | [Compiler Enhancement] | HIGH | Advanced Memory Layout |
 
 ## Hardware API Matrix by Platform
 
@@ -98,6 +104,13 @@
 | c64.memory | setZeroPageOptimization() | Missing | HIGH | [C64 Space Shooter] | HIGH | Performance-critical variables |
 | c64.sprites | enableAllSprites() | Missing | HIGH | [C64 Space Shooter] | LOW | Multi-sprite management |
 | c64.sprites | setCustomSpriteData() | Missing | HIGH | [C64 Space Shooter] | MEDIUM | Dynamic sprite graphics |
+| c64.reu | hasREU() | Missing | MEDIUM | [Modern C64 Games] | LOW | REU presence detection |
+| c64.reu | transferToREU() | Missing | HIGH | [Modern C64 Games] | MEDIUM | Main RAM to REU DMA transfer |
+| c64.reu | transferFromREU() | Missing | HIGH | [Modern C64 Games] | MEDIUM | REU to main RAM DMA transfer |
+| c64.reu | getDMAStatus() | Missing | MEDIUM | [Modern C64 Games] | LOW | DMA operation status |
+| c64.reu | setDMAMode() | Missing | HIGH | [Advanced REU Games] | MEDIUM | DMA transfer mode configuration |
+| c64.reu | enableBackgroundDMA() | Missing | HIGH | [Performance Games] | MEDIUM | Automatic VBL-synchronized transfers |
+| c64.reu | configureDMAChannel() | Missing | MEDIUM | [Advanced REU Games] | HIGH | Low-level DMA channel setup |
 | c64.vic | setCharacterSet() | Missing | HIGH | [Psychedelia] | MEDIUM | VIC-II memory control |
 | c64.vic | configureMemoryLayout() | Missing | HIGH | [Psychedelia] | HIGH | Advanced VIC-II configuration |
 | c64.cia | readTimer() | Missing | HIGH | [Psychedelia] | LOW | Hardware timing access |
@@ -174,6 +187,9 @@
 | string | substring() | Missing | v0.3 | MEDIUM | [Future text games] | MEDIUM |
 | memory | malloc() | Missing | v0.4 | CRITICAL | [Mafia ASM] | HIGH |
 | memory | free() | Missing | v0.4 | CRITICAL | [Mafia ASM] | HIGH |
+| memory.reu | reuMalloc() | Missing | v0.6 | HIGH | [REU-Enhanced Games] | MEDIUM |
+| memory.reu | reuFree() | Missing | v0.6 | HIGH | [REU-Enhanced Games] | MEDIUM |
+| memory.reu | reuOptimize() | Missing | v0.6 | MEDIUM | [Performance Games] | HIGH |
 
 ## Priority Summary
 
@@ -183,6 +199,13 @@
 3. **SID Music Integration** - Critical for audio-rich games like Astroblast
 4. **Interrupt System** - Essential for hardware-intensive games
 5. **Dynamic Memory** - Needed for complex simulations like Elite
+
+### Modern C64 Enhancement Opportunities (REU Support)
+1. **REU Memory Management** - Enables massive game worlds and instant loading
+2. **Background DMA** - Automatic asset streaming for seamless experiences
+3. **REU Storage Classes** - Compiler-optimized expanded memory usage
+4. **Backward Compatibility** - Games work on both standard and REU-equipped systems
+5. **Performance Enhancement** - Dramatically improved loading times and data capacity
 
 ### High Priority (Significantly improves compatibility)
 1. **Frame-accurate Timing** - Required for smooth 60 FPS games like Astroblast
@@ -212,6 +235,7 @@ Based on analyzed games:
 - **v0.3 enables:** 80% of language-feature-heavy games
 - **v0.4 enables:** 90% of complex simulation games
 - **v0.5 enables:** 95% of hardware-intensive games
+- **v0.6 enables:** 99% of modern C64 systems with REU enhancement capabilities
 
 ## Game Compatibility Matrix
 
@@ -265,6 +289,15 @@ Based on analyzed games:
 | Game | Repository | Primary Blocker | Target Version |
 |------|------------|-----------------|----------------|
 | **Psychedelia/Colourspace** | github.com/mwenge/psychedelia.git | Interrupt system + memory-mapped I/O + real-time graphics + zero page optimization | v0.6+ |
+
+### ENABLED BY VERSION 0.6+ (REU-Enhanced Games)
+| Game Type | Repository | REU Enhancement | Benefits |
+|-----------|------------|-----------------|----------|
+| **Elite with REU** | Elite + REU support | Massive galaxy data, instant system loading | Thousands of systems vs original hundreds |
+| **Advanced RPGs** | [Future RPG games] | Complete world data, instant area transitions | Multi-megabyte worlds, zero loading times |
+| **Trading Simulations** | Enhanced Mafia ASM | Complete economic data, instant calculations | 1000+ cities vs original 8 players |
+| **Graphics Showcases** | [Demo scene] | Multiple screen buffers, massive sprite libraries | Professional-quality visual effects |
+| **Audio Productions** | [Music games] | Complete orchestral data, voice samples | CD-quality audio on C64 hardware |
 
 ### NEEDS VERSION 1.0+ (Elite-Class)
 | Game | Repository | Primary Blocker | Target Version |

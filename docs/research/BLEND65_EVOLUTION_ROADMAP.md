@@ -860,6 +860,57 @@ end function
 - **c64.cia.timers**: `setTimer()`, `readTimer()`, `waitTimer()`
 - **c64.sid.hardware**: `readOscillator()`, `enableNoise()`, `setFrequency()`
 
+### Version 0.6: Modern C64 Hardware Support (8-12 months)
+
+**REU and Advanced Hardware Integration**
+
+**New Features:**
+
+- **REU Storage Classes**: Optional `reu` storage class for expanded memory variables
+- **REU Memory Management**: Automatic DMA transfers and memory layout optimization
+- **REU Detection APIs**: Runtime detection and conditional compilation
+- **Background DMA**: Automatic data streaming during VBL
+- **REU-Aware Optimization**: Compiler optimizations for expanded memory systems
+
+**Enables:**
+
+- **C64 Ultimate Development**: Full support for modern C64 systems with 16MB+ RAM
+- **Massive Game Worlds**: Multi-megabyte levels and data sets
+- **Enhanced Graphics**: Multiple screen buffers, smooth scrolling
+- **Large Audio Libraries**: Complete sound effect and music collections
+- **Instant Loading**: DMA-based asset streaming vs disk access
+
+**REU Language Features:**
+
+```js
+// REU storage class for expanded memory
+reu var worldMap: byte[512][512]        // Massive game world
+reu var soundLibrary: byte[1000000]     // Complete audio library
+reu var graphicsAssets: byte[2000000]   // All game graphics
+
+// Automatic REU detection and optimization
+function initGame(): void
+    if hasREU() then
+        preloadAllAssets()      // Use REU for instant access
+        enableBackgroundDMA()   // Automatic streaming
+    else
+        useStandardAssets()     // Conservative memory usage
+    end if
+end function
+
+// REU-aware memory operations
+function loadLevel(levelNum: byte): void
+    // Fast DMA transfer from REU to main RAM
+    transferFromREU(worldMap[levelNum * 8192], $2000, 8192)
+end function
+```
+
+**Hardware API Coverage:**
+
+- **c64.reu**: `hasREU()`, `transferToREU()`, `transferFromREU()`, `getDMAStatus()`
+- **c64.reu.advanced**: `setDMAMode()`, `enableBackgroundDMA()`, `configureDMAChannel()`
+- **memory.reu**: REU-aware memory allocation and automatic optimization
+
 ### Version 1.0: Elite-Ready (12-18 months)
 
 **Full Elite-Class Game Support**
@@ -871,6 +922,7 @@ end function
 - Sophisticated debugging tools
 - Performance profiling
 - Multi-target advanced features
+- REU-optimized Elite implementation
 
 **Enables:**
 
@@ -879,6 +931,7 @@ end function
 - Advanced trading games
 - Sophisticated AI systems
 - Real-time strategy games
+- REU-enhanced game experiences
 
 ---
 
@@ -1001,16 +1054,29 @@ end function
 | Timing Control     | MEDIUM   | LOW    | 4        | Precision games       |
 | Hardware Sound     | MEDIUM   | MEDIUM | 5        | Audio-intensive games |
 
-### Phase 4 (Version 1.0): Ultimate Games
+### Phase 4 (Version 0.6): Modern Hardware Integration
+
+**Priority: HIGH** - Future-proofing for modern C64 systems
+
+| Feature               | Impact | Effort | Priority | Game Type                    |
+| --------------------- | ------ | ------ | -------- | ---------------------------- |
+| REU Storage Classes   | HIGH   | MEDIUM | 1        | C64 Ultimate, Modern systems |
+| REU Memory Management | HIGH   | HIGH   | 2        | Massive game worlds          |
+| REU DMA Operations    | MEDIUM | MEDIUM | 3        | Performance optimization     |
+| REU Detection APIs    | MEDIUM | LOW    | 4        | Backward compatibility       |
+| Background DMA        | HIGH   | MEDIUM | 5        | Seamless asset streaming     |
+
+### Phase 5 (Version 1.0): Ultimate Games
 
 **Priority: FUTURE** - Complete gaming ecosystem
 
 | Feature               | Impact | Effort    | Priority | Game Type            |
 | --------------------- | ------ | --------- | -------- | -------------------- |
 | Full Elite Support    | HIGH   | VERY HIGH | 1        | Complex simulations  |
-| Advanced Optimization | MEDIUM | HIGH      | 2        | Performance-critical |
-| Debugging Tools       | MEDIUM | MEDIUM    | 3        | Development workflow |
-| Multi-target Polish   | LOW    | MEDIUM    | 4        | Platform consistency |
+| REU-Enhanced Gaming   | HIGH   | MEDIUM    | 2        | Modern C64 showcases |
+| Advanced Optimization | MEDIUM | HIGH      | 3        | Performance-critical |
+| Debugging Tools       | MEDIUM | MEDIUM    | 4        | Development workflow |
+| Multi-target Polish   | LOW    | MEDIUM    | 5        | Platform consistency |
 
 ---
 
@@ -1078,12 +1144,21 @@ $E000-$FFFF    Kernal ROM
 - **Thrust/Gravitar clones**: Physics-based games with precise control
 - **Multi-directional shooters**: Hardware-optimized collision detection
 
+### Blend65 v0.6 Games (REU-Enhanced)
+
+- **Massive Open Worlds**: Multi-megabyte game worlds with instant loading
+- **Advanced Simulations**: Complex economic/trading games with enormous data sets
+- **Enhanced Graphics Games**: Multiple screen buffers, massive sprite libraries
+- **Audio-Rich Productions**: Complete orchestral soundtracks, voice samples
+- **Modern C64 Showcases**: Games that fully utilize 16MB+ RAM expansion
+
 ### Blend65 v1.0 Games (Ultimate)
 
 - **Full Elite**: Complete 3D space trading simulation with all language features
+- **REU-Enhanced Elite**: Massive galaxy with thousands of systems
 - **Advanced RPGs**: Complex quests, dynamic storylines, sophisticated AI
 - **Real-time Strategy**: Multiple units, resource management, complex simulation
-- **Elite + Bubble Escape hybrid**: Games requiring both advanced language features AND hardware control
+- **Elite + Bubble Escape + REU hybrid**: Games requiring advanced language features, hardware control, AND massive memory
 
 ---
 
@@ -1195,7 +1270,10 @@ The journey from basic 6502 programming to Elite-level game development is subst
 4. Start building the math library foundation
 
 **Long-term Vision:**
-Blend65 v1.0 will enable developers to create Elite-level games with modern language features while maintaining the performance and efficiency that made the original Elite possible on 8-bit hardware.
+Blend65 v1.0 will enable developers to create Elite-level games with modern language features while maintaining the performance and efficiency that made the original Elite possible on 8-bit hardware. REU support will position Blend65 for the cutting edge of retro development, enabling games that take full advantage of modern C64 systems with massive memory expansion.
+
+**REU Integration Strategy:**
+The addition of REU support ensures Blend65 remains relevant for modern retro development, supporting both classic 64KB C64 systems and modern expanded systems with 16MB+ RAM. This dual-target approach attracts developers working with cutting-edge retro hardware while maintaining complete backward compatibility.
 
 ---
 
