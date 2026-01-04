@@ -28,6 +28,7 @@ export enum PatternCategory {
  */
 export enum TargetPlatform {
   C64 = 'c64',
+  C128 = 'c128',
   VIC20 = 'vic20',
   APPLE_II = 'apple_ii',
   GENERIC_6502 = 'generic_6502'

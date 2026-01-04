@@ -27,8 +27,8 @@ import {
   VariableSymbol,
   FunctionSymbol,
   Scope
-} from '../types'
-import { SymbolTable } from '../symbol-table'
+} from '../types.js'
+import { SymbolTable } from '../symbol-table.js'
 
 /**
  * Handles cross-file module analysis including import/export resolution,
