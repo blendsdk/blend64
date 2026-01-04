@@ -409,3 +409,23 @@ export function getEstimatedCycles(
  * - Comprehensive validation and error reporting
  * - Foundation for optimization passes and code generation
  */
+
+// ============================================================================
+// TASK 2.3: AST TO IL TRANSFORMATION
+// ============================================================================
+
+// AST to IL transformation functionality
+export {
+  ASTToILTransformer,
+  createASTToILTransformer,
+  transformProgramToIL
+} from './ast-to-il.js';
+
+export type {
+  TransformationResult,
+  TransformationError,
+  TransformationWarning,
+  ExpressionTransformResult,
+  StatementTransformResult,
+  TransformationContext
+} from './ast-to-il.js';
