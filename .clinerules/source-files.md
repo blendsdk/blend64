@@ -18,6 +18,20 @@
 
 ## Critical File Size Requirements
 
+### **🚨 MANDATORY REQUIREMENTS**
+
+**These requirements are CRITICAL and must never be violated:**
+
+#### Static Import Requirement
+
+**ABSOLUTELY NO DYNAMIC IMPORTS**: All file splitting must use static imports at module level
+- ✅ **Correct**: `import { Parser } from './parser.js'` (at top of file)
+- ❌ **Forbidden**: `const Parser = await import('./parser.js')` (dynamic import)
+- ❌ **Forbidden**: `import('./parser.js').then(...)` (dynamic import)
+- ❌ **Forbidden**: Any pattern that requires async/await for imports
+
+**Rationale**: Dynamic imports require async/await patterns that complicate the codebase unnecessarily. Static imports maintain clean, synchronous TypeScript code and better type checking.
+
 ### **🚨 MANDATORY FILE SIZE LIMITS**
 
 **These limits are CRITICAL REQUIREMENTS and must never be exceeded:**
@@ -81,6 +95,13 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
 
 **Implementation Pattern:**
 ```typescript
+// Static imports at module level - NO dynamic imports
+import { DeclarationParser } from './declaration-parser.js';
+import { StatementParser } from './statement-parser.js';
+import { ExpressionParser } from './expression-parser.js';
+import { TypeParser } from './type-parser.js';
+import { ModuleParser } from './module-parser.js';
+
 // Main parser becomes coordinator
 export class Blend65Parser extends RecursiveDescentParser<Program> {
   private declarationParser: DeclarationParser;
@@ -141,6 +162,13 @@ export class SemanticAnalyzer {
 
 **Implementation Pattern:**
 ```typescript
+// Static imports at module level - NO dynamic imports
+import { AnalysisPipeline } from './coordinators/analysis-pipeline.js';
+import { SymbolResolutionPhase } from './phases/symbol-resolution.js';
+import { TypeValidationPhase } from './phases/type-validation.js';
+import { DependencyAnalysisPhase } from './phases/dependency-analysis.js';
+import { OptimizationPrepPhase } from './phases/optimization-prep.js';
+
 // Main analyzer becomes pipeline coordinator
 export class SemanticAnalyzer {
   private pipeline: AnalysisPipeline;
