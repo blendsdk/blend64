@@ -429,3 +429,26 @@ export type {
   StatementTransformResult,
   TransformationContext
 } from './ast-to-il.js';
+
+// ============================================================================
+// TASK 2.4: IL VALIDATION SYSTEM
+// ============================================================================
+
+// IL validation functionality
+export {
+  ILValidator,
+  createILValidator,
+  validateILProgram,
+  validateILModule,
+  validateILFunction,
+  ILValidationErrorType,
+  ILValidationSeverity
+} from './il-validator.js';
+
+export type {
+  ILValidationResult,
+  ILValidationError,
+  ILValidationStatistics,
+  ValidationErrorContext,
+  ControlFlowAnalysisResult
+} from './il-validator.js';
