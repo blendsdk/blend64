@@ -97,6 +97,7 @@ export interface VariableSymbol extends Symbol {
  * Educational Note:
  * - Callback functions can be assigned to callback variables
  * - Parameter types enable function call validation
+ * - Task 1.9: Enhanced with optimization metadata for inlining and call optimization
  */
 export interface FunctionSymbol extends Symbol {
   symbolType: 'Function';
@@ -109,6 +110,9 @@ export interface FunctionSymbol extends Symbol {
 
   /** Whether this is a callback function */
   isCallback: boolean;
+
+  /** Task 1.9: Optimization metadata for function inlining and call optimization */
+  optimizationMetadata?: FunctionOptimizationMetadata;
 }
 
 /**
@@ -843,6 +847,1399 @@ export type VariablePerformanceHintType =
   | 'prefetch_candidate';     // Variable could benefit from prefetching
 
 export type PerformanceImpact = 'low' | 'medium' | 'high' | 'critical';
+
+// ============================================================================
+// TASK 1.9: FUNCTION OPTIMIZATION METADATA
+// ============================================================================
+
+/**
+ * Comprehensive optimization metadata for functions.
+ * Collects all information needed for function inlining decisions, call optimization,
+ * and callback function performance analysis.
+ *
+ * Educational Note:
+ * - Function inlining: Replace function calls with function body for performance
+ * - Call optimization: Optimize parameter passing and return value handling
+ * - Callback optimization: Optimize function pointer calls and interrupt handlers
+ * - 6502-specific: Consider JSR/RTS costs, register usage patterns, stack management
+ */
+export interface FunctionOptimizationMetadata {
+  /** Function call pattern analysis */
+  callStatistics: FunctionCallStatistics;
+
+  /** Function inlining candidate analysis */
+  inliningCandidate: InliningCandidateInfo;
+
+  /** Function call optimization analysis */
+  callOptimization: CallOptimizationInfo;
+
+  /** Callback function optimization analysis */
+  callbackOptimization: CallbackOptimizationInfo;
+
+  /** 6502-specific function optimization hints */
+  sixtyTwoHints: Function6502OptimizationHints;
+
+  /** Function performance characteristics */
+  performanceProfile: FunctionPerformanceProfile;
+}
+
+/**
+ * Function call pattern statistics.
+ */
+export interface FunctionCallStatistics {
+  /** Total number of times this function is called */
+  callCount: number;
+
+  /** Number of direct calls (function name) */
+  directCallCount: number;
+
+  /** Number of indirect calls (through callback variables) */
+  indirectCallCount: number;
+
+  /** Call sites information */
+  callSites: FunctionCallSite[];
+
+  /** Call frequency distribution */
+  callFrequency: CallFrequency;
+
+  /** Whether function is called in hot paths */
+  hotPathCalls: number;
+
+  /** Whether function is called in loops */
+  loopCalls: FunctionLoopCallInfo[];
+
+  /** Call context information */
+  callContexts: FunctionCallContext[];
+}
+
+/**
+ * Information about a function call site.
+ */
+export interface FunctionCallSite {
+  /** Location of the call */
+  location: SourcePosition;
+
+  /** Type of call (direct, indirect, recursive) */
+  callType: FunctionCallType;
+
+  /** Arguments passed at this call site */
+  argumentTypes: Blend65Type[];
+
+  /** Whether this call is in a hot path */
+  isHotPath: boolean;
+
+  /** Whether this call is in a loop */
+  loopNesting: number;
+
+  /** Estimated call frequency at this site */
+  estimatedFrequency: number;
+
+  /** Call context (function or global) */
+  callingContext: string;
+}
+
+/**
+ * Type of function call.
+ */
+export type FunctionCallType =
+  | 'direct'                  // Direct function call
+  | 'indirect'                // Call through callback variable
+  | 'recursive'               // Recursive call
+  | 'tail_call'               // Tail call (could be optimized)
+  | 'cross_module';           // Call to function in different module
+
+/**
+ * Function call frequency classification.
+ */
+export type CallFrequency = 'never' | 'rare' | 'occasional' | 'frequent' | 'very_frequent' | 'hot';
+
+/**
+ * Information about function calls within loops.
+ */
+export interface FunctionLoopCallInfo {
+  /** Nesting level of the loop */
+  loopLevel: number;
+
+  /** Number of calls within this loop level */
+  callsInLoop: number;
+
+  /** Estimated loop iterations */
+  estimatedIterations: number;
+
+  /** Whether the call is loop-invariant */
+  isLoopInvariant: boolean;
+
+  /** Cost of the call in this loop context */
+  loopCallCost: number;
+}
+
+/**
+ * Function call context information.
+ */
+export interface FunctionCallContext {
+  /** Name of the calling function (or 'global' for module level) */
+  callingFunction: string;
+
+  /** Number of calls from this context */
+  callsFromContext: number;
+
+  /** Whether this context is performance-critical */
+  isCriticalPath: boolean;
+
+  /** Call depth from this context */
+  callDepth: number;
+}
+
+/**
+ * Function inlining candidate information.
+ */
+export interface InliningCandidateInfo {
+  /** Whether this function is a good inlining candidate */
+  isCandidate: boolean;
+
+  /** Inlining priority score (0-100, higher is better) */
+  inliningScore: number;
+
+  /** Estimated benefit of inlining (cycle savings) */
+  estimatedBenefit: number;
+
+  /** Estimated cost of inlining (code size increase) */
+  estimatedCost: number;
+
+  /** Function complexity metrics */
+  complexityMetrics: FunctionComplexityMetrics;
+
+  /** Factors favoring inlining */
+  inliningFactors: InliningFactor[];
+
+  /** Factors against inlining */
+  antiInliningFactors: AntiInliningFactor[];
+
+  /** Final inlining recommendation */
+  recommendation: InliningRecommendation;
+
+  /** Call sites that would benefit most from inlining */
+  highValueCallSites: SourcePosition[];
+}
+
+/**
+ * Function complexity metrics for inlining decisions.
+ */
+export interface FunctionComplexityMetrics {
+  /** Number of AST nodes in function body */
+  astNodeCount: number;
+
+  /** Estimated code size in 6502 bytes */
+  estimatedCodeSize: number;
+
+  /** Number of local variables */
+  localVariableCount: number;
+
+  /** Number of function calls within this function */
+  internalCallCount: number;
+
+  /** Maximum nesting depth of control structures */
+  maxNestingDepth: number;
+
+  /** Number of return statements */
+  returnStatementCount: number;
+
+  /** Whether function has loops */
+  hasLoops: boolean;
+
+  /** Whether function has complex control flow */
+  hasComplexControlFlow: boolean;
+
+  /** Cyclomatic complexity estimate */
+  cyclomaticComplexity: number;
+}
+
+/**
+ * Factors that favor function inlining.
+ */
+export interface InliningFactor {
+  factor: InliningFactorType;
+  weight: number;
+  description: string;
+}
+
+export type InliningFactorType =
+  | 'small_function'          // Function is small enough for inlining
+  | 'frequent_calls'          // Function called frequently
+  | 'hot_path_calls'          // Function called in hot execution paths
+  | 'simple_logic'            // Function has simple, linear logic
+  | 'no_recursion'            // Function is not recursive
+  | 'few_parameters'          // Function has few parameters (easier to inline)
+  | 'single_return'           // Function has single return point
+  | 'no_side_effects'         // Function has no global side effects
+  | 'constant_parameters'     // Some parameters are compile-time constants
+  | 'tail_call_elimination';  // Function only makes tail calls
+
+/**
+ * Factors that discourage function inlining.
+ */
+export interface AntiInliningFactor {
+  factor: AntiInliningFactorType;
+  weight: number;
+  description: string;
+}
+
+export type AntiInliningFactorType =
+  | 'large_function'          // Function too large for efficient inlining
+  | 'rare_calls'              // Function called infrequently
+  | 'complex_logic'           // Function has complex control flow
+  | 'many_parameters'         // Function has many parameters
+  | 'recursive_function'      // Function is recursive
+  | 'multiple_returns'        // Function has multiple return points
+  | 'side_effects'            // Function has significant side effects
+  | 'code_bloat'              // Inlining would cause excessive code bloat
+  | 'callback_function'       // Function is used as callback (address needed)
+  | 'exported_function';      // Function is exported (external visibility)
+
+/**
+ * Function inlining recommendation.
+ */
+export type InliningRecommendation =
+  | 'strongly_recommended'    // High benefit, should definitely inline
+  | 'recommended'             // Good candidate for inlining
+  | 'conditional'             // Inline only in specific hot call sites
+  | 'not_recommended'         // Better left as function call
+  | 'strongly_discouraged'    // Should never be inlined
+  | 'impossible';             // Cannot be inlined due to constraints
+
+/**
+ * Function call optimization information.
+ */
+export interface CallOptimizationInfo {
+  /** Parameter passing optimization */
+  parameterOptimization: ParameterOptimizationInfo;
+
+  /** Return value optimization */
+  returnOptimization: ReturnOptimizationInfo;
+
+  /** Register usage optimization */
+  registerOptimization: FunctionRegisterOptimizationInfo;
+
+  /** Stack usage optimization */
+  stackOptimization: StackOptimizationInfo;
+
+  /** 6502-specific call optimizations */
+  callConventionOptimization: CallConventionOptimizationInfo;
+}
+
+/**
+ * Parameter passing optimization information.
+ */
+export interface ParameterOptimizationInfo {
+  /** Total number of parameters */
+  parameterCount: number;
+
+  /** Parameters that can be passed in registers */
+  registerParameters: RegisterParameterInfo[];
+
+  /** Parameters that must be passed on stack */
+  stackParameters: StackParameterInfo[];
+
+  /** Parameter passing cost analysis */
+  passingCost: ParameterPassingCost;
+
+  /** Optimization opportunities for parameters */
+  optimizationOpportunities: ParameterOptimizationOpportunity[];
+}
+
+/**
+ * Information about parameters passed in registers.
+ */
+export interface RegisterParameterInfo {
+  parameterName: string;
+  parameterType: Blend65Type;
+  preferredRegister: PreferredRegister;
+  passingCost: number; // Cycles to pass this parameter
+}
+
+/**
+ * Information about parameters passed on stack.
+ */
+export interface StackParameterInfo {
+  parameterName: string;
+  parameterType: Blend65Type;
+  stackOffset: number;
+  passingCost: number; // Cycles to pass this parameter
+}
+
+/**
+ * Parameter passing cost analysis.
+ */
+export interface ParameterPassingCost {
+  /** Total cost in cycles to pass all parameters */
+  totalCycles: number;
+
+  /** Cost breakdown by parameter */
+  costBreakdown: ParameterCostBreakdown[];
+
+  /** Whether parameter passing is efficient */
+  isEfficient: boolean;
+
+  /** Suggestions for optimization */
+  optimizationSuggestions: string[];
+}
+
+/**
+ * Cost breakdown for individual parameters.
+ */
+export interface ParameterCostBreakdown {
+  parameterName: string;
+  cycles: number;
+  method: ParameterPassingMethod;
+  efficiency: ParameterPassingEfficiency;
+}
+
+export type ParameterPassingMethod =
+  | 'register_A'              // Pass in A register
+  | 'register_X'              // Pass in X register
+  | 'register_Y'              // Pass in Y register
+  | 'zero_page'               // Pass through zero page location
+  | 'stack'                   // Pass on stack
+  | 'global_variable';        // Pass through global variable
+
+export type ParameterPassingEfficiency = 'optimal' | 'good' | 'acceptable' | 'poor';
+
+/**
+ * Parameter optimization opportunities.
+ */
+export interface ParameterOptimizationOpportunity {
+  opportunity: ParameterOptimizationOpportunityType;
+  parameterName: string;
+  benefit: number; // Estimated cycle savings
+  description: string;
+}
+
+export type ParameterOptimizationOpportunityType =
+  | 'register_allocation'     // Parameter can be passed in register
+  | 'constant_parameter'      // Parameter is constant, can be inlined
+  | 'unused_parameter'        // Parameter is unused, can be eliminated
+  | 'parameter_combining'     // Multiple parameters can be combined
+  | 'zero_page_passing'       // Use zero page for parameter passing
+  | 'elimination';            // Parameter can be eliminated through optimization
+
+/**
+ * Return value optimization information.
+ */
+export interface ReturnOptimizationInfo {
+  /** Return type analysis */
+  returnType: Blend65Type;
+
+  /** How return value is passed back */
+  returnMethod: ReturnValueMethod;
+
+  /** Cost of returning the value */
+  returnCost: number;
+
+  /** Whether return can be optimized */
+  canOptimize: boolean;
+
+  /** Optimization opportunities */
+  optimizationOpportunities: ReturnOptimizationOpportunity[];
+}
+
+export type ReturnValueMethod =
+  | 'register_A'              // Return in A register
+  | 'register_AX'             // Return 16-bit value in A/X
+  | 'register_XY'             // Return 16-bit value in X/Y
+  | 'zero_page'               // Return through zero page
+  | 'global_variable'         // Return through global variable
+  | 'stack'                   // Return on stack
+  | 'void';                   // No return value
+
+/**
+ * Return value optimization opportunities.
+ */
+export interface ReturnOptimizationOpportunity {
+  opportunity: ReturnOptimizationOpportunityType;
+  benefit: number; // Estimated cycle savings
+  description: string;
+}
+
+export type ReturnOptimizationOpportunityType =
+  | 'register_return'         // Return through register instead of memory
+  | 'void_return'             // Function doesn't need to return value
+  | 'constant_return'         // Function always returns same constant
+  | 'elimination'             // Return value can be eliminated
+  | 'direct_use';             // Return value used directly, no temporary needed
+
+/**
+ * Function register usage optimization information.
+ */
+export interface FunctionRegisterOptimizationInfo {
+  /** Registers used by this function */
+  registersUsed: PreferredRegister[];
+
+  /** Registers that must be preserved */
+  registersToPreserve: PreferredRegister[];
+
+  /** Register allocation conflicts */
+  registerConflicts: RegisterConflictInfo[];
+
+  /** Register optimization opportunities */
+  optimizationOpportunities: FunctionRegisterOptimizationOpportunity[];
+}
+
+/**
+ * Register conflict information.
+ */
+export interface RegisterConflictInfo {
+  register: PreferredRegister;
+  conflictType: RegisterConflictType;
+  conflictSeverity: ConflictSeverity;
+  resolutionCost: number; // Cycles to resolve conflict
+}
+
+export type RegisterConflictType =
+  | 'parameter_conflict'      // Parameter passing conflicts with internal use
+  | 'return_conflict'         // Return value conflicts with internal use
+  | 'caller_save'             // Caller must save register
+  | 'callee_save'             // Function must save/restore register
+  | 'cross_call_conflict';    // Register live across function calls
+
+export type ConflictSeverity = 'low' | 'medium' | 'high' | 'critical';
+
+/**
+ * Function register optimization opportunities.
+ */
+export interface FunctionRegisterOptimizationOpportunity {
+  opportunity: FunctionRegisterOptimizationOpportunityType;
+  register: PreferredRegister;
+  benefit: number; // Estimated cycle savings
+  description: string;
+}
+
+export type FunctionRegisterOptimizationOpportunityType =
+  | 'register_reuse'          // Reuse register for multiple purposes
+  | 'eliminate_save_restore'  // Eliminate unnecessary save/restore
+  | 'parameter_register'      // Use register for parameter passing
+  | 'return_register'         // Use register for return value
+  | 'local_allocation'        // Allocate local variable to register
+  | 'cross_function_allocation'; // Allocate across function boundaries
+
+/**
+ * Stack usage optimization information.
+ */
+export interface StackOptimizationInfo {
+  /** Stack space required by function */
+  stackSpaceRequired: number;
+
+  /** Stack usage breakdown */
+  stackUsageBreakdown: StackUsageItem[];
+
+  /** Whether stack usage is efficient */
+  isStackUsageEfficient: boolean;
+
+  /** Stack optimization opportunities */
+  optimizationOpportunities: StackOptimizationOpportunity[];
+}
+
+/**
+ * Individual stack usage item.
+ */
+export interface StackUsageItem {
+  purpose: StackUsagePurpose;
+  size: number; // Bytes
+  frequency: StackUsageFrequency;
+  canOptimize: boolean;
+}
+
+export type StackUsagePurpose =
+  | 'local_variables'         // Local variable storage
+  | 'parameter_passing'       // Parameter passing
+  | 'return_address'          // Return address storage
+  | 'register_save'           // Register save/restore
+  | 'temporary_storage';      // Temporary calculations
+
+export type StackUsageFrequency = 'always' | 'conditional' | 'rare';
+
+/**
+ * Stack optimization opportunities.
+ */
+export interface StackOptimizationOpportunity {
+  opportunity: StackOptimizationOpportunityType;
+  benefit: number; // Bytes or cycles saved
+  description: string;
+}
+
+export type StackOptimizationOpportunityType =
+  | 'eliminate_locals'        // Eliminate local variables
+  | 'register_locals'         // Move locals to registers
+  | 'reduce_parameters'       // Reduce parameter count
+  | 'eliminate_saves'         // Eliminate register saves
+  | 'stack_reuse'             // Reuse stack space
+  | 'tail_call'               // Use tail call optimization
+  | 'leaf_function';          // Function doesn't call others (no save needed)
+
+/**
+ * 6502-specific calling convention optimization.
+ */
+export interface CallConventionOptimizationInfo {
+  /** Whether function follows standard calling convention */
+  followsStandardConvention: boolean;
+
+  /** Optimized calling convention for this function */
+  optimizedConvention: CallingConvention;
+
+  /** Benefits of optimized convention */
+  optimizationBenefits: CallConventionBenefit[];
+
+  /** Constraints preventing optimization */
+  constraints: CallConventionConstraint[];
+}
+
+/**
+ * Calling convention types.
+ */
+export type CallingConvention =
+  | 'standard'                // Standard JSR/RTS with stack
+  | 'register_only'           // Parameters and return in registers only
+  | 'zero_page'               // Use zero page for parameter passing
+  | 'global_variables'        // Use global variables for parameters
+  | 'inline_expanded'         // Function should be inlined
+  | 'tail_call'               // Use tail call optimization
+  | 'custom_optimized';       // Custom optimized convention
+
+/**
+ * Benefits of calling convention optimization.
+ */
+export interface CallConventionBenefit {
+  benefit: CallConventionBenefitType;
+  cycleSavings: number;
+  codeSizeDelta: number; // Can be negative (savings) or positive (increase)
+}
+
+export type CallConventionBenefitType =
+  | 'faster_calls'            // Reduced call overhead
+  | 'smaller_code'            // Reduced code size
+  | 'better_register_use'     // More efficient register usage
+  | 'eliminated_stack_ops'    // Eliminated stack operations
+  | 'parameter_optimization'  // Optimized parameter passing
+  | 'return_optimization';    // Optimized return handling
+
+/**
+ * Constraints preventing calling convention optimization.
+ */
+export interface CallConventionConstraint {
+  constraint: CallConventionConstraintType;
+  severity: ConflictSeverity;
+  description: string;
+}
+
+export type CallConventionConstraintType =
+  | 'exported_function'       // Function is exported (fixed interface)
+  | 'recursive_function'      // Function is recursive
+  | 'callback_function'       // Function used as callback
+  | 'variable_parameters'     // Function has variable parameters
+  | 'complex_return'          // Complex return type
+  | 'cross_module_calls'      // Called from multiple modules
+  | 'interrupt_handler';      // Function is interrupt handler
+
+/**
+ * Callback function optimization information.
+ */
+export interface CallbackOptimizationInfo {
+  /** Whether this is a callback function */
+  isCallbackFunction: boolean;
+
+  /** Callback usage patterns */
+  callbackUsage: CallbackUsagePattern[];
+
+  /** Callback performance analysis */
+  performanceAnalysis: CallbackPerformanceAnalysis;
+
+  /** Callback optimization opportunities */
+  optimizationOpportunities: CallbackOptimizationOpportunity[];
+
+  /** Interrupt handler specific optimizations */
+  interruptOptimization?: InterruptHandlerOptimizationInfo;
+}
+
+/**
+ * Callback usage patterns.
+ */
+export interface CallbackUsagePattern {
+  pattern: CallbackUsagePatternType;
+  frequency: number;
+  performance: CallbackPerformanceImpact;
+}
+
+export type CallbackUsagePatternType =
+  | 'single_assignment'       // Callback assigned to single variable
+  | 'multiple_assignment'     // Callback assigned to multiple variables
+  | 'array_dispatch'          // Callback used in dispatch array
+  | 'conditional_call'        // Callback called conditionally
+  | 'loop_call'               // Callback called in loop
+  | 'interrupt_handler'       // Used as interrupt handler
+  | 'event_handler'           // Used as event handler
+  | 'state_machine';          // Used in state machine
+
+export type CallbackPerformanceImpact = 'low' | 'medium' | 'high' | 'critical';
+
+/**
+ * Callback performance analysis.
+ */
+export interface CallbackPerformanceAnalysis {
+  /** Indirect call overhead */
+  indirectCallOverhead: number; // Additional cycles vs direct call
+
+  /** Function pointer setup cost */
+  setupCost: number;
+
+  /** Whether callback benefits from optimization */
+  benefitsFromOptimization: boolean;
+
+  /** Performance bottlenecks */
+  bottlenecks: CallbackBottleneck[];
+}
+
+/**
+ * Callback performance bottlenecks.
+ */
+export interface CallbackBottleneck {
+  bottleneck: CallbackBottleneckType;
+  impact: CallbackPerformanceImpact;
+  description: string;
+}
+
+export type CallbackBottleneckType =
+  | 'indirect_call_overhead'  // Overhead of indirect calls
+  | 'function_pointer_setup'  // Setting up function pointer
+  | 'parameter_passing'       // Parameter passing inefficiency
+  | 'register_conflicts'      // Register usage conflicts
+  | 'memory_access'           // Memory access for function pointer
+  | 'call_frequency';         // High frequency of callback calls
+
+/**
+ * Callback optimization opportunities.
+ */
+export interface CallbackOptimizationOpportunity {
+  opportunity: CallbackOptimizationOpportunityType;
+  benefit: number; // Estimated cycle savings
+  applicability: OptimizationApplicability;
+  description: string;
+}
+
+export type CallbackOptimizationOpportunityType =
+  | 'direct_call_conversion'  // Convert indirect to direct calls
+  | 'inline_expansion'        // Inline callback at call site
+  | 'dispatch_optimization'   // Optimize dispatch table
+  | 'register_optimization'   // Optimize register usage
+  | 'call_site_optimization'  // Optimize specific call sites
+  | 'function_pointer_caching'; // Cache function pointers
+
+export type OptimizationApplicability = 'always' | 'conditional' | 'specific_cases' | 'never';
+
+/**
+ * Interrupt handler specific optimization information.
+ */
+export interface InterruptHandlerOptimizationInfo {
+  /** Type of interrupt handler */
+  interruptType: InterruptType;
+
+  /** Interrupt frequency estimate */
+  interruptFrequency: InterruptFrequency;
+
+  /** Register preservation requirements */
+  registerPreservation: InterruptRegisterPreservation;
+
+  /** Timing constraints */
+  timingConstraints: InterruptTimingConstraints;
+
+  /** Interrupt-specific optimizations */
+  optimizations: InterruptOptimization[];
+}
+
+export type InterruptType = 'raster' | 'timer' | 'serial' | 'user' | 'nmi' | 'irq';
+
+export type InterruptFrequency = 'very_rare' | 'rare' | 'occasional' | 'frequent' | 'very_frequent';
+
+/**
+ * Interrupt register preservation requirements.
+ */
+export interface InterruptRegisterPreservation {
+  /** Registers that must be preserved */
+  registersToPreserve: PreferredRegister[];
+
+  /** Registers that can be modified */
+  modifiableRegisters: PreferredRegister[];
+
+  /** Cost of register preservation */
+  preservationCost: number; // Cycles
+}
+
+/**
+ * Interrupt timing constraints.
+ */
+export interface InterruptTimingConstraints {
+  /** Maximum execution time allowed */
+  maxExecutionTime: number; // Cycles
+
+  /** Whether timing is critical */
+  isCriticalTiming: boolean;
+
+  /** Jitter tolerance */
+  jitterTolerance: number; // Cycles
+
+  /** Real-time requirements */
+  realTimeRequirements: RealTimeRequirement[];
+}
+
+/**
+ * Real-time requirements for interrupt handlers.
+ */
+export interface RealTimeRequirement {
+  requirement: RealTimeRequirementType;
+  constraint: number; // Cycles or other unit
+  criticality: ConflictSeverity;
+}
+
+export type RealTimeRequirementType =
+  | 'max_latency'             // Maximum interrupt latency
+  | 'max_execution_time'      // Maximum execution time
+  | 'min_frequency'           // Minimum interrupt frequency
+  | 'max_jitter'              // Maximum timing jitter
+  | 'real_time_deadline';     // Hard real-time deadline
+
+/**
+ * Interrupt-specific optimizations.
+ */
+export interface InterruptOptimization {
+  optimization: InterruptOptimizationType;
+  benefit: number; // Cycle savings or latency reduction
+  description: string;
+}
+
+export type InterruptOptimizationType =
+  | 'minimal_preserve'        // Preserve only necessary registers
+  | 'fast_entry_exit'         // Optimize interrupt entry/exit
+  | 'inline_critical_path'    // Inline critical code sections
+  | 'reduce_complexity'       // Reduce interrupt handler complexity
+  | 'defer_processing'        // Defer non-critical processing
+  | 'optimize_nesting';       // Optimize interrupt nesting
+
+/**
+ * 6502-specific function optimization hints.
+ */
+export interface Function6502OptimizationHints {
+  /** Whether function is suitable for zero page optimization */
+  zeroPageOptimization: ZeroPageFunctionOptimization;
+
+  /** Register allocation strategy for this function */
+  registerStrategy: FunctionRegisterStrategy;
+
+  /** Memory layout preferences */
+  memoryLayout: FunctionMemoryLayout;
+
+  /** Performance characteristics */
+  performanceCharacteristics: FunctionPerformanceCharacteristics;
+
+  /** 6502-specific optimization opportunities */
+  optimizationOpportunities: Function6502OptimizationOpportunity[];
+}
+
+/**
+ * Zero page optimization for functions.
+ */
+export interface ZeroPageFunctionOptimization {
+  /** Whether function benefits from zero page usage */
+  benefitsFromZeroPage: boolean;
+
+  /** Local variables that should be in zero page */
+  zeroPageLocalVariables: string[];
+
+  /** Parameters that should use zero page */
+  zeroPageParameters: string[];
+
+  /** Estimated benefit of zero page usage */
+  estimatedBenefit: number; // Cycle savings
+}
+
+/**
+ * Register allocation strategy for functions.
+ */
+export interface FunctionRegisterStrategy {
+  /** Primary register allocation strategy */
+  strategy: RegisterAllocationStrategy;
+
+  /** Register assignment preferences */
+  registerAssignments: FunctionRegisterAssignment[];
+
+  /** Register pressure analysis */
+  registerPressure: FunctionRegisterPressure;
+}
+
+export type RegisterAllocationStrategy =
+  | 'minimal'                 // Use as few registers as possible
+  | 'aggressive'              // Use all available registers
+  | 'balanced'                // Balance between usage and spilling
+  | 'specialized'             // Specialized for specific patterns
+  | 'none';                   // No register allocation
+
+/**
+ * Function register assignments.
+ */
+export interface FunctionRegisterAssignment {
+  register: PreferredRegister;
+  purpose: RegisterAssignmentPurpose;
+  variable: string | null; // Variable name if assigned to variable
+  benefit: number; // Estimated benefit
+}
+
+export type RegisterAssignmentPurpose =
+  | 'parameter'               // Function parameter
+  | 'return_value'            // Function return value
+  | 'local_variable'          // Local variable
+  | 'loop_counter'            // Loop counter
+  | 'temporary'               // Temporary calculation
+  | 'address_calculation';    // Address calculation
+
+/**
+ * Function register pressure analysis.
+ */
+export interface FunctionRegisterPressure {
+  /** Overall register pressure level */
+  overallPressure: ConflictSeverity;
+
+  /** Pressure at specific program points */
+  pressurePoints: FunctionRegisterPressurePoint[];
+
+  /** Whether function needs register spilling */
+  needsSpilling: boolean;
+
+  /** Cost of register spilling */
+  spillingCost: number; // Cycles
+}
+
+/**
+ * Register pressure at specific points.
+ */
+export interface FunctionRegisterPressurePoint {
+  location: SourcePosition;
+  pressure: ConflictSeverity;
+  availableRegisters: PreferredRegister[];
+  demandedRegisters: PreferredRegister[];
+}
+
+/**
+ * Function memory layout preferences.
+ */
+export interface FunctionMemoryLayout {
+  /** Preferred code section */
+  codeSection: CodeSection;
+
+  /** Local variable layout */
+  localVariableLayout: FunctionLocalVariableLayout;
+
+  /** Whether function should be aligned */
+  alignmentPreference: FunctionAlignmentPreference;
+}
+
+export type CodeSection =
+  | 'hot_code'                // Frequently executed code section
+  | 'warm_code'               // Occasionally executed code
+  | 'cold_code'               // Rarely executed code
+  | 'initialization'          // Initialization code
+  | 'interrupt_code'          // Interrupt handler code
+  | 'utility_code';           // Utility function code
+
+/**
+ * Local variable layout within function.
+ */
+export interface FunctionLocalVariableLayout {
+  /** Layout strategy */
+  strategy: LocalVariableLayoutStrategy;
+
+  /** Variable groupings */
+  variableGroups: LocalVariableGroup[];
+
+  /** Stack frame optimization */
+  stackFrameOptimization: StackFrameOptimization;
+}
+
+export type LocalVariableLayoutStrategy =
+  | 'stack_based'             // Use stack for local variables
+  | 'register_based'          // Use registers for local variables
+  | 'zero_page_based'         // Use zero page for local variables
+  | 'mixed'                   // Mixed approach
+  | 'minimal';                // Minimal local variable usage
+
+/**
+ * Group of related local variables.
+ */
+export interface LocalVariableGroup {
+  variables: string[];
+  groupType: LocalVariableGroupType;
+  layout: GroupLayoutPreference;
+}
+
+export type LocalVariableGroupType =
+  | 'frequently_accessed'     // Variables accessed together frequently
+  | 'same_type'               // Variables of same type
+  | 'loop_variables'          // Variables used in same loop
+  | 'temporary_calculations'  // Temporary calculation variables
+  | 'state_variables';        // Variables representing related state
+
+/**
+ * Stack frame optimization information.
+ */
+export interface StackFrameOptimization {
+  /** Whether stack frame can be optimized */
+  canOptimize: boolean;
+
+  /** Stack frame size reduction potential */
+  sizeReduction: number; // Bytes
+
+  /** Optimization strategies */
+  strategies: StackFrameOptimizationStrategy[];
+}
+
+export type StackFrameOptimizationStrategy =
+  | 'eliminate_frame_pointer' // Don't use frame pointer
+  | 'reuse_parameter_space'   // Reuse parameter space for locals
+  | 'minimize_alignment'      // Minimize alignment requirements
+  | 'combine_variables'       // Combine related variables
+  | 'register_spill_opt';     // Optimize register spill locations
+
+/**
+ * Function alignment preferences.
+ */
+export interface FunctionAlignmentPreference {
+  /** Required function alignment */
+  requiredAlignment: number;
+
+  /** Preferred alignment for performance */
+  preferredAlignment: number;
+
+  /** Whether function benefits from page alignment */
+  preferPageAlignment: boolean;
+
+  /** Alignment reason */
+  reason: FunctionAlignmentReason;
+}
+
+export type FunctionAlignmentReason =
+  | 'none'                    // No special alignment needed
+  | 'performance'             // General performance benefit
+  | 'branch_target'           // Function is frequent branch target
+  | 'interrupt_vector'        // Function is interrupt vector
+  | 'page_boundary';          // Avoid page boundary crossings
+
+/**
+ * Function performance characteristics.
+ */
+export interface FunctionPerformanceCharacteristics {
+  /** Execution frequency classification */
+  executionFrequency: FunctionExecutionFrequency;
+
+  /** Performance hotspots within function */
+  hotspots: FunctionHotspot[];
+
+  /** Critical path analysis */
+  criticalPath: FunctionCriticalPath;
+
+  /** Performance bottlenecks */
+  bottlenecks: FunctionBottleneck[];
+
+  /** Optimization potential */
+  optimizationPotential: FunctionOptimizationPotential;
+}
+
+export type FunctionExecutionFrequency = 'never' | 'rare' | 'occasional' | 'frequent' | 'very_frequent' | 'hot';
+
+/**
+ * Performance hotspot within a function.
+ */
+export interface FunctionHotspot {
+  /** Location of hotspot */
+  location: SourcePosition;
+
+  /** Type of hotspot */
+  hotspotType: FunctionHotspotType;
+
+  /** Performance impact */
+  impact: PerformanceImpact;
+
+  /** Description of hotspot */
+  description: string;
+}
+
+export type FunctionHotspotType =
+  | 'loop'                    // Loop hotspot
+  | 'memory_access'           // Memory access hotspot
+  | 'arithmetic'              // Arithmetic operation hotspot
+  | 'function_call'           // Function call hotspot
+  | 'branch'                  // Branching hotspot
+  | 'register_pressure';      // Register pressure hotspot
+
+/**
+ * Critical path information for function.
+ */
+export interface FunctionCriticalPath {
+  /** Whether function is on critical path */
+  isOnCriticalPath: boolean;
+
+  /** Critical path percentage */
+  criticalPathPercentage: number;
+
+  /** Operations on critical path */
+  criticalOperations: CriticalOperation[];
+}
+
+/**
+ * Critical operation within function.
+ */
+export interface CriticalOperation {
+  location: SourcePosition;
+  operation: CriticalOperationType;
+  cycles: number; // Estimated cycles
+  impact: PerformanceImpact;
+}
+
+export type CriticalOperationType =
+  | 'memory_load'             // Memory load operation
+  | 'memory_store'            // Memory store operation
+  | 'arithmetic'              // Arithmetic operation
+  | 'branch'                  // Branch operation
+  | 'function_call'           // Function call
+  | 'register_transfer';      // Register transfer
+
+/**
+ * Performance bottleneck within function.
+ */
+export interface FunctionBottleneck {
+  bottleneck: FunctionBottleneckType;
+  location: SourcePosition;
+  impact: PerformanceImpact;
+  description: string;
+}
+
+export type FunctionBottleneckType =
+  | 'memory_bandwidth'        // Memory bandwidth limitation
+  | 'register_pressure'       // Register pressure limitation
+  | 'branch_misprediction'    // Branch misprediction penalty
+  | 'data_dependency'         // Data dependency stall
+  | 'function_call_overhead'  // Function call overhead
+  | 'stack_operations';       // Stack operation overhead
+
+/**
+ * Function optimization potential analysis.
+ */
+export interface FunctionOptimizationPotential {
+  /** Overall optimization potential score (0-100) */
+  overallScore: number;
+
+  /** Potential optimizations */
+  potentialOptimizations: PotentialOptimization[];
+
+  /** Estimated total benefit */
+  estimatedTotalBenefit: number; // Cycle savings
+
+  /** Implementation complexity */
+  implementationComplexity: OptimizationComplexity;
+}
+
+/**
+ * Potential optimization for function.
+ */
+export interface PotentialOptimization {
+  optimization: FunctionOptimizationType;
+  benefit: number; // Estimated cycle savings
+  complexity: OptimizationComplexity;
+  description: string;
+}
+
+export type FunctionOptimizationType =
+  | 'inlining'                // Function inlining
+  | 'loop_unrolling'          // Loop unrolling
+  | 'register_allocation'     // Better register allocation
+  | 'dead_code_elimination'   // Remove dead code
+  | 'constant_propagation'    // Propagate constants
+  | 'strength_reduction'      // Reduce operation strength
+  | 'tail_call_optimization'  // Tail call optimization
+  | 'parameter_optimization'; // Parameter passing optimization
+
+/**
+ * 6502-specific function optimization opportunities.
+ */
+export interface Function6502OptimizationOpportunity {
+  opportunity: Function6502OptimizationOpportunityType;
+  benefit: number; // Estimated cycle savings
+  complexity: OptimizationComplexity;
+  description: string;
+}
+
+export type Function6502OptimizationOpportunityType =
+  | 'zero_page_usage'         // Use zero page for function data
+  | 'register_optimization'   // Optimize A/X/Y register usage
+  | 'addressing_mode'         // Use better addressing modes
+  | 'branch_optimization'     // Optimize branch instructions
+  | 'memory_layout'           // Optimize memory layout
+  | 'stack_optimization'      // Optimize stack usage
+  | 'interrupt_optimization'  // Optimize interrupt handling
+  | 'hardware_acceleration';  // Use hardware features
+
+/**
+ * Function performance profile.
+ */
+export interface FunctionPerformanceProfile {
+  /** Execution statistics */
+  executionStats: FunctionExecutionStats;
+
+  /** Resource usage */
+  resourceUsage: FunctionResourceUsage;
+
+  /** Performance metrics */
+  performanceMetrics: FunctionPerformanceMetrics;
+
+  /** Optimization recommendations */
+  optimizationRecommendations: FunctionOptimizationRecommendation[];
+}
+
+/**
+ * Function execution statistics.
+ */
+export interface FunctionExecutionStats {
+  /** Estimated execution cycles */
+  estimatedCycles: number;
+
+  /** Call frequency */
+  callFrequency: CallFrequency;
+
+  /** Execution time distribution */
+  executionTimeDistribution: ExecutionTimeDistribution;
+
+  /** Performance variability */
+  performanceVariability: PerformanceVariability;
+}
+
+/**
+ * Execution time distribution.
+ */
+export interface ExecutionTimeDistribution {
+  minimum: number; // Cycles
+  maximum: number; // Cycles
+  average: number; // Cycles
+  standardDeviation: number;
+}
+
+/**
+ * Performance variability information.
+ */
+export interface PerformanceVariability {
+  variability: PerformanceVariabilityLevel;
+  causes: VariabilityCause[];
+}
+
+export type PerformanceVariabilityLevel = 'low' | 'medium' | 'high';
+
+/**
+ * Cause of performance variability.
+ */
+export interface VariabilityCause {
+  cause: VariabilityCauseType;
+  impact: PerformanceImpact;
+  description: string;
+}
+
+export type VariabilityCauseType =
+  | 'input_dependent'         // Performance depends on input
+  | 'branch_dependent'        // Performance depends on branches taken
+  | 'memory_dependent'        // Performance depends on memory access patterns
+  | 'register_pressure'       // Performance varies with register pressure
+  | 'call_context';           // Performance varies with calling context
+
+/**
+ * Function resource usage.
+ */
+export interface FunctionResourceUsage {
+  /** Register usage */
+  registerUsage: FunctionRegisterUsage;
+
+  /** Memory usage */
+  memoryUsage: FunctionMemoryUsage;
+
+  /** Stack usage */
+  stackUsage: FunctionStackUsage;
+
+  /** Zero page usage */
+  zeroPageUsage: FunctionZeroPageUsage;
+}
+
+/**
+ * Function register usage details.
+ */
+export interface FunctionRegisterUsage {
+  /** Registers used by function */
+  registersUsed: RegisterUsageDetail[];
+
+  /** Register pressure level */
+  registerPressure: ConflictSeverity;
+
+  /** Register conflicts */
+  registerConflicts: RegisterConflictInfo[];
+}
+
+/**
+ * Register usage detail.
+ */
+export interface RegisterUsageDetail {
+  register: PreferredRegister;
+  usage: RegisterUsageType;
+  frequency: number; // Usage frequency
+  benefit: number; // Benefit of using this register
+}
+
+export type RegisterUsageType =
+  | 'parameter'               // Used for parameter
+  | 'return_value'            // Used for return value
+  | 'local_variable'          // Used for local variable
+  | 'temporary'               // Used for temporary storage
+  | 'address_calculation'     // Used for address calculation
+  | 'loop_counter';           // Used as loop counter
+
+/**
+ * Function memory usage details.
+ */
+export interface FunctionMemoryUsage {
+  /** Total memory used */
+  totalMemoryUsed: number; // Bytes
+
+  /** Memory usage breakdown */
+  memoryBreakdown: MemoryUsageBreakdown[];
+
+  /** Memory access patterns */
+  accessPatterns: FunctionMemoryAccessPattern[];
+}
+
+/**
+ * Memory usage breakdown.
+ */
+export interface MemoryUsageBreakdown {
+  purpose: MemoryUsagePurpose;
+  size: number; // Bytes
+  location: MemoryLocation;
+}
+
+export type MemoryUsagePurpose =
+  | 'code'                    // Function code
+  | 'local_variables'         // Local variables
+  | 'constants'               // Function constants
+  | 'temporary_storage';      // Temporary storage
+
+export type MemoryLocation =
+  | 'zero_page'               // Zero page memory
+  | 'ram'                     // Regular RAM
+  | 'rom'                     // ROM area
+  | 'stack';                  // Stack area
+
+/**
+ * Function memory access pattern.
+ */
+export interface FunctionMemoryAccessPattern {
+  pattern: MemoryAccessPatternType;
+  frequency: number;
+  efficiency: MemoryAccessEfficiency;
+}
+
+export type MemoryAccessEfficiency = 'optimal' | 'good' | 'acceptable' | 'poor';
+
+/**
+ * Function stack usage details.
+ */
+export interface FunctionStackUsage {
+  /** Maximum stack depth */
+  maxStackDepth: number; // Bytes
+
+  /** Stack usage breakdown */
+  stackBreakdown: StackUsageItem[];
+
+  /** Stack efficiency */
+  stackEfficiency: StackUsageEfficiency;
+}
+
+export type StackUsageEfficiency = 'optimal' | 'good' | 'acceptable' | 'poor';
+
+/**
+ * Function zero page usage details.
+ */
+export interface FunctionZeroPageUsage {
+  /** Zero page bytes used */
+  zeroPageBytesUsed: number;
+
+  /** Zero page usage efficiency */
+  zeroPageEfficiency: ZeroPageUsageEfficiency;
+
+  /** Zero page allocation details */
+  zeroPageAllocations: ZeroPageAllocation[];
+}
+
+export type ZeroPageUsageEfficiency = 'optimal' | 'good' | 'acceptable' | 'poor';
+
+/**
+ * Zero page allocation detail.
+ */
+export interface ZeroPageAllocation {
+  purpose: ZeroPageUsagePurpose;
+  size: number; // Bytes
+  benefit: number; // Performance benefit
+}
+
+export type ZeroPageUsagePurpose =
+  | 'parameter'               // Function parameter
+  | 'local_variable'          // Local variable
+  | 'temporary'               // Temporary storage
+  | 'address_pointer';        // Address pointer
+
+/**
+ * Function performance metrics.
+ */
+export interface FunctionPerformanceMetrics {
+  /** Cycles per call */
+  cyclesPerCall: number;
+
+  /** Instructions per call */
+  instructionsPerCall: number;
+
+  /** Memory accesses per call */
+  memoryAccessesPerCall: number;
+
+  /** Branch instructions per call */
+  branchInstructionsPerCall: number;
+
+  /** Performance efficiency rating */
+  efficiencyRating: PerformanceEfficiencyRating;
+}
+
+export type PerformanceEfficiencyRating = 'excellent' | 'good' | 'acceptable' | 'poor';
+
+/**
+ * Function optimization recommendation.
+ */
+export interface FunctionOptimizationRecommendation {
+  recommendation: FunctionOptimizationRecommendationType;
+  priority: OptimizationPriority;
+  estimatedBenefit: number; // Cycle savings
+  implementationEffort: ImplementationEffort;
+  description: string;
+}
+
+export type FunctionOptimizationRecommendationType =
+  | 'inline_function'         // Inline this function
+  | 'optimize_registers'      // Optimize register usage
+  | 'reduce_parameters'       // Reduce parameter count
+  | 'eliminate_recursion'     // Eliminate recursion
+  | 'optimize_loops'          // Optimize internal loops
+  | 'improve_memory_layout'   // Improve memory layout
+  | 'use_zero_page'          // Use zero page more effectively
+  | 'optimize_branches';      // Optimize branch structure
+
+export type OptimizationPriority = 'low' | 'medium' | 'high' | 'critical';
+export type ImplementationEffort = 'trivial' | 'low' | 'medium' | 'high' | 'very_high';
 
 /**
  * Variable memory layout information.

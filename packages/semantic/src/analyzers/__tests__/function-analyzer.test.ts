@@ -1,6 +1,7 @@
 /**
  * Tests for Function Declaration Analysis
  * Task 1.5: Implement Function Declaration Analysis
+ * Task 1.9: Enhanced Function Analysis with Optimization Metadata
  *
  * Comprehensive test suite covering:
  * - Basic function declaration validation
@@ -11,6 +12,10 @@
  * - Function call validation
  * - Export handling
  * - Error detection and reporting
+ * - Function optimization metadata collection (Task 1.9)
+ * - Function inlining analysis
+ * - Callback function optimization
+ * - 6502-specific optimization hints
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -89,6 +94,16 @@ describe('FunctionAnalyzer', () => {
     };
   }
 
+  // Helper function to create literal expressions
+  function createLiteral(value: number | boolean): Expression {
+    return {
+      type: 'Literal',
+      value,
+      raw: value.toString(),
+      metadata: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } }
+    };
+  }
+
   describe('Basic Function Declaration Analysis', () => {
     it('should analyze simple function declaration', () => {
       const funcDecl = createFunctionDecl({
@@ -161,8 +176,10 @@ describe('FunctionAnalyzer', () => {
       const result2 = analyzer.analyzeFunctionDeclaration(funcDecl2, 'Global');
 
       expect(result2.success).toBe(false);
-      expect(result2.errors[0].errorType).toBe('DuplicateSymbol');
-      expect(result2.errors[0].message).toContain('already declared');
+      if (!result2.success) {
+        expect(result2.errors[0].errorType).toBe('DuplicateSymbol');
+        expect(result2.errors[0].message).toContain('already declared');
+      }
     });
 
     it('should detect duplicate parameter names', () => {
@@ -177,8 +194,10 @@ describe('FunctionAnalyzer', () => {
       const result = analyzer.analyzeFunctionDeclaration(funcDecl, 'Global');
 
       expect(result.success).toBe(false);
-      expect(result.errors[0].errorType).toBe('DuplicateSymbol');
-      expect(result.errors[0].message).toContain('used multiple times');
+      if (!result.success) {
+        expect(result.errors[0].errorType).toBe('DuplicateSymbol');
+        expect(result.errors[0].message).toContain('used multiple times');
+      }
     });
   });
 
@@ -243,8 +262,10 @@ describe('FunctionAnalyzer', () => {
       const result = analyzer.analyzeFunctionDeclaration(funcDecl, 'Global');
 
       expect(result.success).toBe(false);
-      expect(result.errors[0].errorType).toBe('CallbackMismatch');
-      expect(result.errors[0].message).toContain('4 or fewer parameters');
+      if (!result.success) {
+        expect(result.errors[0].errorType).toBe('CallbackMismatch');
+        expect(result.errors[0].message).toContain('4 or fewer parameters');
+      }
     });
 
     it('should warn about complex callback parameter types', () => {
@@ -254,6 +275,7 @@ describe('FunctionAnalyzer', () => {
         callback: true,
         params: [
           {
+            type: 'Parameter',
             name: 'buffer',
             paramType: {
               type: 'ArrayType',
@@ -265,10 +287,12 @@ describe('FunctionAnalyzer', () => {
               size: {
                 type: 'Literal',
                 value: 10,
+                raw: '10',
                 metadata: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } }
               },
               metadata: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } }
             },
+            optional: false,
             defaultValue: null,
             metadata: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } }
           }
@@ -278,7 +302,9 @@ describe('FunctionAnalyzer', () => {
       const result = analyzer.analyzeFunctionDeclaration(funcDecl, 'Global');
 
       expect(result.success).toBe(false);
-      expect(result.errors.some(e => e.errorType === 'CallbackMismatch')).toBe(true);
+      if (!result.success) {
+        expect(result.errors.some((e: any) => e.errorType === 'CallbackMismatch')).toBe(true);
+      }
     });
   });
 
@@ -341,8 +367,10 @@ describe('FunctionAnalyzer', () => {
         );
 
         expect(assignmentResult.success).toBe(false);
-        expect(assignmentResult.errors[0].errorType).toBe('CallbackMismatch');
-        expect(assignmentResult.errors[0].message).toContain('Only callback functions can be assigned');
+        if (!assignmentResult.success) {
+          expect(assignmentResult.errors[0].errorType).toBe('CallbackMismatch');
+          expect(assignmentResult.errors[0].message).toContain('Only callback functions can be assigned');
+        }
       }
     });
 
@@ -376,8 +404,10 @@ describe('FunctionAnalyzer', () => {
         );
 
         expect(assignmentResult.success).toBe(false);
-        expect(assignmentResult.errors[0].errorType).toBe('CallbackMismatch');
-        expect(assignmentResult.errors[0].message).toContain('signature does not match');
+        if (!assignmentResult.success) {
+          expect(assignmentResult.errors[0].errorType).toBe('CallbackMismatch');
+          expect(assignmentResult.errors[0].message).toContain('signature does not match');
+        }
       }
     });
 
@@ -401,8 +431,10 @@ describe('FunctionAnalyzer', () => {
         );
 
         expect(assignmentResult.success).toBe(false);
-        expect(assignmentResult.errors[0].errorType).toBe('CallbackMismatch');
-        expect(assignmentResult.errors[0].message).toContain('non-callback type');
+        if (!assignmentResult.success) {
+          expect(assignmentResult.errors[0].errorType).toBe('CallbackMismatch');
+          expect(assignmentResult.errors[0].message).toContain('non-callback type');
+        }
       }
     });
   });
@@ -431,16 +463,8 @@ describe('FunctionAnalyzer', () => {
 
         // Create arguments
         const args: Expression[] = [
-          {
-            type: 'Literal',
-            value: 5,
-            metadata: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } }
-          },
-          {
-            type: 'Literal',
-            value: 10,
-            metadata: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } }
-          }
+          createLiteral(5),
+          createLiteral(10)
         ];
 
         const callResult = analyzer.validateFunctionCall(
@@ -473,13 +497,7 @@ describe('FunctionAnalyzer', () => {
         const functionSymbol = funcResult.data;
 
         // Only provide one argument
-        const args: Expression[] = [
-          {
-            type: 'Literal',
-            value: 5,
-            metadata: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } }
-          }
-        ];
+        const args: Expression[] = [createLiteral(5)];
 
         const callResult = analyzer.validateFunctionCall(
           functionSymbol,
@@ -488,8 +506,10 @@ describe('FunctionAnalyzer', () => {
         );
 
         expect(callResult.success).toBe(false);
-        expect(callResult.errors[0].errorType).toBe('TypeMismatch');
-        expect(callResult.errors[0].message).toContain('expects 2 arguments, got 1');
+        if (!callResult.success) {
+          expect(callResult.errors[0].errorType).toBe('TypeMismatch');
+          expect(callResult.errors[0].message).toContain('expects 2 arguments, got 1');
+        }
       }
     });
 
@@ -509,13 +529,7 @@ describe('FunctionAnalyzer', () => {
         const functionSymbol = funcResult.data;
 
         // Call with only required argument
-        const args: Expression[] = [
-          {
-            type: 'Literal',
-            value: 5,
-            metadata: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } }
-          }
-        ];
+        const args: Expression[] = [createLiteral(5)];
 
         const callResult = analyzer.validateFunctionCall(
           functionSymbol,
@@ -548,13 +562,7 @@ describe('FunctionAnalyzer', () => {
       expect(varResult.success).toBe(true);
 
       // Test callback call
-      const args: Expression[] = [
-        {
-          type: 'Literal',
-          value: 42,
-          metadata: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } }
-        }
-      ];
+      const args: Expression[] = [createLiteral(42)];
 
       const callResult = analyzer.validateCallbackCall(
         callbackVar,
@@ -591,8 +599,10 @@ describe('FunctionAnalyzer', () => {
       );
 
       expect(callResult.success).toBe(false);
-      expect(callResult.errors[0].errorType).toBe('CallbackMismatch');
-      expect(callResult.errors[0].message).toContain('Cannot call variable');
+      if (!callResult.success) {
+        expect(callResult.errors[0].errorType).toBe('CallbackMismatch');
+        expect(callResult.errors[0].message).toContain('Cannot call variable');
+      }
     });
 
     it('should reject callback call with wrong argument count', () => {
@@ -612,13 +622,7 @@ describe('FunctionAnalyzer', () => {
       symbolTable.declareSymbol(callbackVar);
 
       // Provide only one argument
-      const args: Expression[] = [
-        {
-          type: 'Literal',
-          value: 42,
-          metadata: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } }
-        }
-      ];
+      const args: Expression[] = [createLiteral(42)];
 
       const callResult = analyzer.validateCallbackCall(
         callbackVar,
@@ -627,8 +631,10 @@ describe('FunctionAnalyzer', () => {
       );
 
       expect(callResult.success).toBe(false);
-      expect(callResult.errors[0].errorType).toBe('TypeMismatch');
-      expect(callResult.errors[0].message).toContain('expects 2 arguments, got 1');
+      if (!callResult.success) {
+        expect(callResult.errors[0].errorType).toBe('TypeMismatch');
+        expect(callResult.errors[0].message).toContain('expects 2 arguments, got 1');
+      }
     });
   });
 
@@ -656,8 +662,10 @@ describe('FunctionAnalyzer', () => {
       const result = analyzer.analyzeFunctionDeclaration(funcDecl, 'Function'); // Not global
 
       expect(result.success).toBe(false);
-      expect(result.errors[0].errorType).toBe('InvalidScope');
-      expect(result.errors[0].message).toContain('only be exported at module scope');
+      if (!result.success) {
+        expect(result.errors[0].errorType).toBe('InvalidScope');
+        expect(result.errors[0].message).toContain('only be exported at module scope');
+      }
     });
 
     it('should reject empty function names', () => {
@@ -668,8 +676,328 @@ describe('FunctionAnalyzer', () => {
       const result = analyzer.analyzeFunctionDeclaration(funcDecl, 'Global');
 
       expect(result.success).toBe(false);
-      expect(result.errors[0].errorType).toBe('InvalidOperation');
-      expect(result.errors[0].message).toContain('cannot be empty');
+      if (!result.success) {
+        expect(result.errors[0].errorType).toBe('InvalidOperation');
+        expect(result.errors[0].message).toContain('cannot be empty');
+      }
+    });
+  });
+
+  // ============================================================================
+  // TASK 1.9: FUNCTION OPTIMIZATION METADATA TESTS
+  // ============================================================================
+
+  describe('Function Optimization Metadata Collection', () => {
+    beforeEach(() => {
+      // Create test functions for optimization analysis
+      const smallFunc = createFunctionDecl({
+        name: 'smallFunction',
+        params: [createParam('x', 'byte')]
+      });
+      const largeFunc = createFunctionDecl({
+        name: 'largeFunction',
+        params: [
+          createParam('a', 'byte'),
+          createParam('b', 'byte'),
+          createParam('c', 'byte'),
+          createParam('d', 'byte'),
+          createParam('e', 'byte')
+        ]
+      });
+      const callbackFunc = createFunctionDecl({
+        name: 'interruptHandler',
+        callback: true,
+        params: [createParam('x', 'byte')]
+      });
+
+      analyzer.analyzeFunctionDeclaration(smallFunc, 'Global');
+      analyzer.analyzeFunctionDeclaration(largeFunc, 'Global');
+      analyzer.analyzeFunctionDeclaration(callbackFunc, 'Global');
+    });
+
+    describe('Function Call Metadata Collection', () => {
+      it('should collect function call metadata', () => {
+        const functions = [
+          symbolTable.lookupSymbol('smallFunction'),
+          symbolTable.lookupSymbol('largeFunction')
+        ].filter(Boolean) as any[];
+
+        const callMetadata = analyzer.collectFunctionCallMetadata(functions);
+
+        expect(callMetadata).toBeTruthy();
+        expect(callMetadata.size).toBe(2);
+
+        const smallFuncData = callMetadata.get('smallFunction');
+        expect(smallFuncData).toBeTruthy();
+        expect(smallFuncData.callCount).toBe(0); // No actual calls analyzed yet
+        expect(smallFuncData.callFrequency).toBe('never');
+        expect(smallFuncData.callSites).toEqual([]);
+      });
+    });
+
+    describe('Function Inlining Analysis', () => {
+      it('should identify small functions as inlining candidates', () => {
+        const smallFunc = symbolTable.lookupSymbol('smallFunction') as any;
+        const functions = [smallFunc].filter(Boolean);
+
+        const candidates = analyzer.analyzeFunctionInliningCandidates(functions);
+
+        expect(candidates).toBeTruthy();
+        expect(candidates.length).toBe(1);
+
+        const candidate = candidates[0];
+        expect(candidate.isCandidate).toBe(true);
+        expect(candidate.inliningScore).toBeGreaterThan(0);
+        expect(candidate.complexityMetrics).toBeTruthy();
+        expect(candidate.recommendation).toBe('strongly_recommended');
+        expect(candidate.inliningFactors.length).toBeGreaterThan(0);
+      });
+
+      it('should reject large functions for inlining', () => {
+        const largeFunc = symbolTable.lookupSymbol('largeFunction') as any;
+
+        const inliningAnalysis = analyzer.buildFunctionOptimizationMetadata(largeFunc);
+
+        expect(inliningAnalysis.inliningCandidate).toBeTruthy();
+        expect(inliningAnalysis.inliningCandidate.isCandidate).toBe(false);
+        expect(inliningAnalysis.inliningCandidate.antiInliningFactors.length).toBeGreaterThan(0);
+
+        // Should have penalty for many parameters or large function
+        const antiInliningFactors = inliningAnalysis.inliningCandidate.antiInliningFactors.filter(
+          (factor: any) => factor.factor === 'large_function' || factor.factor === 'many_parameters' || factor.description.includes('large') || factor.description.includes('parameters')
+        );
+        expect(antiInliningFactors.length).toBeGreaterThan(0);
+      });
+
+      it('should include complexity metrics in inlining analysis', () => {
+        const smallFunc = symbolTable.lookupSymbol('smallFunction') as any;
+
+        const inliningAnalysis = analyzer.buildFunctionOptimizationMetadata(smallFunc);
+        const metrics = inliningAnalysis.inliningCandidate.complexityMetrics;
+
+        expect(metrics.astNodeCount).toBeGreaterThan(0);
+        expect(metrics.estimatedCodeSize).toBeGreaterThan(0);
+        expect(metrics.cyclomaticComplexity).toBeGreaterThan(0);
+        expect(typeof metrics.hasLoops).toBe('boolean');
+        expect(typeof metrics.hasComplexControlFlow).toBe('boolean');
+      });
+    });
+
+    describe('Callback Function Optimization', () => {
+      it('should analyze callback functions for optimization opportunities', () => {
+        const callbackFunc = symbolTable.lookupSymbol('interruptHandler') as any;
+        const functions = [callbackFunc].filter(Boolean);
+
+        const optimizations = analyzer.analyzeCallbackOptimization(functions);
+
+        expect(optimizations).toBeTruthy();
+        expect(optimizations.length).toBe(1);
+
+        const optimization = optimizations[0];
+        expect(optimization.isCallbackFunction).toBe(true);
+        expect(optimization.callbackUsage).toBeTruthy();
+        expect(optimization.performanceAnalysis).toBeTruthy();
+        expect(optimization.performanceAnalysis.indirectCallOverhead).toBeGreaterThan(0);
+        expect(optimization.optimizationOpportunities.length).toBeGreaterThan(0);
+      });
+
+      it('should provide interrupt handler specific optimizations', () => {
+        const callbackFunc = symbolTable.lookupSymbol('interruptHandler') as any;
+
+        const optimization = analyzer.buildFunctionOptimizationMetadata(callbackFunc);
+        const interruptOpt = optimization.callbackOptimization.interruptOptimization;
+
+        expect(interruptOpt).toBeTruthy();
+        expect(interruptOpt.interruptType).toBeTruthy();
+        expect(interruptOpt.registerPreservation).toBeTruthy();
+        expect(interruptOpt.registerPreservation.registersToPreserve.length).toBeGreaterThan(0);
+        expect(interruptOpt.timingConstraints).toBeTruthy();
+        expect(interruptOpt.timingConstraints.maxExecutionTime).toBeGreaterThan(0);
+      });
+    });
+
+    describe('Function Call Optimization Analysis', () => {
+      it('should analyze function calling conventions', () => {
+        const smallFunc = symbolTable.lookupSymbol('smallFunction') as any;
+        const largeFunc = symbolTable.lookupSymbol('largeFunction') as any;
+        const functions = [smallFunc, largeFunc].filter(Boolean);
+
+        const callOptimization = analyzer.analyzeFunctionCallOptimization(functions);
+
+        expect(callOptimization.optimizations).toBeTruthy();
+        expect(callOptimization.optimizations.length).toBe(2);
+        expect(callOptimization.globalOptimizations).toBeTruthy();
+      });
+
+      it('should optimize parameter passing for simple functions', () => {
+        const smallFunc = symbolTable.lookupSymbol('smallFunction') as any;
+
+        const optimization = analyzer.buildFunctionOptimizationMetadata(smallFunc);
+        const paramOpt = optimization.callOptimization.parameterOptimization;
+
+        expect(paramOpt.parameterCount).toBe(1);
+        expect(paramOpt.registerParameters.length).toBe(1); // Byte parameter should go in register
+        expect(paramOpt.stackParameters.length).toBe(0);
+        expect(paramOpt.passingCost.totalCycles).toBeLessThan(5); // Should be efficient
+        expect(paramOpt.passingCost.isEfficient).toBe(true);
+      });
+
+      it('should use stack for functions with many parameters', () => {
+        const largeFunc = symbolTable.lookupSymbol('largeFunction') as any;
+
+        const optimization = analyzer.buildFunctionOptimizationMetadata(largeFunc);
+        const paramOpt = optimization.callOptimization.parameterOptimization;
+
+        expect(paramOpt.parameterCount).toBe(5);
+        expect(paramOpt.registerParameters.length).toBe(2); // Only first 2 in registers
+        expect(paramOpt.stackParameters.length).toBe(3); // Rest on stack
+        expect(paramOpt.passingCost.totalCycles).toBeGreaterThan(10); // Less efficient
+        expect(paramOpt.passingCost.isEfficient).toBe(false);
+      });
+    });
+
+    describe('6502-Specific Optimization Hints', () => {
+      it('should generate 6502-specific optimization hints', () => {
+        const smallFunc = symbolTable.lookupSymbol('smallFunction') as any;
+
+        const optimization = analyzer.buildFunctionOptimizationMetadata(smallFunc);
+        const hints = optimization.sixtyTwoHints;
+
+        expect(hints.zeroPageOptimization).toBeTruthy();
+        expect(hints.zeroPageOptimization.benefitsFromZeroPage).toBe(true); // Small function with few params
+        expect(hints.registerStrategy).toBeTruthy();
+        expect(hints.registerStrategy.strategy).toBe('balanced');
+        expect(hints.memoryLayout).toBeTruthy();
+        expect(hints.performanceCharacteristics).toBeTruthy();
+        expect(hints.optimizationOpportunities.length).toBeGreaterThan(0);
+      });
+
+      it('should provide register allocation recommendations', () => {
+        const smallFunc = symbolTable.lookupSymbol('smallFunction') as any;
+
+        const optimization = analyzer.buildFunctionOptimizationMetadata(smallFunc);
+        const registerStrategy = optimization.sixtyTwoHints.registerStrategy;
+
+        expect(registerStrategy.registerAssignments.length).toBeGreaterThan(0);
+        const assignment = registerStrategy.registerAssignments[0];
+        expect(assignment.register).toBe('A'); // First parameter should go in A
+        expect(assignment.purpose).toBe('parameter');
+        expect(assignment.variable).toBe('x'); // Parameter name
+        expect(assignment.benefit).toBeGreaterThan(0);
+      });
+    });
+
+    describe('Function Performance Profile', () => {
+      it('should create comprehensive performance profiles', () => {
+        const smallFunc = symbolTable.lookupSymbol('smallFunction') as any;
+
+        const optimization = analyzer.buildFunctionOptimizationMetadata(smallFunc);
+        const profile = optimization.performanceProfile;
+
+        // Execution statistics
+        expect(profile.executionStats).toBeTruthy();
+        expect(profile.executionStats.estimatedCycles).toBeGreaterThan(0);
+        expect(profile.executionStats.callFrequency).toBe('occasional');
+        expect(profile.executionStats.executionTimeDistribution).toBeTruthy();
+        expect(profile.executionStats.performanceVariability.variability).toBe('low');
+
+        // Resource usage
+        expect(profile.resourceUsage).toBeTruthy();
+        expect(profile.resourceUsage.registerUsage).toBeTruthy();
+        expect(profile.resourceUsage.memoryUsage).toBeTruthy();
+        expect(profile.resourceUsage.stackUsage).toBeTruthy();
+        expect(profile.resourceUsage.zeroPageUsage).toBeTruthy();
+
+        // Performance metrics
+        expect(profile.performanceMetrics).toBeTruthy();
+        expect(profile.performanceMetrics.cyclesPerCall).toBeGreaterThan(0);
+        expect(profile.performanceMetrics.instructionsPerCall).toBeGreaterThan(0);
+        expect(profile.performanceMetrics.efficiencyRating).toBe('good');
+
+        // Optimization recommendations
+        expect(profile.optimizationRecommendations).toBeTruthy();
+        expect(profile.optimizationRecommendations.length).toBeGreaterThan(0);
+        const recommendation = profile.optimizationRecommendations[0];
+        expect(recommendation.recommendation).toBe('optimize_registers');
+        expect(recommendation.priority).toBe('medium');
+        expect(recommendation.estimatedBenefit).toBeGreaterThan(0);
+      });
+
+      it('should provide different profiles for different function types', () => {
+        const smallFunc = symbolTable.lookupSymbol('smallFunction') as any;
+        const largeFunc = symbolTable.lookupSymbol('largeFunction') as any;
+
+        const smallOpt = analyzer.buildFunctionOptimizationMetadata(smallFunc);
+        const largeOpt = analyzer.buildFunctionOptimizationMetadata(largeFunc);
+
+        // Small function should be more efficient
+        expect(smallOpt.performanceProfile.performanceMetrics.cyclesPerCall)
+          .toBeLessThan(largeOpt.performanceProfile.performanceMetrics.cyclesPerCall);
+
+        // Large function should use more stack space
+        expect(largeOpt.performanceProfile.resourceUsage.stackUsage.maxStackDepth)
+          .toBeGreaterThan(smallOpt.performanceProfile.resourceUsage.stackUsage.maxStackDepth);
+      });
+    });
+
+    describe('Comprehensive Function Optimization Integration', () => {
+      it('should build complete optimization metadata', () => {
+        const smallFunc = symbolTable.lookupSymbol('smallFunction') as any;
+
+        const optimization = analyzer.buildFunctionOptimizationMetadata(smallFunc);
+
+        // Verify all major components are present
+        expect(optimization.callStatistics).toBeTruthy();
+        expect(optimization.inliningCandidate).toBeTruthy();
+        expect(optimization.callOptimization).toBeTruthy();
+        expect(optimization.callbackOptimization).toBeTruthy();
+        expect(optimization.sixtyTwoHints).toBeTruthy();
+        expect(optimization.performanceProfile).toBeTruthy();
+
+        // Verify integration between components
+        expect(optimization.inliningCandidate.isCandidate).toBe(true); // Small function
+        expect(optimization.sixtyTwoHints.zeroPageOptimization.benefitsFromZeroPage).toBe(true);
+        expect(optimization.callOptimization.parameterOptimization.passingCost.isEfficient).toBe(true);
+      });
+
+      it('should provide consistent optimization recommendations', () => {
+        const smallFunc = symbolTable.lookupSymbol('smallFunction') as any;
+        const callbackFunc = symbolTable.lookupSymbol('interruptHandler') as any;
+
+        const smallOpt = analyzer.buildFunctionOptimizationMetadata(smallFunc);
+        const callbackOpt = analyzer.buildFunctionOptimizationMetadata(callbackFunc);
+
+        // Small regular function should be inlining candidate
+        expect(smallOpt.inliningCandidate.isCandidate).toBe(true);
+        expect(smallOpt.inliningCandidate.recommendation).toBe('strongly_recommended');
+
+        // Callback function should not be inlining candidate
+        expect(callbackOpt.inliningCandidate.isCandidate).toBe(false);
+        expect(callbackOpt.inliningCandidate.antiInliningFactors.some(
+          (f: any) => f.factor === 'callback_function'
+        )).toBe(true);
+
+        // But callback should have specific callback optimizations
+        expect(callbackOpt.callbackOptimization.isCallbackFunction).toBe(true);
+        expect(callbackOpt.callbackOptimization.optimizationOpportunities.length).toBeGreaterThan(0);
+      });
+    });
+
+    describe('Enhanced Analysis Statistics with Optimization Data', () => {
+      it('should include optimization statistics in analysis results', () => {
+        const stats = analyzer.getAnalysisStatistics();
+
+        // Verify enhanced statistics are present
+        expect(typeof stats.optimizationCandidates).toBe('number');
+        expect(typeof stats.inliningCandidates).toBe('number');
+
+        // Should have some optimization candidates from our test functions
+        expect(stats.optimizationCandidates).toBeGreaterThan(0);
+        expect(stats.inliningCandidates).toBeGreaterThan(0);
+
+        // Inlining candidates should be subset of optimization candidates
+        expect(stats.inliningCandidates).toBeLessThanOrEqual(stats.optimizationCandidates);
+      });
     });
   });
 
@@ -704,6 +1032,10 @@ describe('FunctionAnalyzer', () => {
       expect(stats.averageParameterCount).toBeCloseTo(1/3); // Only callback has parameter
       expect(stats.functionsByReturnType['void']).toBe(2);
       expect(stats.functionsByReturnType['byte']).toBe(1);
+
+      // Task 1.9: Check optimization statistics
+      expect(stats.optimizationCandidates).toBeGreaterThan(0);
+      expect(stats.inliningCandidates).toBeGreaterThan(0);
     });
   });
 
@@ -728,6 +1060,7 @@ describe('FunctionAnalyzer', () => {
         params: [
           createParam('valid', 'byte'),
           {
+            type: 'Parameter',
             name: 'invalid',
             paramType: {
               type: 'ArrayType',
@@ -739,10 +1072,12 @@ describe('FunctionAnalyzer', () => {
               size: {
                 type: 'Literal',
                 value: -1, // Invalid array size
+                raw: '-1',
                 metadata: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } }
               },
               metadata: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } }
             },
+            optional: false,
             defaultValue: null,
             metadata: { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } }
           }
@@ -752,8 +1087,10 @@ describe('FunctionAnalyzer', () => {
       const result = analyzer.analyzeFunctionDeclaration(funcDecl, 'Global');
 
       expect(result.success).toBe(false);
-      // Should get error from TypeChecker about invalid array size
-      expect(result.errors.some(e => e.errorType === 'ConstantRequired')).toBe(true);
+      if (!result.success) {
+        // Should get error from TypeChecker about invalid array size
+        expect(result.errors.some((e: any) => e.errorType === 'ConstantRequired')).toBe(true);
+      }
     });
   });
 });
