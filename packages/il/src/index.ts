@@ -452,3 +452,63 @@ export type {
   ValidationErrorContext,
   ControlFlowAnalysisResult
 } from './il-validator.js';
+
+// ============================================================================
+// TASK 2.4.1: ADVANCED CONTROL FLOW GRAPH ANALYTICS
+// ============================================================================
+
+// CFG analytics functionality
+export {
+  ControlFlowAnalyzer,
+  analyzeCFG
+} from './analysis/control-flow-analyzer.js';
+
+export type {
+  ControlFlowAnalysisResult as AdvancedControlFlowAnalysisResult,
+  CFGAnalysisOptions,
+  CFGAnalysisMetrics
+} from './analysis/control-flow-analyzer.js';
+
+// CFG analytics types
+export type {
+  BasicBlock as CFGBasicBlock,
+  ControlFlowGraph as AdvancedControlFlowGraph,
+  CFGEdge,
+  CFGEdgeType,
+  DominanceAnalysis,
+  DominanceTree,
+  DominanceRelation,
+  LoopAnalysis,
+  NaturalLoop,
+  BackEdge,
+  LoopNestingTree,
+  LoopType,
+  LoopCharacteristics,
+  InductionVariableInfo,
+  InductionVariableUsage,
+  DataDependencyAnalysis,
+  VariableDefinition,
+  VariableUse,
+  DefinitionType,
+  UsageType,
+  VariableDependencyGraph,
+  DataFlowEquation,
+  DataFlowEquationType,
+  MemoryDependency,
+  MemoryDependencyType,
+  MemoryLocation,
+  LiveVariableAnalysis,
+  InterferenceGraph,
+  VariableInterference,
+  InterferenceType,
+  VariableLifetime,
+  CriticalPathAnalysis,
+  CriticalPath,
+  HotBlock,
+  PerformanceBottleneck,
+  BottleneckType,
+  OptimizationOpportunity,
+  OptimizationOpportunityType,
+  OptimizationComplexity,
+  InstructionLocation
+} from './analysis/types/control-flow-types.js';
