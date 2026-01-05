@@ -444,6 +444,13 @@ export class ExpressionAnalyzer {
     this.typeChecker = typeChecker;
   }
 
+  /**
+   * Get the type checker instance.
+   */
+  getTypeChecker(): TypeChecker {
+    return this.typeChecker;
+  }
+
   // ============================================================================
   // MAIN ANALYSIS METHODS
   // ============================================================================
@@ -795,7 +802,7 @@ export class ExpressionAnalyzer {
    * Analyze member expression type.
    */
   private analyzeMemberExpressionType(expr: MemberExpr, context: ExpressionContext): Blend65Type {
-    const objectType = this.analyzeExpressionType(expr.object, context);
+    this.analyzeExpressionType(expr.object, context);
 
     // For now, assume member access is valid and return byte type
     // Full implementation would check struct/object field types
@@ -840,7 +847,7 @@ export class ExpressionAnalyzer {
   /**
    * Analyze identifier type.
    */
-  private analyzeIdentifierType(expr: Identifier, context: ExpressionContext): Blend65Type {
+  private analyzeIdentifierType(expr: Identifier, _context: ExpressionContext): Blend65Type {
     const symbol = this.symbolTable.lookupSymbol(expr.name);
 
     if (!symbol) {
@@ -878,7 +885,7 @@ export class ExpressionAnalyzer {
   /**
    * Analyze literal type.
    */
-  private analyzeLiteralType(expr: Literal, context: ExpressionContext): Blend65Type {
+  private analyzeLiteralType(expr: Literal, _context: ExpressionContext): Blend65Type {
     if (typeof expr.value === 'number') {
       // Check range for 6502 compatibility
       if (expr.value < 0 || expr.value > 65535) {
@@ -953,7 +960,7 @@ export class ExpressionAnalyzer {
    */
   private collectExpressionMetadata(
     expr: Expression,
-    context: ExpressionContext
+    _context: ExpressionContext
   ): ExpressionOptimizationData {
     const metadata: ExpressionOptimizationData = this.createDefaultOptimizationData();
 
@@ -962,30 +969,30 @@ export class ExpressionAnalyzer {
     metadata.nodeCount = this.countExpressionNodes(expr);
 
     // Constant analysis
-    this.analyzeConstantProperties(expr, metadata, context);
+    this.analyzeConstantProperties(expr, metadata, _context);
 
     // Variable usage analysis
-    metadata.usedVariables = this.collectVariableReferences(expr, context);
+    metadata.usedVariables = this.collectVariableReferences(expr, _context);
     metadata.hasVariableAccess = metadata.usedVariables.length > 0;
     metadata.variableAccessPattern = this.analyzeVariableAccessPattern(
       metadata.usedVariables,
-      context
+      _context
     );
 
     // Side effect analysis
-    this.analyzeSideEffects(expr, metadata, context);
+    this.analyzeSideEffects(expr, metadata, _context);
 
     // Performance analysis
-    this.analyzePerformanceCharacteristics(expr, metadata, context);
+    this.analyzePerformanceCharacteristics(expr, metadata, _context);
 
     // 6502-specific hints
-    this.collect6502OptimizationHints(expr, metadata, context);
+    this.collect6502OptimizationHints(expr, metadata, _context);
 
     // Loop context analysis
-    this.analyzeLoopContext(expr, metadata, context);
+    this.analyzeLoopContext(expr, metadata, _context);
 
     // Optimization opportunities
-    this.identifyOptimizationOpportunities(expr, metadata, context);
+    this.identifyOptimizationOpportunities(expr, metadata, _context);
 
     return metadata;
   }
@@ -1192,7 +1199,7 @@ export class ExpressionAnalyzer {
    */
   private analyzeVariableAccessPattern(
     references: VariableReference[],
-    context: ExpressionContext
+    _context: ExpressionContext
   ): VariableAccessPattern {
     if (references.length === 0) {
       return 'single_use';
@@ -1216,11 +1223,11 @@ export class ExpressionAnalyzer {
       return 'multiple_read';
     }
 
-    if (context.loopDepth > 0) {
+    if (_context.loopDepth > 0) {
       return 'loop_dependent';
     }
 
-    if (context.inHotPath) {
+    if (_context.inHotPath) {
       return 'hot_path';
     }
 
@@ -1233,7 +1240,7 @@ export class ExpressionAnalyzer {
   private analyzeConstantProperties(
     expr: Expression,
     metadata: ExpressionOptimizationData,
-    context: ExpressionContext
+    _context: ExpressionContext
   ): void {
     switch (expr.type) {
       case 'Literal':
@@ -1248,8 +1255,8 @@ export class ExpressionAnalyzer {
         const binaryExpr = expr as BinaryExpr;
         const leftMeta = this.createDefaultOptimizationData();
         const rightMeta = this.createDefaultOptimizationData();
-        this.analyzeConstantProperties(binaryExpr.left, leftMeta, context);
-        this.analyzeConstantProperties(binaryExpr.right, rightMeta, context);
+        this.analyzeConstantProperties(binaryExpr.left, leftMeta, _context);
+        this.analyzeConstantProperties(binaryExpr.right, rightMeta, _context);
 
         // Binary expressions are NOT constant themselves, but they may be constant folding candidates
         metadata.isConstant = false;
@@ -1261,7 +1268,7 @@ export class ExpressionAnalyzer {
       case 'UnaryExpr':
         const unaryExpr = expr as UnaryExpr;
         const operandMeta = this.createDefaultOptimizationData();
-        this.analyzeConstantProperties(unaryExpr.operand, operandMeta, context);
+        this.analyzeConstantProperties(unaryExpr.operand, operandMeta, _context);
 
         // Unary expressions are NOT constant themselves, but may be constant folding candidates
         metadata.isConstant = false;
@@ -1283,7 +1290,7 @@ export class ExpressionAnalyzer {
   private analyzeSideEffects(
     expr: Expression,
     metadata: ExpressionOptimizationData,
-    context: ExpressionContext
+    _context: ExpressionContext
   ): void {
     switch (expr.type) {
       case 'AssignmentExpr':
@@ -1338,7 +1345,7 @@ export class ExpressionAnalyzer {
     }
 
     // Recursively analyze sub-expressions
-    this.propagateSideEffectsFromSubExpressions(expr, metadata, context);
+    this.propagateSideEffectsFromSubExpressions(expr, metadata, _context);
   }
 
   /**
@@ -1347,13 +1354,13 @@ export class ExpressionAnalyzer {
   private propagateSideEffectsFromSubExpressions(
     expr: Expression,
     metadata: ExpressionOptimizationData,
-    context: ExpressionContext
+    _context: ExpressionContext
   ): void {
     const subExpressions = this.getSubExpressions(expr);
 
     for (const subExpr of subExpressions) {
       const subMeta = this.createDefaultOptimizationData();
-      this.analyzeSideEffects(subExpr, subMeta, context);
+      this.analyzeSideEffects(subExpr, subMeta, _context);
 
       if (subMeta.hasSideEffects) {
         metadata.hasSideEffects = true;
@@ -1415,7 +1422,7 @@ export class ExpressionAnalyzer {
   private analyzePerformanceCharacteristics(
     expr: Expression,
     metadata: ExpressionOptimizationData,
-    context: ExpressionContext
+    _context: ExpressionContext
   ): void {
     // Calculate complexity score based on operation types and nesting
     metadata.complexityScore = this.calculateComplexityScore(expr);
@@ -1424,7 +1431,7 @@ export class ExpressionAnalyzer {
     metadata.estimatedCycles = this.estimateExecutionCycles(expr);
 
     // Analyze register pressure
-    metadata.registerPressure = this.analyzeRegisterPressure(expr, context);
+    metadata.registerPressure = this.analyzeRegisterPressure(expr, _context);
   }
 
   /**
@@ -1528,7 +1535,7 @@ export class ExpressionAnalyzer {
    */
   private analyzeRegisterPressure(
     expr: Expression,
-    context: ExpressionContext
+    _context: ExpressionContext
   ): RegisterPressureInfo {
     const complexityScore = this.calculateComplexityScore(expr);
 
@@ -1566,24 +1573,24 @@ export class ExpressionAnalyzer {
   private collect6502OptimizationHints(
     expr: Expression,
     metadata: ExpressionOptimizationData,
-    context: ExpressionContext
+    _context: ExpressionContext
   ): void {
     metadata.sixtyTwoHints = {
-      addressingMode: this.determineAddressingMode(expr, context),
+      addressingMode: this.determineAddressingMode(expr, _context),
       zeroPageCandidate: this.isZeroPageCandidate(expr),
       absoluteAddressingRequired: this.requiresAbsoluteAddressing(expr),
       accumulatorOperation: this.isAccumulatorOperation(expr),
       indexRegisterUsage: this.analyzeIndexRegisterUsage(expr),
       requiresIndexing: this.requiresIndexing(expr),
-      memoryBankPreference: this.determineMemoryBankPreference(expr, context),
+      memoryBankPreference: this.determineMemoryBankPreference(expr, _context),
       alignmentRequirement: 1, // Most expressions have no special alignment
       volatileAccess: false, // Most expressions are not volatile
       branchPredictionHint: 'unpredictable',
-      loopOptimizationHint: this.getLoopOptimizationHint(expr, context),
+      loopOptimizationHint: this.getLoopOptimizationHint(expr, _context),
       inlineCandidate: this.isInlineCandidate(expr),
       hardwareRegisterAccess: false, // Most expressions don't access hardware
-      timingCritical: context.hardwareContext === 'timing_critical',
-      interruptSafe: context.hardwareContext !== 'interrupt_handler',
+      timingCritical: _context.hardwareContext === 'timing_critical',
+      interruptSafe: _context.hardwareContext !== 'interrupt_handler',
     };
   }
 
@@ -1592,7 +1599,7 @@ export class ExpressionAnalyzer {
    */
   private determineAddressingMode(
     expr: Expression,
-    context: ExpressionContext
+    _context: ExpressionContext
   ): AddressingModeHint {
     if (expr.type === 'Literal') {
       return 'immediate';
@@ -1670,7 +1677,7 @@ export class ExpressionAnalyzer {
   /**
    * Determine memory bank preference.
    */
-  private determineMemoryBankPreference(expr: Expression, context: ExpressionContext): MemoryBank {
+  private determineMemoryBankPreference(expr: Expression, _context: ExpressionContext): MemoryBank {
     if (expr.type === 'Identifier') {
       const symbol = this.symbolTable.lookupSymbol((expr as Identifier).name);
       if (symbol && isVariableSymbol(symbol)) {
@@ -1692,9 +1699,9 @@ export class ExpressionAnalyzer {
    */
   private getLoopOptimizationHint(
     expr: Expression,
-    context: ExpressionContext
+    _context: ExpressionContext
   ): LoopOptimizationHint {
-    if (context.loopDepth === 0) {
+    if (_context.loopDepth === 0) {
       return 'invariant_motion'; // Default outside loops
     }
 
@@ -1723,20 +1730,20 @@ export class ExpressionAnalyzer {
   private analyzeLoopContext(
     expr: Expression,
     metadata: ExpressionOptimizationData,
-    context: ExpressionContext
+    _context: ExpressionContext
   ): void {
-    metadata.loopInvariant = context.loopDepth === 0 || expr.type === 'Literal';
-    metadata.loopDependent = context.loopDepth > 0 && !metadata.loopInvariant;
-    metadata.hotPathCandidate = context.inHotPath || context.loopDepth > 0;
+    metadata.loopInvariant = _context.loopDepth === 0 || expr.type === 'Literal';
+    metadata.loopDependent = _context.loopDepth > 0 && !metadata.loopInvariant;
+    metadata.hotPathCandidate = _context.inHotPath || _context.loopDepth > 0;
   }
 
   /**
    * Identify optimization opportunities.
    */
   private identifyOptimizationOpportunities(
-    expr: Expression,
+    _expr: Expression,
     metadata: ExpressionOptimizationData,
-    context: ExpressionContext
+    _context: ExpressionContext
   ): void {
     // Common subexpression elimination opportunity
     metadata.commonSubexpressionCandidate =
@@ -1814,7 +1821,7 @@ export class ExpressionAnalyzer {
   /**
    * Analyze control flow for a statement.
    */
-  private analyzeControlFlow(stmt: Statement, context: ExpressionContext): ControlFlowInfo {
+  private analyzeControlFlow(stmt: Statement, _context: ExpressionContext): ControlFlowInfo {
     const controlFlow: ControlFlowInfo = {
       hasControlFlow: false,
       flowType: 'sequential',
@@ -1878,7 +1885,7 @@ export class ExpressionAnalyzer {
    */
   private collectStatementMetadata(
     stmt: Statement,
-    context: ExpressionContext
+    _context: ExpressionContext
   ): StatementOptimizationData {
     const metadata: StatementOptimizationData = {
       isTerminal: false,
@@ -1889,9 +1896,9 @@ export class ExpressionAnalyzer {
       unreachableCode: false,
       constantCondition: false,
       emptyStatement: false,
-      executionFrequency: this.determineExecutionFrequency(context),
-      criticalPath: context.inHotPath,
-      hotPath: context.inHotPath,
+      executionFrequency: this.determineExecutionFrequency(_context),
+      criticalPath: _context.inHotPath,
+      hotPath: _context.inHotPath,
       branchInstruction: false,
       jumpInstruction: false,
       hardwareInteraction: false,
@@ -1947,7 +1954,7 @@ export class ExpressionAnalyzer {
    */
   private collectBlockMetadata(
     statements: StatementAnalysisResult[],
-    context: ExpressionContext
+    _context: ExpressionContext
   ): BlockOptimizationData {
     const metadata: BlockOptimizationData = {
       statementCount: statements.length,
@@ -1959,7 +1966,7 @@ export class ExpressionAnalyzer {
       loopOptimizations: [],
       estimatedCycles: 0,
       codeSize: statements.length * 2, // Rough estimate
-      hotPath: context.inHotPath,
+      hotPath: _context.inHotPath,
       criticalSection: false,
     };
 
@@ -1992,14 +1999,14 @@ export class ExpressionAnalyzer {
   /**
    * Determine execution frequency based on context.
    */
-  private determineExecutionFrequency(context: ExpressionContext): ExecutionFrequency {
-    if (context.inHotPath) {
+  private determineExecutionFrequency(_context: ExpressionContext): ExecutionFrequency {
+    if (_context.inHotPath) {
       return 'hot';
     }
-    if (context.loopDepth > 1) {
+    if (_context.loopDepth > 1) {
       return 'frequent';
     }
-    if (context.loopDepth === 1) {
+    if (_context.loopDepth === 1) {
       return 'frequent';
     }
     return 'normal';

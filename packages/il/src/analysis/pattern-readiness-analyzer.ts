@@ -35,7 +35,6 @@ interface SmartPatternRegistry {
 
 type TargetPlatform = string;
 type PatternCategory = string;
-type PatternPriority = number;
 
 // Temporary pattern category enum for implementation
 const PatternCategoryEnum = {
@@ -668,7 +667,7 @@ export class PatternReadinessAnalyzer {
   private calculatePatternSafety(
     pattern: OptimizationPattern,
     qualityAnalysis: ILQualityAnalysisResult,
-    cfgAnalysis: ControlFlowAnalysisResult
+    _cfgAnalysis: ControlFlowAnalysisResult
   ): number {
     let safety = 70; // Base safety score
 
@@ -919,11 +918,11 @@ export class PatternReadinessAnalyzer {
    */
   private generateApplicationSequence(
     applicablePatterns: ReadonlyArray<RankedPatternRecommendation>,
-    conflicts: ReadonlyArray<PatternConflictPrediction>,
+    _conflicts: ReadonlyArray<PatternConflictPrediction>,
     strategy: OptimizationStrategy
   ): ReadonlyArray<PatternApplicationStep> {
     const steps: PatternApplicationStep[] = [];
-    const conflictMap = this.buildConflictMap(conflicts);
+
 
     // Sort patterns by rank and group by dependencies
     const sortedPatterns = [...applicablePatterns].sort((a, b) => b.overallRank - a.overallRank);
@@ -956,7 +955,7 @@ export class PatternReadinessAnalyzer {
    */
   private assessPatternSafety(
     patterns: ReadonlyArray<RankedPatternRecommendation>,
-    qualityAnalysis: ILQualityAnalysisResult
+    _qualityAnalysis: ILQualityAnalysisResult
   ): PatternSafetyAssessment {
     const safePatterns = patterns.filter(p => p.safetyScore >= 80);
     const riskyPatterns = patterns.filter(p => p.safetyScore >= 50 && p.safetyScore < 80);
@@ -1016,7 +1015,7 @@ export class PatternReadinessAnalyzer {
   /**
    * Create analysis metadata.
    */
-  private createAnalysisMetadata(analysisTime: number): PatternAnalysisMetadata {
+  private createAnalysisMetadata(_analysisTime: number): PatternAnalysisMetadata {
     return {
       analysisTimestamp: Date.now(),
       analysisVersion: '2.4.4',
@@ -1069,7 +1068,7 @@ export class PatternReadinessAnalyzer {
    */
   private analyzePatternPrerequisites(
     pattern: OptimizationPattern,
-    qualityAnalysis: ILQualityAnalysisResult
+    _qualityAnalysis: ILQualityAnalysisResult
   ): ReadonlyArray<PatternPrerequisite> {
     const prerequisites: PatternPrerequisite[] = [];
 
@@ -1092,7 +1091,7 @@ export class PatternReadinessAnalyzer {
    */
   private estimatePatternBenefit(
     pattern: OptimizationPattern,
-    qualityAnalysis: ILQualityAnalysisResult
+    _qualityAnalysis: ILQualityAnalysisResult
   ): PatternBenefitEstimate {
     return {
       performanceGain: pattern.expectedImprovement.improvementPercentage,
@@ -1111,7 +1110,7 @@ export class PatternReadinessAnalyzer {
    * Create application context for pattern.
    */
   private createApplicationContext(
-    pattern: OptimizationPattern,
+    _pattern: OptimizationPattern,
     program: ILProgram
   ): PatternApplicationContext {
     const firstFunction =
@@ -1141,7 +1140,7 @@ export class PatternReadinessAnalyzer {
    */
   private identifyPatternRisks(
     pattern: OptimizationPattern,
-    qualityAnalysis: ILQualityAnalysisResult
+    _qualityAnalysis: ILQualityAnalysisResult
   ): ReadonlyArray<PatternRiskFactor> {
     const risks: PatternRiskFactor[] = [];
 
@@ -1176,7 +1175,7 @@ export class PatternReadinessAnalyzer {
 
   private estimateStrategyBenefit(
     patterns: ReadonlyArray<RankedPatternRecommendation>,
-    qualityAnalysis: ILQualityAnalysisResult
+    _qualityAnalysis: ILQualityAnalysisResult
   ): StrategyBenefitEstimate {
     const avgBenefit =
       patterns.reduce((sum, p) => sum + p.expectedBenefit.performanceGain, 0) / patterns.length;
@@ -1217,7 +1216,7 @@ export class PatternReadinessAnalyzer {
   }
 
   private generateAlternativeStrategies(
-    patterns: ReadonlyArray<RankedPatternRecommendation>,
+    _patterns: ReadonlyArray<RankedPatternRecommendation>,
     conflicts: ReadonlyArray<PatternConflictPrediction>
   ): ReadonlyArray<AlternativeStrategy> {
     return [
@@ -1242,26 +1241,6 @@ export class PatternReadinessAnalyzer {
     if (score >= 50) return 'moderate';
     if (score >= 30) return 'high';
     return 'extreme';
-  }
-
-  private buildConflictMap(
-    conflicts: ReadonlyArray<PatternConflictPrediction>
-  ): Map<string, string[]> {
-    const map = new Map<string, string[]>();
-
-    for (const conflict of conflicts) {
-      if (!map.has(conflict.pattern1Id)) {
-        map.set(conflict.pattern1Id, []);
-      }
-      if (!map.has(conflict.pattern2Id)) {
-        map.set(conflict.pattern2Id, []);
-      }
-
-      map.get(conflict.pattern1Id)!.push(conflict.pattern2Id);
-      map.get(conflict.pattern2Id)!.push(conflict.pattern1Id);
-    }
-
-    return map;
   }
 
   private estimatePhaseTime(patterns: ReadonlyArray<RankedPatternRecommendation>): number {
@@ -1403,8 +1382,8 @@ export class PatternReadinessAnalyzer {
   private calculateConflictProbability(
     pattern1: RankedPatternRecommendation,
     pattern2: RankedPatternRecommendation,
-    conflictType: PatternConflictType,
-    qualityAnalysis: ILQualityAnalysisResult
+    _conflictType: PatternConflictType,
+    _qualityAnalysis: ILQualityAnalysisResult
   ): number {
     // Base probability on pattern similarity and complexity
     const complexityFactor = (pattern1.complexityScore + pattern2.complexityScore) / 200;
@@ -1414,8 +1393,8 @@ export class PatternReadinessAnalyzer {
   }
 
   private assessConflictSeverity(
-    pattern1: RankedPatternRecommendation,
-    pattern2: RankedPatternRecommendation,
+    _pattern1: RankedPatternRecommendation,
+    _pattern2: RankedPatternRecommendation,
     conflictType: PatternConflictType
   ): ConflictSeverity {
     switch (conflictType) {
@@ -1431,9 +1410,9 @@ export class PatternReadinessAnalyzer {
   }
 
   private assessConflictImpact(
-    pattern1: RankedPatternRecommendation,
-    pattern2: RankedPatternRecommendation,
-    conflictType: PatternConflictType
+    _pattern1: RankedPatternRecommendation,
+    _pattern2: RankedPatternRecommendation,
+    _conflictType: PatternConflictType
   ): ConflictImpactAssessment {
     return {
       performanceImpact: 5, // Percentage degradation
@@ -1444,9 +1423,9 @@ export class PatternReadinessAnalyzer {
   }
 
   private generateResolutionStrategies(
-    conflictType: PatternConflictType,
-    pattern1: RankedPatternRecommendation,
-    pattern2: RankedPatternRecommendation
+    _conflictType: PatternConflictType,
+    _pattern1: RankedPatternRecommendation,
+    _pattern2: RankedPatternRecommendation
   ): ReadonlyArray<ConflictResolutionStrategy> {
     return [
       {

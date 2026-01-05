@@ -247,7 +247,7 @@ export class VIC20_6502Analyzer extends Base6502Analyzer {
    */
   public getInstructionTiming(
     instruction: ILInstruction,
-    context: InstructionAnalysisContext
+    _context: InstructionAnalysisContext
   ): InstructionTimingInfo {
     const timingInfo = VIC20_6502_TIMING_TABLE[instruction.type];
     if (!timingInfo) {
@@ -371,8 +371,8 @@ export class VIC20_6502Analyzer extends Base6502Analyzer {
    * Generate VIC-20 specific optimization recommendations
    */
   public generateOptimizationRecommendations(
-    ilFunction: ILFunction,
-    analysisResults: any
+    _ilFunction: ILFunction,
+    _analysisResults: any
   ): SixtyTwo6502Optimization[] {
     return [
       {
@@ -394,7 +394,7 @@ export class VIC20_6502Analyzer extends Base6502Analyzer {
   /**
    * Generate VIC-20 platform compatibility report
    */
-  public generatePlatformCompatibilityReport(ilFunction: ILFunction, analysisResults: any): any {
+  public generatePlatformCompatibilityReport(_ilFunction: ILFunction, analysisResults: any): any {
     return {
       score: 95, // VIC-20 is simpler, so higher baseline compatibility
       issues: [],
@@ -414,7 +414,7 @@ export class VIC20_6502Analyzer extends Base6502Analyzer {
   // PRIVATE VIC-20 SPECIFIC METHODS
   // ============================================================================
 
-  private hasPageBoundaryCrossing(instruction: ILInstruction): boolean {
+  private hasPageBoundaryCrossing(_instruction: ILInstruction): boolean {
     // Simplified page boundary detection
     return Math.random() < 0.08; // 8% chance for demonstration
   }

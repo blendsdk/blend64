@@ -520,8 +520,8 @@ export class C64_6510Analyzer extends Base6502Analyzer {
   // ============================================================================
 
   private hasPageBoundaryCrossing(
-    instruction: ILInstruction,
-    context: InstructionAnalysisContext
+    _instruction: ILInstruction,
+    _context: InstructionAnalysisContext
   ): boolean {
     // Simplified page boundary detection
     // In a real implementation, this would analyze actual memory addresses
@@ -556,13 +556,13 @@ export class C64_6510Analyzer extends Base6502Analyzer {
 
   private isOnCriticalPath(
     instruction: ILInstruction,
-    context: InstructionAnalysisContext
+    _context: InstructionAnalysisContext
   ): boolean {
     // Simplified critical path detection
     return instruction.sixtyTwoHints?.isHotPath || false;
   }
 
-  private analyzeVariableMemoryAllocation(variable: any): any {
+  private analyzeVariableMemoryAllocation(_variable: any): any {
     // Analyze optimal memory allocation for variable
     const isFrequentlyUsed = true; // Simplified check
     const isOptimal = isFrequentlyUsed;
@@ -592,17 +592,17 @@ export class C64_6510Analyzer extends Base6502Analyzer {
     return ilFunction.instructions.filter(i => i.type === ILInstructionType.CALL).length;
   }
 
-  private validateC64TimingConstraints(ilFunction: ILFunction): any {
+  private validateC64TimingConstraints(_ilFunction: ILFunction): any {
     return { valid: true, violations: [] };
   }
 
-  private validateC64HardwareResources(ilFunction: ILFunction): any {
+  private validateC64HardwareResources(_ilFunction: ILFunction): any {
     return { valid: true, violations: [] };
   }
 
   private findZeroPageOptimizations(
-    ilFunction: ILFunction,
-    memoryAnalysis: any
+    _ilFunction: ILFunction,
+    _memoryAnalysis: any
   ): SixtyTwo6502Optimization[] {
     return [
       {
@@ -622,8 +622,8 @@ export class C64_6510Analyzer extends Base6502Analyzer {
   }
 
   private findVICTimingOptimizations(
-    ilFunction: ILFunction,
-    timingAnalysis: any
+    _ilFunction: ILFunction,
+    _timingAnalysis: any
   ): SixtyTwo6502Optimization[] {
     return [
       {
@@ -642,7 +642,7 @@ export class C64_6510Analyzer extends Base6502Analyzer {
     ];
   }
 
-  private findC64RegisterOptimizations(registerAnalysis: any): SixtyTwo6502Optimization[] {
+  private findC64RegisterOptimizations(_registerAnalysis: any): SixtyTwo6502Optimization[] {
     return [
       {
         type: 'register_allocation',
@@ -660,8 +660,8 @@ export class C64_6510Analyzer extends Base6502Analyzer {
   }
 
   private findC64HardwareOptimizations(
-    ilFunction: ILFunction,
-    analysisResults: any
+    _ilFunction: ILFunction,
+    _analysisResults: any
   ): SixtyTwo6502Optimization[] {
     return [];
   }
@@ -682,7 +682,7 @@ export class C64_6510Analyzer extends Base6502Analyzer {
     return Math.max(0, score);
   }
 
-  private identifyC64CompatibilityIssues(ilFunction: ILFunction, analysisResults: any): string[] {
+  private identifyC64CompatibilityIssues(_ilFunction: ILFunction, analysisResults: any): string[] {
     const issues: string[] = [];
 
     if (analysisResults.memory.memoryUsage.total > 38911) {

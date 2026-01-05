@@ -276,7 +276,7 @@ export class X16_65C02Analyzer extends Base6502Analyzer {
    */
   public getInstructionTiming(
     instruction: ILInstruction,
-    context: InstructionAnalysisContext
+    _context: InstructionAnalysisContext
   ): InstructionTimingInfo {
     const timingInfo = X16_65C02_TIMING_TABLE[instruction.type];
     if (!timingInfo) {
@@ -399,8 +399,8 @@ export class X16_65C02Analyzer extends Base6502Analyzer {
    * Generate X16 specific optimization recommendations
    */
   public generateOptimizationRecommendations(
-    ilFunction: ILFunction,
-    analysisResults: any
+    _ilFunction: ILFunction,
+    _analysisResults: any
   ): SixtyTwo6502Optimization[] {
     const optimizations: SixtyTwo6502Optimization[] = [];
 
@@ -455,7 +455,7 @@ export class X16_65C02Analyzer extends Base6502Analyzer {
   /**
    * Generate X16 platform compatibility report
    */
-  public generatePlatformCompatibilityReport(ilFunction: ILFunction, analysisResults: any): any {
+  public generatePlatformCompatibilityReport(_ilFunction: ILFunction, analysisResults: any): any {
     return {
       score: 98, // X16 is modern with generous resources
       issues: [],
@@ -485,7 +485,7 @@ export class X16_65C02Analyzer extends Base6502Analyzer {
   // PRIVATE X16 SPECIFIC METHODS
   // ============================================================================
 
-  private hasPageBoundaryCrossing(instruction: ILInstruction): boolean {
+  private hasPageBoundaryCrossing(_instruction: ILInstruction): boolean {
     // 65C02 has better page boundary handling
     return Math.random() < 0.05; // 5% chance for demonstration
   }

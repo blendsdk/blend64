@@ -35,12 +35,10 @@ import {
  */
 export class ILOptimizationFramework {
   private readonly analyticsEngine: ILAnalyticsSuite;
-  private readonly patternRegistry: OptimizationPatternRegistry;
   private readonly optimizationPasses: Map<OptimizationLevel, OptimizationPass[]>;
 
-  constructor(patternRegistry: OptimizationPatternRegistry) {
+  constructor(_patternRegistry: OptimizationPatternRegistry) {
     this.analyticsEngine = new ILAnalyticsSuite();
-    this.patternRegistry = patternRegistry;
     this.optimizationPasses = new Map();
 
     this.initializeOptimizationPasses();
@@ -375,20 +373,20 @@ export class ILOptimizationFramework {
       description: 'Remove unreachable and unused code',
       priority: 1,
       patterns: ['dead-code-elimination'],
-      execute: (program: ILProgram, context: OptimizationContext) => {
+      execute: (_program: ILProgram, _context: OptimizationContext) => {
         const startTime = Date.now();
 
         // Simple dead code elimination - remove NOPs and unreachable code
         let optimized = false;
         const metricsChange = this.createZeroMetricsChange();
 
-        for (const module of program.modules) {
+        for (const module of _program.modules) {
           for (const func of module.functions) {
             const originalInstructions = func.instructions.slice();
 
             // Remove NOP instructions (simple optimization)
             func.instructions = func.instructions.filter(
-              inst =>
+              (inst: any) =>
                 inst.type !== ILInstructionType.NOP ||
                 inst.metadata?.debugInfo?.comments !== undefined
             );
@@ -404,7 +402,7 @@ export class ILOptimizationFramework {
 
         return {
           success: optimized,
-          program: optimized ? program : undefined,
+          program: optimized ? _program : undefined,
           metricsChange,
           appliedPatterns: optimized ? ['dead-code-elimination'] : [],
           executionTime: Date.now() - startTime,
@@ -425,14 +423,14 @@ export class ILOptimizationFramework {
       description: 'Fold simple constant expressions',
       priority: 2,
       patterns: ['constant-folding-basic'],
-      execute: (program: ILProgram, context: OptimizationContext) => {
+      execute: (_program: ILProgram, _context: OptimizationContext) => {
         const startTime = Date.now();
 
         // Simple constant folding implementation
         let optimized = false;
         const metricsChange = this.createZeroMetricsChange();
 
-        for (const module of program.modules) {
+        for (const module of _program.modules) {
           for (const func of module.functions) {
             // Look for simple constant arithmetic patterns
             for (let i = 0; i < func.instructions.length - 2; i++) {
@@ -485,7 +483,7 @@ export class ILOptimizationFramework {
 
         return {
           success: optimized,
-          program: optimized ? program : undefined,
+          program: optimized ? _program : undefined,
           metricsChange,
           appliedPatterns: optimized ? ['constant-folding-basic'] : [],
           executionTime: Date.now() - startTime,
@@ -509,7 +507,7 @@ export class ILOptimizationFramework {
       description: 'Basic function call optimizations',
       priority: 3,
       patterns: ['function-optimization-basic'],
-      execute: (program: ILProgram, context: OptimizationContext) => ({
+      execute: (_program: ILProgram, _context: OptimizationContext) => ({
         success: false,
         metricsChange: this.createZeroMetricsChange(),
         appliedPatterns: [],
@@ -527,7 +525,7 @@ export class ILOptimizationFramework {
       description: '6502 register allocation optimization',
       priority: 4,
       patterns: ['register-optimization'],
-      execute: (program: ILProgram, context: OptimizationContext) => ({
+      execute: (_program: ILProgram, _context: OptimizationContext) => ({
         success: false,
         metricsChange: this.createZeroMetricsChange(),
         appliedPatterns: [],
@@ -557,7 +555,7 @@ export class ILOptimizationFramework {
       description: '6502 processor specific optimizations',
       priority: 5,
       patterns: ['6502-optimizations'],
-      execute: (program: ILProgram, context: OptimizationContext) => ({
+      execute: (_program: ILProgram, _context: OptimizationContext) => ({
         success: false,
         metricsChange: this.createZeroMetricsChange(),
         appliedPatterns: [],
@@ -575,7 +573,7 @@ export class ILOptimizationFramework {
       description: 'Small-window instruction sequence optimizations',
       priority: 6,
       patterns: ['peephole-optimizations'],
-      execute: (program: ILProgram, context: OptimizationContext) => ({
+      execute: (_program: ILProgram, _context: OptimizationContext) => ({
         success: false,
         metricsChange: this.createZeroMetricsChange(),
         appliedPatterns: [],
@@ -597,7 +595,7 @@ export class ILOptimizationFramework {
       description: 'Optimize for smaller code size',
       priority: 7,
       patterns: ['size-reduction'],
-      execute: (program: ILProgram, context: OptimizationContext) => ({
+      execute: (_program: ILProgram, _context: OptimizationContext) => ({
         success: false,
         metricsChange: this.createZeroMetricsChange(),
         appliedPatterns: [],
@@ -637,7 +635,7 @@ export class ILOptimizationFramework {
     return !pass.patterns.some(pattern => config.disabledPatterns.has(pattern));
   }
 
-  private createPatternSpecificPasses(context: OptimizationContext): OptimizationPass[] {
+  private createPatternSpecificPasses(_context: OptimizationContext): OptimizationPass[] {
     // Create passes based on pattern readiness analysis
     const passes: OptimizationPass[] = [];
 
@@ -685,7 +683,7 @@ export class ILOptimizationFramework {
     return timePerCategory;
   }
 
-  private generateDebugInfo(passResults: OptimizationPassResult[]) {
+  private generateDebugInfo(_passResults: OptimizationPassResult[]) {
     return {
       analyticsAccuracy: {
         performancePredictionAccuracy: 85,

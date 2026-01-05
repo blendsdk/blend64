@@ -216,7 +216,7 @@ export class ILAnalyticsSuite {
 
     // Create a mock pattern registry for the analyzer
     const mockPatternRegistry = {
-      getPatternsByCategory: (category: string) => [],
+      getPatternsByCategory: (_category: string) => [],
     };
 
     this.patternReadinessAnalyzer = new PatternReadinessAnalyzer(mockPatternRegistry);
@@ -530,7 +530,7 @@ export class ILAnalyticsSuite {
    * Generate optimization recommendations
    */
   private generateRecommendations(
-    controlFlow: ControlFlowAnalysisResult,
+    _controlFlow: ControlFlowAnalysisResult,
     sixtyTwoZeroTwo: SixtyTwo6502ValidationResult,
     qualityMetrics: ILComplexityMetrics,
     patternReadiness: PatternApplicabilityScore[]
@@ -584,7 +584,7 @@ export class ILAnalyticsSuite {
    */
   private identifyCriticalIssues(
     controlFlow: ControlFlowAnalysisResult,
-    sixtyTwoZeroTwo: SixtyTwo6502ValidationResult,
+    _sixtyTwoZeroTwo: SixtyTwo6502ValidationResult,
     qualityMetrics: ILComplexityMetrics,
     patternReadiness: PatternApplicabilityScore[]
   ): AnalyticsIssue[] {
@@ -650,7 +650,6 @@ export class ILAnalyticsSuite {
     endMemory: any,
     complexity: ProgramComplexity
   ): AnalyticsPerformanceMetrics {
-    const memoryDelta = (endMemory?.heapUsed || 0) - (startMemory?.heapUsed || 0);
     const peakMemoryMB =
       Math.max(endMemory?.heapUsed || 0, startMemory?.heapUsed || 0) / (1024 * 1024);
 

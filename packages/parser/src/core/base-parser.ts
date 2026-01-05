@@ -195,7 +195,10 @@ export abstract class BaseParser<T extends ASTNode = ASTNode> {
     if (this.check(type)) {
       return this.advance();
     }
-    const err = new UnexpectedTokenError(this.peek(), TokenType[type] || String(type));
+    const err = new UnexpectedTokenError(
+      this.peek(),
+      errorMessage || TokenType[type] || String(type)
+    );
     this.reportError(err);
     throw err;
   }
@@ -207,7 +210,7 @@ export abstract class BaseParser<T extends ASTNode = ASTNode> {
     if (this.checkLexeme(lexeme)) {
       return this.advance();
     }
-    const err = new UnexpectedTokenError(this.peek(), lexeme);
+    const err = new UnexpectedTokenError(this.peek(), errorMessage || lexeme);
     this.reportError(err);
     throw err;
   }

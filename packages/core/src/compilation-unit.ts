@@ -50,7 +50,7 @@ export class CompilationUnit {
   private startTime: number = 0;
 
   /** Project configuration */
-  private config: ProjectConfig | null = null;
+  private _config: ProjectConfig | null = null;
 
   // ============================================================================
   // STATIC FACTORY METHODS
@@ -105,7 +105,7 @@ export class CompilationUnit {
    */
   static fromConfig(config: ProjectConfig): CompilationResult<CompilationUnit> {
     const unit = new CompilationUnit();
-    unit.config = config;
+    unit._config = config;
 
     if (config.sourceFiles) {
       for (const filePath of config.sourceFiles) {
@@ -158,6 +158,13 @@ export class CompilationUnit {
   getFileStatus(path: string): FileStatus | null {
     const normalizedPath = normalizePath(path);
     return this.fileStatuses.get(normalizedPath) || null;
+  }
+
+  /**
+   * Get project configuration.
+   */
+  getConfig(): ProjectConfig | null {
+    return this._config;
   }
 
   // ============================================================================
@@ -466,6 +473,6 @@ export class CompilationUnit {
     this.errors = [];
     this.warnings = [];
     this.startTime = 0;
-    this.config = null;
+    this._config = null;
   }
 }

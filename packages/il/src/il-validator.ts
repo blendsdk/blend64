@@ -449,7 +449,7 @@ export class ILValidator {
     }
   }
 
-  private validateInstruction(instruction: ILInstruction, index: number): void {
+  private validateInstruction(instruction: ILInstruction, _index: number): void {
     // Validate instruction ID
     if (instruction.id <= 0) {
       this.addError(
@@ -745,7 +745,7 @@ export class ILValidator {
     this.validateOperandCount(instruction, 3, 'destination, left operand, and right operand');
 
     if (instruction.operands.length >= 3) {
-      const dest = instruction.operands[0] as ILValue;
+      // const dest = instruction.operands[0] as ILValue;
       const left = instruction.operands[1] as ILValue;
       const right = instruction.operands[2] as ILValue;
 
@@ -770,7 +770,7 @@ export class ILValidator {
     this.validateOperandCount(instruction, 2, 'destination and operand');
 
     if (instruction.operands.length >= 2) {
-      const dest = instruction.operands[0] as ILValue;
+      // const dest = instruction.operands[0] as ILValue;
       const operand = instruction.operands[1] as ILValue;
 
       if (instruction.type === ILInstructionType.NEG) {
@@ -785,7 +785,7 @@ export class ILValidator {
     this.validateOperandCount(instruction, 3, 'destination, left operand, and right operand');
 
     if (instruction.operands.length >= 3) {
-      const dest = instruction.operands[0] as ILValue;
+      // const dest = instruction.operands[0] as ILValue;
       const left = instruction.operands[1] as ILValue;
       const right = instruction.operands[2] as ILValue;
 
@@ -799,7 +799,7 @@ export class ILValidator {
     this.validateOperandCount(instruction, 2, 'destination and operand');
 
     if (instruction.operands.length >= 2) {
-      const dest = instruction.operands[0] as ILValue;
+      // const dest = instruction.operands[0] as ILValue;
       const operand = instruction.operands[1] as ILValue;
 
       this.validateIntegerOperand(operand, instruction, 'operand');
@@ -810,7 +810,7 @@ export class ILValidator {
     this.validateOperandCount(instruction, 3, 'destination, value, and shift amount');
 
     if (instruction.operands.length >= 3) {
-      const dest = instruction.operands[0] as ILValue;
+      // const dest = instruction.operands[0] as ILValue;
       const value = instruction.operands[1] as ILValue;
       const amount = instruction.operands[2] as ILValue;
 
@@ -837,7 +837,7 @@ export class ILValidator {
     this.validateOperandCount(instruction, 3, 'destination, left operand, and right operand');
 
     if (instruction.operands.length >= 3) {
-      const dest = instruction.operands[0] as ILValue;
+      // const dest = instruction.operands[0] as ILValue;
       const left = instruction.operands[1] as ILValue;
       const right = instruction.operands[2] as ILValue;
 
@@ -1002,7 +1002,7 @@ export class ILValidator {
     this.validateOperandCount(instruction, 2, 'destination and variable');
 
     if (instruction.operands.length >= 2) {
-      const dest = instruction.operands[0] as ILValue;
+      // const dest = instruction.operands[0] as ILValue;
       const variable = instruction.operands[1] as ILValue;
 
       if (!isILVariable(variable)) {
@@ -1046,7 +1046,7 @@ export class ILValidator {
     this.validateOperandCount(instruction, 3, 'destination, array, and index');
 
     if (instruction.operands.length >= 3) {
-      const dest = instruction.operands[0] as ILValue;
+      // const dest = instruction.operands[0] as ILValue;
       const array = instruction.operands[1] as ILValue;
       const index = instruction.operands[2] as ILValue;
 
@@ -1079,7 +1079,7 @@ export class ILValidator {
     this.validateOperandCount(instruction, 3, 'destination, array, and index');
 
     if (instruction.operands.length >= 3) {
-      const dest = instruction.operands[0] as ILValue;
+      // const dest = instruction.operands[0] as ILValue;
       const array = instruction.operands[1] as ILValue;
       const index = instruction.operands[2] as ILValue;
 
@@ -1140,7 +1140,7 @@ export class ILValidator {
 
     if (instruction.operands.length >= 2) {
       if (instruction.type === ILInstructionType.PEEK) {
-        const dest = instruction.operands[0] as ILValue;
+        // const dest = instruction.operands[0] as ILValue;
         const address = instruction.operands[1] as ILValue;
         this.validateMemoryAddress(address, instruction);
       } else {
@@ -1712,7 +1712,7 @@ export class ILValidator {
     return this.context.functionLabels.get(label.name) ?? -1;
   }
 
-  private validateVariableLifecycle(func: ILFunction): void {
+  private validateVariableLifecycle(_func: ILFunction): void {
     // Check for variables that are defined but never used
     for (const [varName, definition] of this.context.definedVariables) {
       if (!definition.lastUsedAt) {
@@ -1732,7 +1732,7 @@ export class ILValidator {
     this.context.statistics.variablesValidated += globalData.length;
   }
 
-  private validateImportsExports(imports: any[], exports: any[]): void {
+  private validateImportsExports(_imports: any[], _exports: any[]): void {
     // Validate import/export declarations
     // This is a placeholder for now
   }

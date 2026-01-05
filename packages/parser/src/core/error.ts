@@ -96,7 +96,7 @@ export class SynchronizationRecovery implements ErrorRecoveryStrategy {
     TokenType.EOF,
   ]);
 
-  recover(error: ParseError, context: RecoveryContext): boolean {
+  recover(_error: ParseError, context: RecoveryContext): boolean {
     const { tokens, position } = context;
 
     // Find the next synchronization token
@@ -129,7 +129,7 @@ export class PanicModeRecovery implements ErrorRecoveryStrategy {
     this.panicTokens = new Set(panicTokens);
   }
 
-  recover(error: ParseError, context: RecoveryContext): boolean {
+  recover(_error: ParseError, context: RecoveryContext): boolean {
     const { tokens, position } = context;
 
     // Skip tokens until we find a panic recovery token
@@ -159,7 +159,7 @@ export class ErrorReporter {
   /**
    * Report a parse error
    */
-  report(error: ParseError, recovered: boolean = false, recoveryPoint?: Token): void {
+  report(error: ParseError, recovered: boolean = false, _recoveryPoint?: Token): void {
     this.errors.push(error);
     this.hasRecoveredErrors = this.hasRecoveredErrors || recovered;
 

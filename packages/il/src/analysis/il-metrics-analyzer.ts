@@ -574,7 +574,7 @@ export class ILMetricsAnalyzer {
   private performQualityGateAnalysis(
     complexityMetrics: ILComplexityMetrics,
     performancePrediction: PerformancePredictionModel,
-    optimizationReadiness: OptimizationReadinessAnalysis
+    _optimizationReadiness: OptimizationReadinessAnalysis
   ): QualityGateAnalysis {
     if (!this.options.enableQualityGates) {
       return this.createEmptyQualityGates();
@@ -584,7 +584,7 @@ export class ILMetricsAnalyzer {
     const gates = this.evaluateQualityGates(
       complexityMetrics,
       performancePrediction,
-      optimizationReadiness
+      _optimizationReadiness
     );
 
     // Determine overall status
@@ -658,15 +658,15 @@ export class ILMetricsAnalyzer {
   // Placeholder implementations for complex analysis methods
   // These would be fully implemented in a production system
 
-  private calculateAverageDefUseChainLength(dataDepAnalysis: any): number {
+  private calculateAverageDefUseChainLength(_dataDepAnalysis: any): number {
     return 3; // Simplified implementation
   }
 
-  private calculateMaxLiveVariables(liveVarAnalysis: any): number {
+  private calculateMaxLiveVariables(_liveVarAnalysis: any): number {
     return 5; // Simplified implementation
   }
 
-  private calculateDependencyDepth(dataDepAnalysis: any): number {
+  private calculateDependencyDepth(_dataDepAnalysis: any): number {
     return 2; // Simplified implementation
   }
 
@@ -682,8 +682,8 @@ export class ILMetricsAnalyzer {
   }
 
   private estimateMemoryUsage6502(
-    ilFunction: ILFunction,
-    sixtyTwo6502Analysis: SixtyTwo6502ValidationResult
+    _ilFunction: ILFunction,
+    _sixtyTwo6502Analysis: SixtyTwo6502ValidationResult
   ): MemoryUsageEstimate {
     return {
       zeroPageUsage: { staticUsage: 10, dynamicUsage: 5, peakUsage: 15, efficiency: 0.8 },
@@ -696,8 +696,8 @@ export class ILMetricsAnalyzer {
   }
 
   private analyzeRegisterPressure(
-    cfgAnalysis: ControlFlowAnalysisResult,
-    sixtyTwo6502Analysis: SixtyTwo6502ValidationResult
+    _cfgAnalysis: ControlFlowAnalysisResult,
+    _sixtyTwo6502Analysis: SixtyTwo6502ValidationResult
   ): RegisterPressureAnalysis {
     return {
       accumulatorPressure: {
@@ -730,24 +730,24 @@ export class ILMetricsAnalyzer {
   }
 
   private identifyPerformanceBottlenecks(
-    ilFunction: ILFunction,
-    cfgAnalysis: ControlFlowAnalysisResult,
-    sixtyTwo6502Analysis: SixtyTwo6502ValidationResult
+    _ilFunction: ILFunction,
+    _cfgAnalysis: ControlFlowAnalysisResult,
+    _sixtyTwo6502Analysis: SixtyTwo6502ValidationResult
   ): PerformanceBottleneck[] {
     return [];
   }
 
   private calculatePerformanceScore(
-    estimatedCycles: CycleEstimate,
-    memoryUsage: MemoryUsageEstimate,
-    registerPressure: RegisterPressureAnalysis,
-    bottlenecks: PerformanceBottleneck[]
+    _estimatedCycles: CycleEstimate,
+    _memoryUsage: MemoryUsageEstimate,
+    _registerPressure: RegisterPressureAnalysis,
+    _bottlenecks: PerformanceBottleneck[]
   ): number {
     return 75; // Simplified implementation
   }
 
   private extractPlatformSpecificFactors(
-    sixtyTwo6502Analysis: SixtyTwo6502ValidationResult
+    _sixtyTwo6502Analysis: SixtyTwo6502ValidationResult
   ): PlatformSpecificFactors {
     return {
       memoryTiming: {
@@ -774,9 +774,9 @@ export class ILMetricsAnalyzer {
   }
 
   private analyzeCategoryReadiness(
-    ilFunction: ILFunction,
-    cfgAnalysis: ControlFlowAnalysisResult,
-    complexityMetrics: ILComplexityMetrics
+    _ilFunction: ILFunction,
+    _cfgAnalysis: ControlFlowAnalysisResult,
+    _complexityMetrics: ILComplexityMetrics
   ): Map<OptimizationCategory, ReadinessScore> {
     const categoryReadiness = new Map<OptimizationCategory, ReadinessScore>();
 
@@ -812,15 +812,15 @@ export class ILMetricsAnalyzer {
   }
 
   private analyzePatternApplicability(
-    ilFunction: ILFunction,
-    cfgAnalysis: ControlFlowAnalysisResult
+    _ilFunction: ILFunction,
+    _cfgAnalysis: ControlFlowAnalysisResult
   ): PatternApplicabilityScore[] {
     return []; // Simplified implementation
   }
 
   private estimateOptimizationImpact(
-    complexityMetrics: ILComplexityMetrics,
-    performancePrediction: PerformancePredictionModel
+    _complexityMetrics: ILComplexityMetrics,
+    _performancePrediction: PerformancePredictionModel
   ): OptimizationImpactEstimate {
     return {
       performanceImpact: {
@@ -856,8 +856,8 @@ export class ILMetricsAnalyzer {
   }
 
   private analyzeTransformationSafety(
-    ilFunction: ILFunction,
-    cfgAnalysis: ControlFlowAnalysisResult
+    _ilFunction: ILFunction,
+    _cfgAnalysis: ControlFlowAnalysisResult
   ): TransformationSafetyAnalysis {
     return {
       semanticSafety: {
@@ -884,9 +884,9 @@ export class ILMetricsAnalyzer {
   }
 
   private calculateOverallReadinessScore(
-    categoryReadiness: Map<OptimizationCategory, ReadinessScore>,
-    patternApplicability: PatternApplicabilityScore[],
-    transformationSafety: TransformationSafetyAnalysis
+    _categoryReadiness: Map<OptimizationCategory, ReadinessScore>,
+    _patternApplicability: PatternApplicabilityScore[],
+    _transformationSafety: TransformationSafetyAnalysis
   ): number {
     return 75; // Simplified implementation
   }
@@ -894,7 +894,7 @@ export class ILMetricsAnalyzer {
   private evaluateQualityGates(
     complexityMetrics: ILComplexityMetrics,
     performancePrediction: PerformancePredictionModel,
-    optimizationReadiness: OptimizationReadinessAnalysis
+    _optimizationReadiness: OptimizationReadinessAnalysis
   ): QualityGate[] {
     const gates: QualityGate[] = [];
     const thresholds = this.options.qualityThresholds;
@@ -1036,18 +1036,18 @@ export class ILMetricsAnalyzer {
   }
 
   private calculateOverallConfidence(
-    complexityMetrics: ILComplexityMetrics,
-    performancePrediction: PerformancePredictionModel,
-    optimizationReadiness: OptimizationReadinessAnalysis
+    _complexityMetrics: ILComplexityMetrics,
+    _performancePrediction: PerformancePredictionModel,
+    _optimizationReadiness: OptimizationReadinessAnalysis
   ): number {
     return 0.9; // High confidence
   }
 
   private generateImprovementRecommendations(
-    ilFunction: ILFunction,
+    _ilFunction: ILFunction,
     complexityMetrics: ILComplexityMetrics,
     performancePrediction: PerformancePredictionModel,
-    optimizationReadiness: OptimizationReadinessAnalysis,
+    _optimizationReadiness: OptimizationReadinessAnalysis,
     qualityGates: QualityGateAnalysis
   ): ImprovementRecommendation[] {
     const recommendations: ImprovementRecommendation[] = [];
@@ -1091,7 +1091,7 @@ export class ILMetricsAnalyzer {
   private buildQualityAnalysisSummary(
     complexityMetrics: ILComplexityMetrics,
     performancePrediction: PerformancePredictionModel,
-    optimizationReadiness: OptimizationReadinessAnalysis,
+    _optimizationReadiness: OptimizationReadinessAnalysis,
     qualityGates: QualityGateAnalysis,
     recommendations: ImprovementRecommendation[]
   ): QualityAnalysisSummary {
@@ -1125,13 +1125,13 @@ export class ILMetricsAnalyzer {
               : 'critical';
 
     const optimizationPotential: OptimizationPotential =
-      optimizationReadiness.overallReadinessScore >= 80
+      _optimizationReadiness.overallReadinessScore >= 80
         ? 'extreme'
-        : optimizationReadiness.overallReadinessScore >= 60
+        : _optimizationReadiness.overallReadinessScore >= 60
           ? 'high'
-          : optimizationReadiness.overallReadinessScore >= 40
+          : _optimizationReadiness.overallReadinessScore >= 40
             ? 'moderate'
-            : optimizationReadiness.overallReadinessScore >= 20
+            : _optimizationReadiness.overallReadinessScore >= 20
               ? 'low'
               : 'minimal';
 
@@ -1342,7 +1342,7 @@ export class ILMetricsAnalyzer {
     };
   }
 
-  private createErrorResult(error: any, ilFunction: ILFunction): ILQualityAnalysisResult {
+  private createErrorResult(error: any, _ilFunction: ILFunction): ILQualityAnalysisResult {
     return {
       complexityMetrics: this.createEmptyComplexityMetrics(),
       performancePrediction: this.createEmptyPerformancePrediction(),

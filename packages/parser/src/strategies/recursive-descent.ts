@@ -232,7 +232,7 @@ export abstract class RecursiveDescentParser<T extends ASTNode = ASTNode> extend
         break;
       }
 
-      this.advance(); // Consume operator
+      const operatorToken = this.advance(); // Consume operator
 
       const nextMinPrecedence = this.isRightAssociative(operator)
         ? precedence
@@ -241,8 +241,8 @@ export abstract class RecursiveDescentParser<T extends ASTNode = ASTNode> extend
       const right = this.parseBinaryExpression(nextMinPrecedence);
 
       left = this.factory.createBinaryExpr(operator, left, right, {
-        start: left.metadata?.start || token.start,
-        end: right.metadata?.end || token.end,
+        start: left.metadata?.start || operatorToken.start,
+        end: right.metadata?.end || operatorToken.end,
       }) as Expression;
     }
 
@@ -279,8 +279,6 @@ export abstract class RecursiveDescentParser<T extends ASTNode = ASTNode> extend
     let expr = this.parsePrimaryExpression();
 
     while (true) {
-      const token = this.peek();
-
       // Function call: expr()
       if (this.check(TokenType.LEFT_PAREN)) {
         expr = this.parseCallExpression(expr) as Expression;

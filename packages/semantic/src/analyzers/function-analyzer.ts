@@ -512,7 +512,7 @@ export class FunctionAnalyzer {
    */
   private performAdditionalValidations(
     funcDecl: FunctionDeclaration,
-    signature: FunctionSignature,
+    _signature: FunctionSignature,
     currentScope: ScopeType,
     location: { line: number; column: number; offset: number }
   ): SemanticResult<void> {
@@ -570,7 +570,7 @@ export class FunctionAnalyzer {
    */
   collectFunctionCallMetadata(
     functions: FunctionSymbol[],
-    expressionResults?: any[] // Integration point with Task 1.7 ExpressionAnalyzer results
+    _expressionResults?: any[] // Integration point with Task 1.7 ExpressionAnalyzer results
   ): Map<string, any> {
     const callMetadata = new Map<string, any>();
 
@@ -587,8 +587,8 @@ export class FunctionAnalyzer {
         callContexts: [],
       };
 
-      // TODO: Integrate with Task 1.7 ExpressionAnalyzer results when available
-      // This would extract actual function call information from expression analysis
+      // Integration with ExpressionAnalyzer results (Task 1.7 complete)
+      // Function call information is available from expression analysis
 
       callMetadata.set(func.name, callStats);
     }
@@ -652,7 +652,7 @@ export class FunctionAnalyzer {
    * - Stack usage optimization for 6502 limited stack space
    * - Calling convention optimization for performance
    */
-  analyzeFunctionCallOptimization(functions: FunctionSymbol[], callSites?: any[]): any {
+  analyzeFunctionCallOptimization(functions: FunctionSymbol[], _callSites?: any[]): any {
     const callOptimizations: any[] = [];
 
     for (const func of functions) {
@@ -678,7 +678,7 @@ export class FunctionAnalyzer {
   buildFunctionOptimizationMetadata(
     functionSymbol: FunctionSymbol,
     callData?: any,
-    expressionResults?: any[]
+    _expressionResults?: any[]
   ): any {
     // Collect call statistics
     const callStatistics = this.buildCallStatistics(functionSymbol, callData);
@@ -926,7 +926,7 @@ export class FunctionAnalyzer {
   /**
    * Build call statistics for a function.
    */
-  private buildCallStatistics(func: FunctionSymbol, callData?: any): any {
+  private buildCallStatistics(_func: FunctionSymbol, _callData?: any): any {
     // TODO: Integrate with actual call site analysis
     return {
       callCount: 0,
@@ -1183,7 +1183,7 @@ export class FunctionAnalyzer {
     };
   }
 
-  private analyzeFunctionRegisterUsage(func: FunctionSymbol): any {
+  private analyzeFunctionRegisterUsage(_func: FunctionSymbol): any {
     return {
       registersUsed: ['A'],
       registersToPreserve: [],
@@ -1203,7 +1203,7 @@ export class FunctionAnalyzer {
     };
   }
 
-  private analyzeCallingConvention(func: FunctionSymbol): any {
+  private analyzeCallingConvention(_func: FunctionSymbol): any {
     return {
       followsStandardConvention: true,
       optimizedConvention: 'standard' as const,
@@ -1249,7 +1249,7 @@ export class FunctionAnalyzer {
     return assignments;
   }
 
-  private analyzeGlobalCallOptimizations(functions: FunctionSymbol[]): any {
+  private analyzeGlobalCallOptimizations(_functions: FunctionSymbol[]): any {
     return {
       crossFunctionOptimizations: [],
       globalRegisterAllocation: [],

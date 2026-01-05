@@ -383,7 +383,7 @@ export class ControlFlowAnalyzer {
   /**
    * Helper methods for analysis implementations
    */
-  private checkReducibility(blocks: BasicBlock[], edges: any[]): boolean {
+  private checkReducibility(_blocks: BasicBlock[], _edges: any[]): boolean {
     // Simplified reducibility check - assume reducible for now
     // In a complete implementation, this would check if all loops are natural loops
     return true;
@@ -422,21 +422,21 @@ export class ControlFlowAnalyzer {
   // These would be fully implemented in a production system
 
   private computeDominanceFrontiers(
-    cfg: ControlFlowGraph,
-    dominanceTree: any
+    _cfg: ControlFlowGraph,
+    _dominanceTree: any
   ): Map<number, Set<number>> {
     return new Map(); // Simplified implementation
   }
 
-  private computePostDominators(cfg: ControlFlowGraph): Map<number, number> {
+  private computePostDominators(_cfg: ControlFlowGraph): Map<number, number> {
     return new Map(); // Simplified implementation
   }
 
-  private buildStrictlyDominatesRelation(dominanceTree: any): Map<number, Set<number>> {
+  private buildStrictlyDominatesRelation(_dominanceTree: any): Map<number, Set<number>> {
     return new Map(); // Simplified implementation
   }
 
-  private buildLoopNestingTree(naturalLoops: any[]): any {
+  private buildLoopNestingTree(_naturalLoops: any[]): any {
     return {
       outerLoops: new Set(),
       innerLoops: new Map(),
@@ -446,33 +446,33 @@ export class ControlFlowAnalyzer {
     };
   }
 
-  private classifyLoops(cfg: ControlFlowGraph, naturalLoops: any[]): Map<number, any> {
+  private classifyLoops(_cfg: ControlFlowGraph, _naturalLoops: any[]): Map<number, any> {
     return new Map(); // Simplified implementation
   }
 
   private analyzeInductionVariables(
-    cfg: ControlFlowGraph,
-    naturalLoops: any[]
+    _cfg: ControlFlowGraph,
+    _naturalLoops: any[]
   ): Map<number, any[]> {
     return new Map(); // Simplified implementation
   }
 
   private findLoopInvariantInstructions(
-    cfg: ControlFlowGraph,
-    naturalLoops: any[]
+    _cfg: ControlFlowGraph,
+    _naturalLoops: any[]
   ): Map<number, Set<number>> {
     return new Map(); // Simplified implementation
   }
 
-  private buildDefUseChains(allDefs: any[], allUses: any[]): Map<any, any[]> {
+  private buildDefUseChains(_allDefs: any[], _allUses: any[]): Map<any, any[]> {
     return new Map(); // Simplified implementation
   }
 
-  private buildUseDefChains(allDefs: any[], allUses: any[]): Map<any, any[]> {
+  private buildUseDefChains(_allDefs: any[], _allUses: any[]): Map<any, any[]> {
     return new Map(); // Simplified implementation
   }
 
-  private buildVariableDependencyGraph(allDefs: any[], allUses: any[]): any {
+  private buildVariableDependencyGraph(_allDefs: any[], _allUses: any[]): any {
     return {
       variables: new Set(),
       dependencies: new Map(),
@@ -481,21 +481,21 @@ export class ControlFlowAnalyzer {
     };
   }
 
-  private generateDataFlowEquations(cfg: ControlFlowGraph): any[] {
+  private generateDataFlowEquations(_cfg: ControlFlowGraph): any[] {
     return []; // Simplified implementation
   }
 
-  private analyzeMemoryDependencies(cfg: ControlFlowGraph): any[] {
+  private analyzeMemoryDependencies(_cfg: ControlFlowGraph): any[] {
     return []; // Simplified implementation
   }
 
-  private performLiveVariableAnalysis(cfg: ControlFlowGraph): LiveVariableAnalysis {
+  private performLiveVariableAnalysis(_cfg: ControlFlowGraph): LiveVariableAnalysis {
     return this.createEmptyLiveVariableAnalysis(); // Simplified implementation
   }
 
   private performCriticalPathAnalysis(
-    cfg: ControlFlowGraph,
-    loopAnalysis: LoopAnalysis
+    _cfg: ControlFlowGraph,
+    _loopAnalysis: LoopAnalysis
   ): CriticalPathAnalysis {
     return this.createEmptyCriticalPathAnalysis(); // Simplified implementation
   }

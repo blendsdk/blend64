@@ -255,7 +255,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
     const wasInsideFunction = this.isInsideFunction;
     this.isInsideFunction = true;
 
-    const body = this.parseStatementBlock('function');
+    const body = this.parseStatementBlock();
 
     // Restore previous context
     this.isInsideFunction = wasInsideFunction;
@@ -466,7 +466,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
   /**
    * Parse a statement block until terminator
    */
-  private parseStatementBlock(blockType: string): Statement[] {
+  private parseStatementBlock(): Statement[] {
     const statements: Statement[] = [];
 
     while (!this.isAtEnd() && !this.isBlockTerminator()) {
@@ -541,13 +541,13 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
     this.consume(TokenType.THEN, "Expected 'then'");
     this.consumeStatementTerminator();
 
-    const thenBody = this.parseStatementBlock('if');
+    const thenBody = this.parseStatementBlock();
 
     let elseBody: Statement[] | null = null;
     if (this.checkLexeme('else')) {
       this.advance(); // consume 'else'
       this.consumeStatementTerminator();
-      elseBody = this.parseStatementBlock('if');
+      elseBody = this.parseStatementBlock();
     }
 
     this.consume(TokenType.END, "Expected 'end'");
@@ -570,7 +570,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
 
     // Enter loop context for break/continue validation
     this.loopDepth++;
-    const body = this.parseStatementBlock('while');
+    const body = this.parseStatementBlock();
     this.loopDepth--;
 
     this.consume(TokenType.END, "Expected 'end'");
@@ -604,7 +604,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
 
     // Enter loop context for break/continue validation
     this.loopDepth++;
-    const body = this.parseStatementBlock('for');
+    const body = this.parseStatementBlock();
     this.loopDepth--;
 
     this.consume(TokenType.NEXT, "Expected 'next'");
@@ -673,7 +673,7 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
     this.consume(TokenType.COLON, "Expected ':'");
     this.consumeStatementTerminator();
 
-    const consequent = this.parseStatementBlock('match');
+    const consequent = this.parseStatementBlock();
 
     return this.factory.createMatchCase(test, consequent, {
       start: startToken.start,

@@ -173,7 +173,7 @@ export abstract class Base6502Analyzer {
    * @returns Performance hotspot analysis
    */
   public detectPerformanceHotspots(
-    ilFunction: ILFunction,
+    _ilFunction: ILFunction,
     timingAnalysis: CycleTimingResult,
     cfgAnalysis: ControlFlowAnalysisResult
   ): PerformanceHotspotAnalysis {
@@ -275,8 +275,8 @@ export abstract class Base6502Analyzer {
    * Analyze register interference patterns
    */
   protected analyzeRegisterInterference(
-    ilFunction: ILFunction,
-    cfgAnalysis: ControlFlowAnalysisResult
+    _ilFunction: ILFunction,
+    _cfgAnalysis: ControlFlowAnalysisResult
   ): any {
     return {
       conflicts: [],
@@ -345,7 +345,7 @@ export abstract class Base6502Analyzer {
    * Find critical execution paths
    */
   protected findCriticalPaths(
-    cfgAnalysis: ControlFlowAnalysisResult,
+    _cfgAnalysis: ControlFlowAnalysisResult,
     timingAnalysis: CycleTimingResult
   ): any[] {
     // Simplified critical path analysis - in a full implementation,
@@ -365,7 +365,7 @@ export abstract class Base6502Analyzer {
    */
   protected calculatePerformanceScore(
     timingAnalysis: CycleTimingResult,
-    cfgAnalysis: ControlFlowAnalysisResult
+    _cfgAnalysis: ControlFlowAnalysisResult
   ): number {
     // Simple performance scoring based on cycles per instruction
     const avgCycles = timingAnalysis.averageCyclesPerInstruction;
@@ -384,7 +384,7 @@ export abstract class Base6502Analyzer {
   /**
    * Estimate optimization potential
    */
-  protected estimateOptimizationPotential(hotspots: any[], criticalPaths: any[]): number {
+  protected estimateOptimizationPotential(hotspots: any[], _criticalPaths: any[]): number {
     if (hotspots.length === 0) return 10; // Already well optimized
 
     const totalImpact = hotspots.reduce((sum, hotspot) => sum + hotspot.impact, 0);
@@ -400,7 +400,7 @@ export abstract class Base6502Analyzer {
 
   protected analyzeVariableUsagePatterns(
     ilFunction: ILFunction,
-    cfgAnalysis: ControlFlowAnalysisResult
+    _cfgAnalysis: ControlFlowAnalysisResult
   ): Map<ILValue, any> {
     const usage = new Map<ILValue, any>();
 
@@ -420,7 +420,7 @@ export abstract class Base6502Analyzer {
     return usage;
   }
 
-  protected selectOptimalRegister(variable: ILValue, usage: any): Register6502 {
+  protected selectOptimalRegister(_variable: ILValue, usage: any): Register6502 {
     // Simple register selection - A for most frequently used
     return usage.frequency > 5 ? 'A' : 'X';
   }
@@ -448,8 +448,8 @@ export abstract class Base6502Analyzer {
   }
 
   protected estimateInstructionFrequency(
-    index: number,
-    cfgAnalysis: ControlFlowAnalysisResult
+    _index: number,
+    _cfgAnalysis: ControlFlowAnalysisResult
   ): number {
     // Simplified frequency estimation - in a real implementation,
     // this would use CFG analysis to determine execution frequency

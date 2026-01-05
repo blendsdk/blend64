@@ -464,8 +464,6 @@ export class SemanticAnalyzer {
       for (const program of programs) {
         if (!program.module) continue;
 
-        const moduleName = program.module.name.parts.join('.');
-
         // Create expression context for this module
         const context = createExpressionContext({
           optimizationLevel: 'balanced',
@@ -777,138 +775,6 @@ export class SemanticAnalyzer {
   }
 
   /**
-   * Phase 1: Register all modules for forward reference resolution.
-   * This allows modules to import from each other regardless of file order.
-   */
-  private registerAllModules(programs: Program[]): void {
-    for (const program of programs) {
-      this.registerModule(program);
-    }
-  }
-
-  /**
-   * Register a single module in the global scope.
-   */
-  private registerModule(program: Program): void {
-    if (!program.module) {
-      this.addError({
-        errorType: 'InvalidScope',
-        message: 'Program must have a module declaration',
-        location: { line: 1, column: 1, offset: 0 },
-        suggestions: [
-          'Add a module declaration at the top: module ModuleName',
-          'All Blend65 files must belong to a module',
-        ],
-      });
-      return;
-    }
-
-    // Convert QualifiedName to string
-    const moduleName = program.module.name.parts.join('.');
-
-    // Create module scope using symbol table methods
-    this.symbolTable.enterScope('Module', moduleName);
-
-    // Store the module for later processing - simplified approach
-    // In a full implementation, we'd create proper module symbols here
-  }
-
-  /**
-   * Phase 2: Process all declarations across all programs.
-   */
-  private processAllDeclarations(programs: Program[]): void {
-    for (const program of programs) {
-      this.processProgram(program);
-    }
-  }
-
-  /**
-   * Process a single program's declarations.
-   */
-  private processProgram(program: Program): void {
-    if (!program.module) {
-      this.addError({
-        errorType: 'InvalidScope',
-        message: 'Program must have a module declaration',
-        location: { line: 1, column: 1, offset: 0 },
-        suggestions: [
-          'Add a module declaration at the top: module ModuleName',
-          'All Blend65 files must belong to a module',
-        ],
-      });
-      return;
-    }
-
-    // Convert QualifiedName to string
-    const moduleName = program.module.name.parts.join('.');
-
-    // Process imports - basic syntax validation only
-    for (const importDecl of program.imports) {
-      this.validateImportSyntax(importDecl);
-    }
-
-    // Process declarations using program.body instead of program.declarations
-    for (const declaration of program.body) {
-      switch (declaration.type) {
-        case 'VariableDeclaration':
-          // TODO: Implement variable declaration processing once analyzers are updated
-          this.addWarning({
-            errorType: 'InvalidOperation',
-            message: `Variable declaration processing not yet implemented for multi-program analysis`,
-            location: declaration.metadata?.start || { line: 0, column: 0, offset: 0 },
-          });
-          break;
-
-        case 'FunctionDeclaration':
-          // TODO: Implement function declaration processing once analyzers are updated
-          this.addWarning({
-            errorType: 'InvalidOperation',
-            message: `Function declaration processing not yet implemented for multi-program analysis`,
-            location: declaration.metadata?.start || { line: 0, column: 0, offset: 0 },
-          });
-          break;
-
-        default:
-          this.addWarning({
-            errorType: 'InvalidOperation',
-            message: `Declaration type '${declaration.type}' not yet implemented in semantic analysis`,
-            location: declaration.metadata?.start || { line: 0, column: 0, offset: 0 },
-          });
-      }
-    }
-  }
-
-  /**
-   * Resolve module dependencies across all programs using ModuleAnalyzer.
-   * Task 1.6: This method implements the actual cross-file import/export resolution.
-   */
-  private resolveModuleDependencies(programs: Program[]): void {
-    const moduleAnalyzer = new ModuleAnalyzer(this.symbolTable);
-    const moduleErrors = moduleAnalyzer.analyzeModuleSystem(programs);
-
-    // Add any module-specific errors to our error collection
-    this.errors.push(...moduleErrors);
-  }
-
-  /**
-   * Validate basic import declaration syntax.
-   */
-  private validateImportSyntax(importDecl: any): void {
-    // Basic syntax validation for imports - detailed resolution is done by ModuleAnalyzer
-    if (!importDecl.source || !importDecl.specifiers) {
-      this.addError({
-        errorType: 'InvalidOperation',
-        message: 'Invalid import declaration syntax',
-        location: importDecl.metadata?.start || { line: 0, column: 0, offset: 0 },
-        suggestions: [
-          'Use correct import syntax: import symbol from module',
-          'Check the import declaration format',
-        ],
-      });
-    }
-  }
-
-  /**
    * Add an error to the error collection.
    */
   private addError(error: SemanticError): void {
@@ -920,6 +786,20 @@ export class SemanticAnalyzer {
    */
   private addWarning(warning: SemanticError): void {
     this.warnings.push(warning);
+  }
+
+  /**
+   * Get the addError method for validation.
+   */
+  getAddError(): (error: SemanticError) => void {
+    return this.addError.bind(this);
+  }
+
+  /**
+   * Get the addWarning method for validation.
+   */
+  getAddWarning(): (warning: SemanticError) => void {
+    return this.addWarning.bind(this);
   }
 
   /**

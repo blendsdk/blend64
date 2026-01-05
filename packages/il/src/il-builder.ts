@@ -257,7 +257,7 @@ export class ILFunctionBuilder {
   /**
    * Create a new temporary variable
    */
-  createTemp(name?: string): ILTemporary {
+  createTemp(_name?: string): ILTemporary {
     const tempId = this.context.nextTempId++;
     return createILTemporary(
       tempId,
@@ -393,7 +393,7 @@ export class ILFunctionBuilder {
   /**
    * Function call
    */
-  call(functionName: string, args: ILValue[] = [], target?: ILTemporary): ILTemporary | null {
+  call(_functionName: string, args: ILValue[] = [], target?: ILTemporary): ILTemporary | null {
     const result = target || this.createTemp();
     this.addInstruction(
       createCall(result, args, {
@@ -440,7 +440,6 @@ export class ILFunctionBuilder {
     this.add(counter, stepTemp, counter);
 
     // Check condition and branch
-    const endTemp = this.loadImmediate(endValue);
     // For simplicity, assume we have a compare instruction that sets flags
     // In a real implementation, this would use proper comparison
     this.comment(`Compare counter with ${endValue}`);

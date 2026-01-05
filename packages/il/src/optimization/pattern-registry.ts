@@ -186,7 +186,7 @@ export class OptimizationPatternRegistryImpl implements OptimizationPatternRegis
       estimatedSizeImpact: -2,
       dependencies: [],
       conflicts: [],
-      apply: (instructions: ILInstruction[], context: OptimizationContext) => {
+      apply: (instructions: ILInstruction[], _context: OptimizationContext) => {
         let optimized = false;
         const metricsChange = this.createZeroMetricsChange();
 
@@ -226,7 +226,7 @@ export class OptimizationPatternRegistryImpl implements OptimizationPatternRegis
           },
         };
       },
-      isApplicable: (instructions: ILInstruction[], context: OptimizationContext) => {
+      isApplicable: (instructions: ILInstruction[], _context: OptimizationContext) => {
         return instructions.some(
           inst => inst.type === ILInstructionType.NOP && !inst.metadata?.debugInfo?.comments
         );
@@ -250,7 +250,7 @@ export class OptimizationPatternRegistryImpl implements OptimizationPatternRegis
       estimatedSizeImpact: -4,
       dependencies: [],
       conflicts: [],
-      apply: (instructions: ILInstruction[], context: OptimizationContext) => {
+      apply: (instructions: ILInstruction[], _context: OptimizationContext) => {
         let optimized = false;
         const metricsChange = this.createZeroMetricsChange();
         const result = [...instructions];
@@ -319,7 +319,7 @@ export class OptimizationPatternRegistryImpl implements OptimizationPatternRegis
           },
         };
       },
-      isApplicable: (instructions: ILInstruction[], context: OptimizationContext) => {
+      isApplicable: (instructions: ILInstruction[], _context: OptimizationContext) => {
         // Check if there are constant arithmetic patterns
         for (let i = 0; i < instructions.length - 2; i++) {
           if (
@@ -354,7 +354,7 @@ export class OptimizationPatternRegistryImpl implements OptimizationPatternRegis
       estimatedSizeImpact: -3,
       dependencies: [],
       conflicts: [],
-      apply: (instructions: ILInstruction[], context: OptimizationContext) => {
+      apply: (_instructions: ILInstruction[], _context: OptimizationContext) => {
         // Placeholder implementation
         return {
           success: false,
@@ -373,7 +373,7 @@ export class OptimizationPatternRegistryImpl implements OptimizationPatternRegis
           },
         };
       },
-      isApplicable: (instructions: ILInstruction[], context: OptimizationContext) => {
+      isApplicable: (_instructions: ILInstruction[], _context: OptimizationContext) => {
         return false; // Placeholder
       },
     });
@@ -395,7 +395,7 @@ export class OptimizationPatternRegistryImpl implements OptimizationPatternRegis
       estimatedSizeImpact: -1,
       dependencies: [],
       conflicts: [],
-      apply: (instructions: ILInstruction[], context: OptimizationContext) => {
+      apply: (_instructions: ILInstruction[], _context: OptimizationContext) => {
         // Placeholder implementation
         return {
           success: false,
@@ -414,7 +414,7 @@ export class OptimizationPatternRegistryImpl implements OptimizationPatternRegis
           },
         };
       },
-      isApplicable: (instructions: ILInstruction[], context: OptimizationContext) => {
+      isApplicable: (_instructions: ILInstruction[], _context: OptimizationContext) => {
         return false; // Placeholder
       },
     });
@@ -437,7 +437,7 @@ export class OptimizationPatternRegistryImpl implements OptimizationPatternRegis
       estimatedSizeImpact: -1,
       dependencies: [],
       conflicts: [],
-      apply: (instructions: ILInstruction[], context: OptimizationContext) => {
+      apply: (_instructions: ILInstruction[], _context: OptimizationContext) => {
         // Placeholder implementation
         return {
           success: false,
@@ -456,7 +456,7 @@ export class OptimizationPatternRegistryImpl implements OptimizationPatternRegis
           },
         };
       },
-      isApplicable: (instructions: ILInstruction[], context: OptimizationContext) => {
+      isApplicable: (_instructions: ILInstruction[], _context: OptimizationContext) => {
         return false; // Placeholder
       },
     });
@@ -478,7 +478,7 @@ export class OptimizationPatternRegistryImpl implements OptimizationPatternRegis
       estimatedSizeImpact: -4,
       dependencies: [],
       conflicts: [],
-      apply: (instructions: ILInstruction[], context: OptimizationContext) => {
+      apply: (_instructions: ILInstruction[], _context: OptimizationContext) => {
         // Placeholder implementation
         return {
           success: false,
@@ -497,7 +497,7 @@ export class OptimizationPatternRegistryImpl implements OptimizationPatternRegis
           },
         };
       },
-      isApplicable: (instructions: ILInstruction[], context: OptimizationContext) => {
+      isApplicable: (_instructions: ILInstruction[], _context: OptimizationContext) => {
         return false; // Placeholder
       },
     });

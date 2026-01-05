@@ -88,7 +88,6 @@ export class VariableAnalyzer {
     }
 
     // 4. Validate initialization if present
-    let initializerType: Blend65Type | null = null;
     if (varDecl.initializer) {
       const initResult = this.validateInitialization(
         varDecl.initializer,
@@ -98,8 +97,6 @@ export class VariableAnalyzer {
       );
       if (!initResult.success) {
         errors.push(...initResult.errors);
-      } else {
-        initializerType = initResult.data;
       }
     }
 
@@ -412,7 +409,7 @@ export class VariableAnalyzer {
     }
 
     // Calculate derived statistics
-    for (const [varName, stats] of usageMap) {
+    for (const [_varName, stats] of usageMap) {
       // Determine access frequency (prioritize hot path usage over access count)
       if (stats.accessCount === 0) {
         stats.estimatedAccessFrequency = 'rare';
@@ -709,7 +706,7 @@ export class VariableAnalyzer {
    * @param cfg - Optional control flow graph (not implemented yet)
    * @returns Lifetime analysis for interference detection
    */
-  analyzeVariableLifetimes(variables: VariableSymbol[], cfg?: any): VariableLifetimeInfo[] {
+  analyzeVariableLifetimes(variables: VariableSymbol[], _cfg?: any): VariableLifetimeInfo[] {
     const lifetimeInfos: VariableLifetimeInfo[] = [];
 
     for (const variable of variables) {
@@ -761,7 +758,6 @@ export class VariableAnalyzer {
       const variable = variables[i];
       const usage = usageData.get(variable.name);
       const zeroPageInfo = zeroPageCandidates[i];
-      const registerInfo = registerCandidates[i];
       const lifetimeInfo = lifetimeInfos[i];
 
       if (!usage) continue;
@@ -769,9 +765,9 @@ export class VariableAnalyzer {
       const metadata: VariableOptimizationMetadata = {
         usageStatistics: usage,
         zeroPageCandidate: zeroPageInfo,
-        registerCandidate: registerInfo,
+        registerCandidate: registerCandidates[i],
         lifetimeInfo: lifetimeInfo,
-        sixtyTwoHints: this.generate6502Hints(variable, usage, zeroPageInfo, registerInfo),
+        sixtyTwoHints: this.generate6502Hints(variable, usage, zeroPageInfo, registerCandidates[i]),
         memoryLayout: this.generateMemoryLayoutInfo(variable, usage, zeroPageInfo),
       };
 
@@ -791,7 +787,7 @@ export class VariableAnalyzer {
     variable: VariableSymbol,
     usage: VariableUsageStatistics,
     zeroPageInfo: ZeroPageCandidateInfo,
-    registerInfo: RegisterCandidateInfo
+    _registerInfo: RegisterCandidateInfo
   ): Variable6502OptimizationHints {
     return {
       addressingMode: zeroPageInfo.isCandidate ? 'zero_page' : 'absolute',

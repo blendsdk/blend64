@@ -129,6 +129,13 @@ export class TypeChecker {
     this.errors.push(error);
   }
 
+  /**
+   * Get the addError method for validation.
+   */
+  getAddError(): (error: SemanticError) => void {
+    return this.addError.bind(this);
+  }
+
   // ============================================================================
   // TYPE REPRESENTATION AND VALIDATION
   // ============================================================================
@@ -1437,7 +1444,7 @@ export class TypeChecker {
   private checkArithmeticOperation(
     leftType: Blend65Type,
     rightType: Blend65Type,
-    operator: string,
+    _operator: string,
     location: SourcePosition
   ): SemanticResult<Blend65Type> {
     // Both operands must be numeric
@@ -1447,7 +1454,7 @@ export class TypeChecker {
         errors: [
           {
             errorType: 'TypeMismatch',
-            message: `Left operand of '${operator}' must be byte or word, got ${typeToString(leftType)}`,
+            message: `Left operand of '${_operator}' must be byte or word, got ${typeToString(leftType)}`,
             location,
           },
         ],
@@ -1460,7 +1467,7 @@ export class TypeChecker {
         errors: [
           {
             errorType: 'TypeMismatch',
-            message: `Right operand of '${operator}' must be byte or word, got ${typeToString(rightType)}`,
+            message: `Right operand of '${_operator}' must be byte or word, got ${typeToString(rightType)}`,
             location,
           },
         ],
@@ -1487,7 +1494,7 @@ export class TypeChecker {
   private checkComparisonOperation(
     leftType: Blend65Type,
     rightType: Blend65Type,
-    operator: string,
+    _operator: string,
     location: SourcePosition
   ): SemanticResult<Blend65Type> {
     // Types must be compatible for comparison
@@ -1522,7 +1529,7 @@ export class TypeChecker {
   private checkLogicalOperation(
     leftType: Blend65Type,
     rightType: Blend65Type,
-    operator: string,
+    _operator: string,
     location: SourcePosition
   ): SemanticResult<Blend65Type> {
     // Both operands must be boolean
@@ -1532,7 +1539,7 @@ export class TypeChecker {
         errors: [
           {
             errorType: 'TypeMismatch',
-            message: `Left operand of '${operator}' must be boolean, got ${typeToString(leftType)}`,
+            message: `Left operand of '${_operator}' must be boolean, got ${typeToString(leftType)}`,
             location,
           },
         ],
@@ -1545,7 +1552,7 @@ export class TypeChecker {
         errors: [
           {
             errorType: 'TypeMismatch',
-            message: `Right operand of '${operator}' must be boolean, got ${typeToString(rightType)}`,
+            message: `Right operand of '${_operator}' must be boolean, got ${typeToString(rightType)}`,
             location,
           },
         ],

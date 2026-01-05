@@ -424,7 +424,7 @@ export class SixtyTwo6502Analyzer {
 
   private aggregateValidationIssues(
     memoryValidation: MemoryLayoutValidationResult,
-    registerAnalysis: RegisterAllocationAnalysis,
+    _registerAnalysis: RegisterAllocationAnalysis,
     constraintValidation: HardwareConstraintValidation
   ): ValidationIssue[] {
     const issues: ValidationIssue[] = [];

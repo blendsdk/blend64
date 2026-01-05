@@ -276,7 +276,7 @@ export class ASTToILTransformer {
         importedName: specifier.imported,
         localName: specifier.local || specifier.imported,
         sourceModule: importDecl.source.parts,
-        importType: 'function', // TODO: Determine actual type from semantic analysis
+        importType: this.determineImportType(specifier.imported),
       };
       this.context.currentModule.imports.push(ilImport);
     }
@@ -514,7 +514,7 @@ export class ASTToILTransformer {
     this.context.currentModule.moduleData.push(ilModuleData);
   }
 
-  private transformTypeDeclaration(typeDecl: TypeDeclaration): void {
+  private transformTypeDeclaration(_typeDecl: TypeDeclaration): void {
     // Type declarations don't generate IL instructions directly
     // They are handled by the type system in semantic analysis
     // This is a no-op for IL generation
@@ -1232,7 +1232,62 @@ export class ASTToILTransformer {
       };
     }
 
-    // TODO: Handle array assignments and member assignments
+    // Handle array assignments: arr[index] = value
+    if (assignExpr.left.type === 'IndexExpr') {
+      const indexExpr = assignExpr.left as IndexExpr;
+
+      // Transform array and index expressions
+      const arrayResult = this.transformExpression(indexExpr.object);
+      const indexResult = this.transformExpression(indexExpr.index);
+
+      instructions.push(...arrayResult.instructions);
+      instructions.push(...indexResult.instructions);
+      temporaries.push(...arrayResult.temporaries, ...indexResult.temporaries);
+
+      // Generate store array instruction
+      const storeArrayInstruction = createILInstruction(
+        ILInstructionType.STORE_ARRAY,
+        [arrayResult.value, indexResult.value, rightResult.value],
+        this.context.nextInstructionId++
+      );
+
+      instructions.push(storeArrayInstruction);
+
+      return {
+        value: rightResult.value,
+        instructions,
+        temporaries,
+      };
+    }
+
+    // Handle member assignments: obj.member = value
+    if (assignExpr.left.type === 'MemberExpr') {
+      const memberExpr = assignExpr.left as MemberExpr;
+
+      // For now, treat member assignment as a specialized variable assignment
+      // TODO: Enhance when full record/struct support is added
+      const memberVariable = createILVariable(
+        `${memberExpr.object}.${memberExpr.property}`,
+        rightResult.value.valueType === 'constant'
+          ? (rightResult.value as ILConstant).type
+          : { kind: 'primitive', name: 'byte' }
+      );
+
+      const storeMemberInstruction = createILInstruction(
+        ILInstructionType.STORE_VARIABLE,
+        [memberVariable, rightResult.value],
+        this.context.nextInstructionId++
+      );
+
+      instructions.push(storeMemberInstruction);
+
+      return {
+        value: rightResult.value,
+        instructions,
+        temporaries,
+      };
+    }
+
     this.addError(`Unsupported assignment target: ${assignExpr.left.type}`, assignExpr);
 
     return {
@@ -1284,9 +1339,55 @@ export class ASTToILTransformer {
   }
 
   private transformMemberExpression(memberExpr: MemberExpr): ExpressionTransformResult {
-    // For now, treat member expressions as identifier references
-    // TODO: Implement proper member access for records/types
-    const identifier = createILVariable(`${memberExpr.object}.${memberExpr.property}`, {
+    const instructions: ILInstruction[] = [];
+    const temporaries: ILTemporary[] = [];
+
+    // Transform the object expression first
+    const objectResult = this.transformExpression(memberExpr.object);
+    instructions.push(...objectResult.instructions);
+    temporaries.push(...objectResult.temporaries);
+
+    // Try to resolve member access from semantic analysis
+    if (memberExpr.object.type === 'Identifier') {
+      const objectName = (memberExpr.object as Identifier).name;
+      const objectSymbol = this.getSymbol(objectName) as VariableSymbol;
+
+      if (objectSymbol && objectSymbol.varType.kind === 'named') {
+        // This is a proper record/struct member access
+        // For now, treat as offset-based member access
+        const memberVariable = createILVariable(
+          `${objectName}.${memberExpr.property}`,
+          { kind: 'primitive', name: 'byte' }, // TODO: Get actual member type from semantic analysis
+          [],
+          objectSymbol.storageClass
+        );
+
+        const resultTemp = createILTemporary(this.context.nextTemporaryId++, {
+          kind: 'primitive',
+          name: 'byte',
+        });
+
+        const loadMemberInstruction = createILInstruction(
+          ILInstructionType.LOAD_VARIABLE,
+          [memberVariable],
+          this.context.nextInstructionId++,
+          { result: resultTemp }
+        );
+
+        instructions.push(loadMemberInstruction);
+        temporaries.push(resultTemp);
+
+        return {
+          value: resultTemp,
+          instructions,
+          temporaries,
+        };
+      }
+    }
+
+    // Fallback: treat as simple qualified name access (like c64.sprites.setSpritePosition)
+    const qualifiedName = `${memberExpr.object}.${memberExpr.property}`;
+    const qualifiedVariable = createILVariable(qualifiedName, {
       kind: 'primitive',
       name: 'byte',
     });
@@ -1298,15 +1399,18 @@ export class ASTToILTransformer {
 
     const loadInstruction = createILInstruction(
       ILInstructionType.LOAD_VARIABLE,
-      [identifier],
+      [qualifiedVariable],
       this.context.nextInstructionId++,
       { result: resultTemp }
     );
 
+    instructions.push(loadInstruction);
+    temporaries.push(resultTemp);
+
     return {
       value: resultTemp,
-      instructions: [loadInstruction],
-      temporaries: [resultTemp],
+      instructions,
+      temporaries,
     };
   }
 
@@ -1416,29 +1520,69 @@ export class ASTToILTransformer {
     const instructions: ILInstruction[] = [];
     const temporaries: ILTemporary[] = [];
 
-    // For now, create a simple array initialization sequence
-    // TODO: Implement proper array literal handling
+    if (arrayLiteral.elements.length === 0) {
+      // Handle empty array literal
+      const resultTemp = createILTemporary(this.context.nextTemporaryId++, {
+        kind: 'array',
+        elementType: { kind: 'primitive', name: 'byte' },
+        size: 0,
+      });
 
+      return {
+        value: resultTemp,
+        instructions: [],
+        temporaries: [resultTemp],
+      };
+    }
+
+    // Determine array element type from first element
+    const firstElementResult = this.transformExpression(arrayLiteral.elements[0]);
+    const elementType: Blend65Type =
+      firstElementResult.value.valueType === 'constant'
+        ? (firstElementResult.value as ILConstant).type
+        : { kind: 'primitive', name: 'byte' };
+
+    // Create array type
+    const arrayType: Blend65Type = {
+      kind: 'array',
+      elementType,
+      size: arrayLiteral.elements.length,
+    };
+
+    // Create temporary for the array
+    const arrayTemp = createILTemporary(this.context.nextTemporaryId++, arrayType);
+    temporaries.push(arrayTemp);
+
+    // Generate array allocation instruction
+    const allocateInstruction = createILInstruction(
+      ILInstructionType.DECLARE_LOCAL,
+      [arrayTemp],
+      this.context.nextInstructionId++
+    );
+    instructions.push(allocateInstruction);
+
+    // Transform and store each element
     for (let i = 0; i < arrayLiteral.elements.length; i++) {
       const elementResult = this.transformExpression(arrayLiteral.elements[i]);
       instructions.push(...elementResult.instructions);
       temporaries.push(...elementResult.temporaries);
 
-      // Store each element (simplified)
-      // TODO: Implement proper array construction
+      // Create index constant
+      const indexConstant = createILConstant({ kind: 'primitive', name: 'byte' }, i, 'decimal');
+
+      // Store element at index
+      const storeElementInstruction = createILInstruction(
+        ILInstructionType.STORE_ARRAY,
+        [arrayTemp, indexConstant, elementResult.value],
+        this.context.nextInstructionId++
+      );
+      instructions.push(storeElementInstruction);
     }
 
-    // Return a dummy temporary for now
-    const resultTemp = createILTemporary(this.context.nextTemporaryId++, {
-      kind: 'array',
-      elementType: { kind: 'primitive', name: 'byte' },
-      size: arrayLiteral.elements.length,
-    });
-
     return {
-      value: resultTemp,
+      value: arrayTemp,
       instructions,
-      temporaries: [resultTemp, ...temporaries],
+      temporaries,
     };
   }
 
@@ -1454,16 +1598,30 @@ export class ASTToILTransformer {
     });
   }
 
-  private addWarning(message: string, astNode?: any): void {
-    this.context.warnings.push({
-      message,
-      location: astNode?.metadata?.start,
-      astNode,
-    });
-  }
-
   private getSymbol(name: string): Symbol | undefined {
     return this.context.symbolTable.get(name);
+  }
+
+  private determineImportType(importedName: string): 'function' | 'variable' | 'constant' {
+    // Try to resolve the imported symbol from semantic analysis
+    const symbol = this.getSymbol(importedName);
+
+    if (symbol) {
+      switch (symbol.symbolType) {
+        case 'Function':
+          return 'function';
+        case 'Variable':
+          const varSymbol = symbol as VariableSymbol;
+          return varSymbol.storageClass === 'const' ? 'constant' : 'variable';
+        case 'Enum':
+          return 'constant';
+        default:
+          return 'function'; // Default fallback
+      }
+    }
+
+    // If symbol not found in current table, assume function (most common import)
+    return 'function';
   }
 
   private generateLabel(prefix: string): string {
@@ -1473,7 +1631,11 @@ export class ASTToILTransformer {
   private transformType(typeAnnotation: TypeAnnotation): Blend65Type {
     switch (typeAnnotation.type) {
       case 'PrimitiveType':
-        return { kind: 'primitive', name: (typeAnnotation as any).name };
+        const primType = typeAnnotation as any;
+        return {
+          kind: 'primitive',
+          name: primType.name as 'byte' | 'word' | 'boolean' | 'void',
+        };
 
       case 'ArrayType':
         const arrayType = typeAnnotation as any;
@@ -1484,7 +1646,12 @@ export class ASTToILTransformer {
         };
 
       case 'NamedType':
-        return { kind: 'named', name: (typeAnnotation as any).name };
+        const namedType = typeAnnotation as any;
+        return { kind: 'named', name: namedType.name };
+
+      case 'RecordType':
+        const recordType = typeAnnotation as any;
+        return { kind: 'named', name: recordType.name };
 
       default:
         return { kind: 'primitive', name: 'byte' };
@@ -1514,9 +1681,9 @@ export class ASTToILTransformer {
   }
 
   private determineParameterPassingMethod(
-    param: Parameter,
+    _param: Parameter,
     index: number,
-    functionSymbol: FunctionSymbol
+    _functionSymbol: FunctionSymbol
   ): ParameterPassingMethod {
     // Simple parameter passing strategy
     if (index === 0) return 'register_A';
@@ -1525,7 +1692,10 @@ export class ASTToILTransformer {
     return 'stack';
   }
 
-  private createParameterOptimizationHints(param: Parameter, functionSymbol: FunctionSymbol): any {
+  private createParameterOptimizationHints(
+    _param: Parameter,
+    _functionSymbol: FunctionSymbol
+  ): any {
     return {
       isReadOnly: true,
       usedInHotPath: false,
@@ -1580,7 +1750,11 @@ export class ASTToILTransformer {
     return undefined;
   }
 
-  private inferBinaryExpressionType(operator: string, left: ILValue, right: ILValue): Blend65Type {
+  private inferBinaryExpressionType(
+    operator: string,
+    _left: ILValue,
+    _right: ILValue
+  ): Blend65Type {
     // Comparison operators return boolean
     if (['==', '!=', '<', '<=', '>', '>='].includes(operator)) {
       return { kind: 'primitive', name: 'boolean' };
