@@ -1,192 +1,156 @@
 # Blend65
 
-> ## 🚨 **IMPORTANT: NEARLY COMPLETE COMPILER** 🚨
+> **⚠️ DEVELOPMENT STATUS: COMPILER NOT FUNCTIONAL**
 >
-> **Blend65 is 80% complete!** Major compiler infrastructure is operational:
+> This compiler is currently under active development and does not produce working code.
+> The project is in the implementation phase - while the frontend (lexer, parser, AST) is complete,
+> the backend code generation is not yet implemented. No executable programs can be compiled at this time.
 >
-> - ✅ **Complete frontend** - Lexer, parser, AST generation fully working
-> - ✅ **Semantic analysis** - Symbol tables, type checking, optimization metadata
-> - ✅ **IL system** - Sophisticated intermediate language with advanced optimization
-> - ❌ **Code generation in progress** - Cannot compile to 6502 assembly yet (next phase!)
-> - ❌ **No .prg output yet** - Waiting on code generation completion
-> - ⚠️ **Syntax stable** - v0.1-v0.3 language features finalized
-> - 🎯 **Production-ready backend** - Professional compiler infrastructure complete
->
-> **What works:** Complete compilation pipeline through IL optimization
-> **What's next:** 6502 code generation (Task 3.1) - the final 20%
->
-> **Getting close!** Follow development as we approach first compiled programs.
+> Follow development progress in the [Project Status](docs/PROJECT_STATUS.md) documentation.
 
-## 🚀 The Future of 6502 Programming is Here
+## Overview
 
-Imagine writing C64 games with **modern language features** that compile to **blazing-fast 6502 assembly**. No runtime overhead. No garbage collection. Just pure, optimized machine code that runs at full speed on real hardware.
+Blend65 is a modern programming language compiler targeting 6502-based systems including the Commodore 64, VIC-20, and Commander X16. The language aims to provide modern programming constructs while generating efficient assembly code for vintage hardware.
 
-**Blend65 makes retro game development feel like the future.**
+## Language Features
 
-## 📈 Development Momentum: 80% Complete!
-
-We're in the final stretch! Professional-grade compiler infrastructure is complete and ready for code generation:
-
-- ✅ **1,132 tests passing** across entire compiler pipeline (zero failures!)
-- ✅ **Complete frontend** - Parse any Blend65 program perfectly (v0.1-v0.3 features)
-- ✅ **Advanced semantic analysis** - Type checking, symbol tables, 6502 optimization metadata
-- ✅ **Sophisticated IL system** - Intermediate language with cycle-perfect 6502 timing analysis
-- ✅ **World-class optimization** - Advanced analytics with 470+ optimization pattern foundation
-- ✅ **Hardware-aware validation** - C64, VIC-20, and X16 platform-specific optimization
-- ✅ **REU/Expanded memory** - Dual library architecture (XMS + EMS) for modern hardware support
-- 🎯 **Code generation next** - Task 3.1 ready to start - the final 20%!
-
-**This isn't just another hobby compiler** - it's building genuine compiler infrastructure that rivals modern systems while targeting vintage 6502 hardware, now with cutting-edge expanded memory support for modern retro systems.
-
-## 💡 Why Blend65 Will Change Everything
-
-Writing assembly is powerful but painful. High-level languages hide too much. **Blend65 gives you the best of both worlds:**
+The language syntax combines familiar programming concepts with direct hardware access:
 
 ```js
-// Write this beautiful, modern code...
 module C64Game.Snake
 
 import setSpritePosition, enableSprite from c64.sprites
 import joystickLeft, joystickRight from c64.input
 import playNote from c64.sid
 
-zp var snakeX: byte = 160      // Fast zero-page access
-var score: word = 0            // Automatic 16-bit handling
+zp var snakeX: byte = 160      // Zero-page variable allocation
+var score: word = 0            // 16-bit integer
 var gameState: GameState = PLAYING
 
 enum GameState
-    MENU, PLAYING, GAME_OVER   // Clean, organized constants
+    MENU, PLAYING, GAME_OVER
 end enum
 
 function updateSnake(): void
     if joystickLeft() then
-        snakeX = snakeX - 2    // Automatic bounds checking
+        snakeX = snakeX - 2
     end if
 
     setSpritePosition(0, snakeX, 100)
 
     if snakeX == appleX then
         score = score + 10
-        playNote(0, 440)       // Victory beep!
+        playNote(0, 440)
     end if
 end function
 ```
 
-```js
-// ...and get THIS optimized 6502 assembly automatically!
-; Zero page allocation (2 cycles vs 4 cycles)
-snakeX = $02
+### Storage Classes
 
-updateSnake:
-    lda $DC00          ; Read joystick - 4 cycles
-    and #$04           ; Check left bit - 2 cycles
-    bne .check_apple   ; Branch if not pressed - 2 cycles
+Variables can be declared with specific memory allocation strategies:
 
-    dec snakeX         ; Fast zero page decrement - 5 cycles
-    dec snakeX         ; Subtract 2 total - 5 cycles
+- `zp var` - Zero page allocation for fastest access
+- `ram var` - Standard RAM allocation
+- `data var` - Initialized data section
+- `const var` - Compile-time constants
+- `io var` - Memory-mapped I/O registers
 
-.check_apple:
-    lda snakeX         ; Zero page load - 3 cycles
-    cmp appleX         ; Compare with apple - 4 cycles
-    bne .done          ; Skip if different - 2 cycles
+### Hardware Integration
 
-    ; Score increment (optimized 16-bit)
-    clc                ; Clear carry - 2 cycles
-    lda score_lo       ; Load low byte - 4 cycles
-    adc #10            ; Add 10 - 2 cycles
-    sta score_lo       ; Store low byte - 4 cycles
-    bcc .play_sound    ; Skip high byte if no carry - 2 cycles
-    inc score_hi       ; Increment high byte - 6 cycles
-
-.play_sound:
-    ; SID sound generation
-    lda #$D9           ; 440Hz frequency low - 2 cycles
-    sta $D400          ; SID voice 1 freq low - 4 cycles
-    lda #$6F           ; 440Hz frequency high - 2 cycles
-    sta $D401          ; SID voice 1 freq high - 4 cycles
-
-.done:
-    rts                ; Return - 6 cycles
-```
-
-**Total performance: ~50 cycles for complete snake update!** That's fast enough for 60fps gameplay on real C64 hardware.
-
-## ⚡ What Makes Blend65 Special
-
-### 🎯 **Direct Hardware Control**
+The language provides direct access to platform-specific hardware through module imports:
 
 ```js
-// Control every aspect of C64 hardware
 import setRasterInterrupt from c64.interrupts
 import setSpriteCollision from c64.vic
+import setVoiceWaveform from c64.sid
 
 callback function rasterIRQ(): void
-    setBackgroundColor(randomColor())  // Raster bar effect
+    setBackgroundColor(BLUE)
 end function
 
-setRasterInterrupt(100, rasterIRQ)     // Trigger at raster line 100
+setRasterInterrupt(100, rasterIRQ)
 ```
 
-### 🧠 **Zero Page Optimization**
+### Callback Functions
+
+Type-safe function pointers enable interrupt-driven programming and behavioral dispatch:
 
 ```js
-zp var playerSpeed: byte = 2    // Automatically allocated to zero page
-ram var enemyList: byte[50]     // Regular RAM allocation
-const var maxEnemies: byte = 50 // Compile-time constant
+callback interruptHandler: function(): void
+callback behaviorFunction: function(entity: Entity): void
+
+var rasterCallbacks: interruptHandler[8]
+var enemyBehaviors: behaviorFunction[16]
 ```
 
-### 🔥 **Callback-Driven Architecture**
+## Target Platforms
 
-```js
-// Type-safe interrupt handlers for advanced C64 programming
-callback rasterInterrupt: function(): void
-callback musicInterrupt: function(): void
+- **Commodore 64** - Full VIC-II, SID, and CIA support
+- **VIC-20** - VIA and basic graphics support
+- **Commander X16** - VERA graphics and enhanced features
+- **Generic 6502** - Basic instruction set compatibility
 
-var rasterCallbacks: rasterInterrupt[8]
-rasterCallbacks[0] = topScreenEffect
-rasterCallbacks[7] = bottomScreenEffect
+## Implementation Status
+
+**Completed Components:**
+- Lexical analysis (tokenization)
+- Syntax parsing (AST generation)
+- Semantic analysis (type checking, symbol resolution)
+- Intermediate language representation
+- Optimization framework and pattern analysis
+
+**In Development:**
+- 6502 code generation
+- Platform-specific hardware APIs
+- Assembly output and linking
+
+**Planned:**
+- Emulator integration testing
+- Performance optimization passes
+- Debugging information generation
+
+## Project Structure
+
+```
+├── docs/                          # Documentation
+├── examples/                      # Sample programs
+├── packages/
+│   ├── lexer/                     # Tokenization
+│   ├── parser/                    # Syntax analysis
+│   ├── ast/                       # Abstract syntax tree
+│   ├── semantic/                  # Type checking and analysis
+│   ├── il/                        # Intermediate language
+│   └── core/                      # Shared utilities
 ```
 
-## 🏗️ Compiler Architecture That Actually Works
+## Development
 
-This isn't a toy project. We're building real compiler infrastructure:
+This project uses TypeScript and is organized as a monorepo with Yarn workspaces.
 
-- **Advanced Control Flow Analysis** - Dominance trees, loop detection, data dependency graphs
-- **Cycle-Perfect Timing** - Hardware-accurate performance modeling for C64/VIC-20/X16
-- **Intelligent Optimization** - 470+ optimization patterns targeting real 6502 constraints
-- **Multi-Platform Support** - C64, VIC-20, Commander X16 with platform-specific optimizations
+```bash
+# Install dependencies
+yarn install
 
-## � What's Coming Next
+# Build all packages
+yarn build
 
-**The backend is where the magic happens.** We're building:
+# Run tests
+yarn test
 
-1. **IL Quality Metrics** - Smart analysis to pick the best optimizations
-2. **Pattern-Readiness Analytics** - Integration with massive optimization database
-3. **6502 Code Generation** - Turn IL into beautiful, fast assembly
-4. **Real Hardware Testing** - VICE emulator integration for validation
-
-## 🌟 Why This Matters
-
-The C64 homebrew scene is **exploding** right now. New games, new demos, new developers discovering the joy of programming close to the metal. But assembly is hard, and modern languages are too abstract.
-
-**Blend65 bridges that gap.** Modern syntax, vintage performance, zero compromises, plus cutting-edge support for expanded memory systems like REU.
-
-**Revolutionary expanded memory support:**
-- **4MB+ game worlds** using REU/expanded memory with transparent high-level APIs
-- **Dual performance options** - XMS bulk transfers + EMS direct access for optimal speed
-- **Multi-platform ready** - Universal APIs that work across C64, Atari, Apple II, and more
-- **Modern hardware support** - Perfect for C64 Ultimate, MEGA65, and other expanded systems
-
-Join us in building the future of retro programming! 🕹️
-
----
+# Clean build artifacts
+yarn clean
+```
 
 ## Documentation
 
-- [**Language Specification**](docs/BLEND65_LANGUAGE_SPECIFICATION.md) - Complete syntax reference
-- [**Project Status**](docs/PROJECT_STATUS.md) - Current development state and metrics
-- [**Implementation Plan**](docs/implementation-plan/COMPILER_BACKEND_PLAN.md) - Detailed roadmap
+- [Language Specification](docs/BLEND65_LANGUAGE_SPECIFICATION.md) - Complete syntax and semantics reference
+- [Project Status](docs/PROJECT_STATUS.md) - Current development state and progress
+- [Implementation Plans](docs/implementation-plan/) - Detailed development roadmaps
+
+## Contributing
+
+This project is in active development. See the implementation plans in the `docs/implementation-plan/` directory for current priorities and technical specifications.
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details
+MIT License - see [LICENSE](LICENSE) for details.
