@@ -1,136 +1,176 @@
 # Blend65 Task Management and Context Preservation System
 
-**Purpose:** Mandatory context management system to ensure seamless task transitions and prevent information loss due to AI context window limitations
+**Purpose:** AI context management system integrated with GitHub project workflow for Blend65 compiler development
 
 ---
 
-## Table of Contents
+## Context Management Philosophy
 
-1. [Critical Context Management Rules](#critical-context-management-rules)
-2. [Mandatory New Task Creation Protocol](#mandatory-new-task-creation-protocol)
-3. [Comprehensive Context Summary Framework](#comprehensive-context-summary-framework)
-4. [Context Quality Assurance](#context-quality-assurance)
-5. [Integration with Blend65 Workflow](#integration-with-blend65-workflow)
-6. [Recovery Procedures](#recovery-procedures)
-7. [Context Template Examples](#context-template-examples)
+### **Two-Level Task System**
 
----
+The Blend65 project uses a two-level task management approach:
 
-## Critical Context Management Rules
+1. **AI Context Level (Cline `new_task` tool):**
+   - Preserves AI knowledge and implementation context across sessions
+   - Maintains architectural decisions, specification compliance, build state
+   - Enables seamless continuation of complex compiler development work
 
-### **RULE 1: MANDATORY NEW TASK CREATION**
+2. **Project Management Level (GitHub Projects):**
+   - Tracks actual implementation work through 5-lane workflow
+   - Manages research findings → task creation → implementation → completion
+   - Provides project visibility and progress tracking
 
-**🚨 CRITICAL REQUIREMENT:** When working on Blend65 in ACT MODE, you **MUST ALWAYS** use the `new_task` tool to create a "Task With Context" before beginning any new task that follows a previous task.
-
-**NEVER continue in the same task session** when:
-- Starting a new task after completing a previous one
-- Context window usage exceeds 70% (700K tokens)
-- Switching between different phases of work (frontend → backend, implementation → testing, etc.)
-- Working on different packages or subsystems
-- More than 1 hour has passed since the last task creation
-- Task complexity requires detailed historical context
-
-### **RULE 2: ZERO TOLERANCE FOR CONTEXT LOSS**
-
-**Consequences of not following this rule:**
-- ❌ **Critical implementation details lost** - architectural decisions, design patterns
-- ❌ **Build state confusion** - unknown package states, broken dependencies
-- ❌ **Duplicate work** - reimplementing already completed features
-- ❌ **Specification drift** - forgetting Blend65 language requirements
-- ❌ **Quality regression** - missing test patterns, breaking established conventions
-- ❌ **Evolution misalignment** - losing track of roadmap priorities and version targeting
-
-### **RULE 3: PROACTIVE CONTEXT MANAGEMENT**
-
-**Create new tasks when:**
-- ✅ **Starting any new implementation task** (backend development, new packages, features)
-- ✅ **Context window approaching limits** (>70% usage)
-- ✅ **Switching work domains** (lexer → parser → semantic → codegen)
-- ✅ **After completing major milestones** (package completion, phase completion)
-- ✅ **Before complex debugging sessions** (build failures, test failures)
-- ✅ **When resuming work after breaks** (different day, after user questions)
-
----
-
-## Mandatory New Task Creation Protocol
-
-### When to Create New Tasks
-
-**IMMEDIATE new task creation required for:**
-
-1. **Implementation Tasks**
-   - Adding new packages to the Blend65 compiler
-   - Implementing semantic analysis components
-   - Building IL (Intermediate Language) systems
-   - Creating code generation modules
-   - Adding hardware API implementations
-
-2. **Major System Changes**
-   - Modifying compiler architecture
-   - Updating TypeScript configurations
-   - Changing build systems or dependencies
-   - Refactoring across multiple packages
-
-3. **Quality Assurance Tasks**
-   - Fixing failing tests across packages
-   - Resolving build or compilation errors
-   - Updating documentation systems
-   - Implementing new test frameworks
-
-4. **Evolution-Related Tasks**
-   - Implementing new language features (v0.2, v0.3+)
-   - Adding game compatibility requirements
-   - Updating missing features matrices
-   - Roadmap realignment activities
-
-### Context Creation Trigger Points
-
-**Automatic triggers (always create new task):**
+### **Integration Flow**
 
 ```
-IF current_context_usage > 70% THEN create_new_task()
-IF task_domain_change THEN create_new_task()
-IF package_switch THEN create_new_task()
-IF major_milestone_completed THEN create_new_task()
-IF build_failure_resolution THEN create_new_task()
-IF specification_compliance_check THEN create_new_task()
+Research/Planning Session →
+  Create GitHub Project Items →
+  Use new_task for AI Context →
+  Implementation Work →
+  GitHub Lane Management →
+  When context full/domain switch → new_task (new AI session)
 ```
-
-**Manual triggers (create when appropriate):**
-
-- User requests a new task after current completion
-- Complex debugging requiring deep context
-- Integration work spanning multiple packages
-- Performance optimization requiring full system understanding
-- Architectural decision requiring evolution context
 
 ---
 
-## Comprehensive Context Summary Framework
+## New Task Tool Integration
 
-### **Required Context Sections**
+### **MANDATORY Context Preservation Rules**
 
-When creating a new task using the `new_task` tool, **ALWAYS** include these sections in your context:
+**🚨 CRITICAL REQUIREMENT:** When working on Blend65 in ACT MODE, you **MUST** use the `new_task` tool to create context-preserved AI sessions before:
+
+- **Context window approaching limits** (>70% usage)
+- **Switching between compiler domains** (frontend ↔ backend, lexer ↔ parser ↔ semantic ↔ codegen)
+- **Major milestone completion** (package completion, phase completion)
+- **Complex debugging sessions** (build failures, integration issues)
+- **Resuming work after breaks** (different day, long interruptions)
+- **Starting implementation from research/planning**
+
+### **Context Preservation vs GitHub Management**
+
+**Clear Separation:**
+- `new_task` = AI knowledge preservation (not GitHub task creation)
+- GitHub project items = Work task tracking and progress management
+- Both work together but serve different purposes
+
+**Workflow Integration:**
+```bash
+# AI Context Management (new_task)
+new_task → Preserve AI knowledge → Continue in new session
+
+# GitHub Task Management (separate)
+create_tasks_from_research → GitHub project items → Lane management
+```
+
+### **When NOT to Use new_task**
+
+**Do NOT create new_task for:**
+- Creating GitHub project items (use gh.md workflows instead)
+- Moving tasks through GitHub lanes (use lane management functions)
+- Brief context switches within same domain
+- Simple build/test cycles
+- Minor code changes
+
+---
+
+## GitHub Project Integration
+
+### **GitHub Task Creation from Context**
+
+When AI context contains research or implementation plans:
+
+```bash
+# After research/planning, create GitHub project items
+create_tasks_from_research "research_summary" "implementation_approach"
+
+# Or create specific compiler tasks
+create_compiler_development_task "semantic" "Symbol table implementation" "Description" "High" "7"
+```
+
+### **Context-Aware Task Creation**
+
+```bash
+# Function to create GitHub tasks with context reference
+create_task_with_context() {
+  local task_title="$1"
+  local description="$2"
+  local ai_context_reference="$3"
+
+  # Enhanced description with AI context link
+  local full_description="$description
+
+## AI Context Reference
+**Context Session:** $ai_context_reference
+**Implementation Context:** Detailed technical context preserved in AI session
+**Architectural Decisions:** Reference AI session for design patterns and approaches
+**Specification Compliance:** See AI context for language specification alignment
+
+## GitHub Project Integration
+- This task tracks implementation progress
+- Technical details and context maintained in AI sessions
+- Use lane management for progress tracking"
+
+  create_project_task "$task_title" "$full_description" "$priority" "$phase" "$effort" ""
+}
+```
+
+### **Lane Management Integration**
+
+Link AI context sessions with GitHub project lane progression:
+
+```bash
+# Move GitHub task through lanes while preserving AI context
+progress_task_with_context() {
+  local github_task="$1"
+  local target_lane="$2"
+  local ai_context_note="$3"
+
+  # Move through GitHub lanes
+  case $target_lane in
+    "refine") move_to_refine "$github_task" ;;
+    "in-progress") move_to_in_progress "$github_task" ;;
+    "test") move_to_test "$github_task" ;;
+    "done") move_to_done "$github_task" "Context: $ai_context_note" ;;
+  esac
+
+  echo "📋 GitHub Task: $github_task → $target_lane"
+  echo "🧠 AI Context: $ai_context_note"
+}
+```
+
+---
+
+## Comprehensive Context Framework
+
+### **Required Context Sections for new_task**
+
+When creating a new AI task session, **ALWAYS** include these sections:
 
 #### 1. **Current Work Summary**
 ```markdown
-**Current Work:** [Describe in detail what was being worked on]
-- **Specific Task:** [Exact task name and goals]
+**Current Work:** [Detailed description of what was being worked on]
+**GitHub Project Context:**
+- **Related GitHub Tasks:** [List GitHub project items being worked on]
+- **Task Status:** [Current lane status for each GitHub item]
+- **Project Completion:** [Overall GitHub project completion percentage]
+
+**Implementation Context:**
+- **Specific Task:** [Exact implementation goals]
 - **Progress Status:** [What was completed, what remains]
-- **Last Actions:** [Recent changes made, files modified]
+- **Last Actions:** [Recent changes made, files modified, tests added]
 - **Stopping Point:** [Exact point where work was paused]
 - **Next Immediate Steps:** [What should happen next]
 ```
 
 #### 2. **Technical Implementation Context**
 ```markdown
-**Implementation Status:**
-- **Frontend Status:** Lexer (✅), Parser (✅), AST (✅)
-- **Backend Status:** Semantic ([current_status]), IL ([status]), Codegen ([status])
+**Build and Package Status:**
+- **Frontend Status:** Lexer (✅ Complete), Parser (✅ Complete), AST (✅ Complete)
+- **Backend Status:** Semantic (🔄 In Progress), IL (✅ Complete), Codegen (❌ Not Started)
 - **Current Package:** [Package being worked on]
-- **Recent Changes:** [Files modified, tests added, APIs implemented]
 - **Build Health:** [yarn build && yarn test status]
-- **Test Coverage:** [Current test counts and coverage]
+- **Test Coverage:** [Current test counts and coverage stats]
+- **Recent Changes:** [Files modified, APIs implemented, architectural decisions]
 ```
 
 #### 3. **Blend65 Language Specification Context**
@@ -138,55 +178,61 @@ When creating a new task using the `new_task` tool, **ALWAYS** include these sec
 **Specification Alignment:**
 - **Language Version:** [v0.1/v0.2/v0.3 features being implemented]
 - **Grammar Rules:** [Specific EBNF rules relevant to current work]
-- **Storage Classes:** [zp/ram/data/const/io usage patterns]
-- **Callback System:** [Function pointer semantics, interrupt handling]
+- **Storage Classes:** [zp/ram/data/const/io usage patterns and implementation status]
+- **Callback System:** [Function pointer semantics, interrupt handling implementation]
 - **Type System:** [Current type checking implementation status]
-- **Hardware APIs:** [c64.sprites/vic/sid/etc. implementation status]
+- **Hardware APIs:** [c64.sprites/vic/sid/etc. implementation status and gaps]
+- **6502 Constraints:** [Memory layout, register allocation, performance considerations]
 ```
 
 #### 4. **Architecture and Design Context**
 ```markdown
 **Architectural Decisions:**
-- **Design Patterns:** [Visitor pattern, Result types, etc.]
-- **Package Dependencies:** [How current package relates to others]
-- **Error Handling:** [Current error propagation strategies]
-- **Code Quality Standards:** [TypeScript strict mode, test coverage requirements]
-- **Performance Considerations:** [6502 constraints, optimization strategies]
+- **Design Patterns:** [Visitor pattern usage, Result types, Factory patterns, etc.]
+- **Package Dependencies:** [How current package relates to others, dependency flow]
+- **Error Handling:** [Current error propagation strategies and patterns]
+- **Code Quality Standards:** [TypeScript strict mode compliance, test coverage requirements]
+- **Performance Considerations:** [6502 constraints, memory usage, compilation speed]
+- **Integration Points:** [How components connect, data flow between packages]
 ```
 
 #### 5. **Evolution and Roadmap Context**
 ```markdown
 **Evolution Alignment:**
 - **Target Version:** [Which Blend65 version this work enables]
-- **Game Compatibility:** [Which games become portable through this work]
-- **Missing Features:** [Known gaps this work addresses]
-- **Priority Level:** [CRITICAL/HIGH/MEDIUM/LOW based on roadmap]
+- **Game Compatibility:** [Which analyzed games become portable through this work]
+- **Missing Features:** [Known gaps this work addresses from feature matrix]
+- **Priority Level:** [CRITICAL/HIGH/MEDIUM/LOW based on evolution roadmap]
 - **Roadmap Impact:** [How this advances toward version milestones]
+- **Research Integration:** [How current work builds on previous research findings]
 ```
 
 #### 6. **Quality and Testing Context**
 ```markdown
 **Quality Status:**
-- **Test Strategy:** [Current testing approach and coverage]
-- **Quality Gates:** [Build health, test passing status]
+- **Test Strategy:** [Current testing approach, coverage goals, test patterns]
+- **Quality Gates:** [Build health status, test passing rates, TypeScript compliance]
 - **Known Issues:** [Any failing tests, build problems, technical debt]
-- **Validation Requirements:** [How to verify completion]
-- **Integration Points:** [Where this work connects to other components]
+- **Validation Requirements:** [How to verify completion, acceptance criteria]
+- **Integration Testing:** [Cross-package testing requirements and status]
+- **Performance Validation:** [Benchmarks, memory usage, compilation speed targets]
 ```
 
 #### 7. **Next Steps and Dependencies**
 ```markdown
 **Immediate Actions:**
-1. **Next Task:** [Specific next implementation step]
-2. **Dependencies:** [What must be completed first]
-3. **Validation:** [How to test/verify the work]
-4. **Documentation:** [What docs need updating]
-5. **Evolution Impact:** [How to update roadmap/matrices]
+1. **Next Implementation Step:** [Specific next technical task]
+2. **GitHub Task Management:** [Tasks to create, move, or update in GitHub project]
+3. **Dependencies:** [What must be completed first, blocking issues]
+4. **Validation:** [How to test/verify the work, quality checks]
+5. **Documentation:** [What docs need updating, API documentation]
+6. **Evolution Impact:** [How to update roadmap/matrices after completion]
 
-**Pending Tasks:**
-- [List all known follow-up work]
-- [Dependencies waiting for current completion]
-- [Future version requirements this enables]
+**Pending Work:**
+- **Implementation Queue:** [List all known follow-up implementation work]
+- **GitHub Task Updates:** [Project items awaiting completion or updates]
+- **Dependencies:** [Work waiting for current completion]
+- **Future Version Requirements:** [Features this enables for v0.2, v0.3, etc.]
 ```
 
 ---
@@ -195,308 +241,140 @@ When creating a new task using the `new_task` tool, **ALWAYS** include these sec
 
 ### **Context Completeness Validation**
 
-Before creating a new task, ensure the context includes:
+Before creating a new_task, ensure the context includes:
 
 **✅ Required Information Checklist:**
-- [ ] **Current project status** - build health, package states, test counts
-- [ ] **Implementation reality** - what's actually complete vs. theoretical
-- [ ] **Specification compliance** - which language features are implemented
-- [ ] **Recent work details** - exact files changed, APIs added, tests written
-- [ ] **Architectural decisions** - design patterns used, error handling approaches
-- [ ] **Evolution alignment** - version targeting, game compatibility, roadmap impact
-- [ ] **Next steps clarity** - specific actions, dependencies, validation requirements
-- [ ] **Quality status** - test coverage, build health, known issues
+- [ ] **GitHub project status** - current task states, lane distribution, completion percentage
+- [ ] **Build health reality** - actual package states, test counts, compilation status
+- [ ] **Implementation specifics** - exact files changed, APIs added, architectural decisions
+- [ ] **Specification compliance** - which language features implemented, grammar rules followed
+- [ ] **Evolution alignment** - version targeting, game compatibility impact, roadmap progress
+- [ ] **Quality metrics** - test coverage, build health, known issues and technical debt
+- [ ] **Next steps clarity** - specific actions, GitHub task management, validation requirements
+- [ ] **Dependencies mapping** - what's blocked, what's ready, critical path analysis
 
 **❌ Context Red Flags (Fix Before Proceeding):**
-- Generic descriptions without specific details
-- Theoretical status vs. actual implementation reality
-- Missing specification alignment information
-- Unclear next steps or dependencies
-- No mention of build/test health
-- Missing evolution/roadmap context
-- Vague architectural decisions
+- Generic descriptions without GitHub project correlation
+- Theoretical status vs. actual build/implementation reality
+- Missing specification alignment with current language features
+- Unclear next steps or GitHub task management actions
+- No mention of evolution/roadmap impact
+- Missing quality status or known issues
+- Vague architectural decisions without technical details
 
 ### **Context Accuracy Verification**
 
-**Before finalizing context, validate:**
+**Before finalizing new_task context, validate:**
 
-1. **Implementation Status Accuracy**
-   - Check actual package completion vs. claimed status
-   - Verify test counts and build health
-   - Confirm API implementation vs. specification
+1. **GitHub Project Alignment**
+   - Check actual GitHub project item status vs. claimed progress
+   - Verify lane distribution matches current work state
+   - Confirm task completion percentages are accurate
 
-2. **Specification Alignment Check**
+2. **Build Health Verification**
+   - Run `yarn clean && yarn build && yarn test` to confirm status
+   - Verify package build states and test coverage numbers
+   - Check TypeScript compilation status and error counts
+
+3. **Specification Compliance Check**
    - Reference `docs/BLEND65_LANGUAGE_SPECIFICATION.md` for current requirements
-   - Verify language feature implementation completeness
-   - Confirm grammar rule compliance
+   - Verify implemented features match specification exactly
+   - Confirm grammar rule compliance and error handling
 
-3. **Evolution Document Consistency**
-   - Check `docs/research/BLEND65_EVOLUTION_ROADMAP.md` for priority alignment
+4. **Evolution Document Consistency**
+   - Cross-reference `docs/research/BLEND65_EVOLUTION_ROADMAP.md` priorities
    - Verify `docs/research/BLEND65_MISSING_FEATURES_MATRIX.md` accuracy
-   - Ensure game compatibility assessments are current
-
----
-
-## Integration with Blend65 Workflow
-
-### **Automatic Documentation Updates**
-
-When creating new tasks, **always consider updating:**
-
-1. **Evolution Documents**
-   - Update `BLEND65_EVOLUTION_ROADMAP.md` with progress
-   - Mark completed features in `BLEND65_MISSING_FEATURES_MATRIX.md`
-   - Update game compatibility analyses
-
-2. **Project Status**
-   - Update `docs/PROJECT_STATUS.md` with current build health
-   - Document package completion percentages
-   - Update recommended next tasks
-
-3. **Implementation Plans**
-   - Mark completed tasks in backend/frontend plans
-   - Update dependency status for pending tasks
-   - Document architectural decisions made
-
-### **Git Workflow Integration**
-
-**New task creation should trigger:**
-
-1. **Git Status Check** - Ensure clean working directory
-2. **Commit Pending Work** - Use `gitcm` to commit current progress
-3. **Documentation Updates** - Update relevant evolution/status docs
-4. **Quality Validation** - Verify build health before proceeding
-
-### **Build Health Integration**
-
-**Before creating new task context:**
-
-```bash
-# Verify current build health
-yarn clean && yarn build && yarn test
-
-# Document results in context:
-- Build Status: ✅/❌
-- Test Results: [X] passing, [Y] failing
-- TypeScript Status: Clean/Errors
-- Package Health: [Status by package]
-```
+   - Ensure game compatibility assessments reflect current implementation
 
 ---
 
 ## Recovery Procedures
 
-### **When Context Is Lost**
+### **When Context Is Lost or Corrupted**
 
 If you find yourself working without proper context:
 
-1. **STOP IMMEDIATELY** - Do not proceed without context
-2. **Execute Recovery Protocol:**
+1. **STOP IMMEDIATELY** - Do not proceed without comprehensive context
+2. **Execute Context Recovery Protocol:**
 
-   ```markdown
-   ## Context Recovery Protocol
+#### Context Recovery Protocol
 
-   1. **Read PROJECT_STATUS.md** - Get current build health and status
-   2. **Check Latest Git Commits** - Understand recent changes
-   3. **Review Evolution Documents** - Understand current priorities
-   4. **Validate Build Health** - Run yarn clean && yarn build && yarn test
-   5. **Create Recovery Context** - Use new_task with recovered information
-   ```
+```markdown
+## Emergency Context Recovery
 
-3. **Mandatory Context Reconstruction:**
-   - Read `docs/PROJECT_STATUS.md` for current status
-   - Check `docs/research/BLEND65_EVOLUTION_ROADMAP.md` for priorities
-   - Review recent git commits for latest changes
-   - Execute build validation to confirm current health
-   - Create comprehensive context summary using recovery information
+### Phase 1: GitHub Project Assessment
+1. **Load GitHub Configuration:** `source .github/project_config`
+2. **Get Project Status:** Run GitHub project status queries
+3. **Analyze Task Distribution:** Check current lane states and completion rates
+4. **Identify Active Work:** Find tasks in In Progress and Test lanes
+
+### Phase 2: Build Health Assessment
+1. **Validate Build State:** `yarn clean && yarn build && yarn test`
+2. **Check Package Health:** Verify individual package build and test status
+3. **Assess Quality Gates:** Run TypeScript compilation and coverage checks
+4. **Document Build Reality:** Record actual vs. theoretical implementation status
+
+### Phase 3: Implementation Reality Check
+1. **Read PROJECT_STATUS.md** - Get documented current status
+2. **Review Recent Git History** - `git log --oneline -20` for latest changes
+3. **Check File Modification Dates** - Understand recent development activity
+4. **Validate Package States** - Check dist/ folders and test coverage
+
+### Phase 4: Specification and Evolution Alignment
+1. **Review Language Specification** - Check current implementation vs. spec
+2. **Check Evolution Documents** - Verify roadmap priorities and feature status
+3. **Validate Game Compatibility** - Confirm current implementation capabilities
+4. **Cross-Reference Feature Matrix** - Update status based on actual implementation
+
+### Phase 5: Create Recovery Context
+1. **Comprehensive Context Creation** - Use new_task with all recovered information
+2. **GitHub Task Synchronization** - Update GitHub project items if needed
+3. **Quality Status Documentation** - Record current health and known issues
+4. **Evolution Impact Assessment** - Document how current state affects roadmap
+```
 
 ### **Context Validation Failure Recovery**
 
-**If build health checks fail during context creation:**
+**If quality gates fail during context creation:**
 
-1. **Priority 1: Fix Quality Gates**
-   - Resolve all TypeScript compilation errors
-   - Fix failing tests before proceeding
-   - Restore package build health
+1. **Priority 1: Fix Critical Issues**
+   - Resolve TypeScript compilation errors immediately
+   - Fix failing tests before documenting context
+   - Restore package build health to known-good state
 
-2. **Document Recovery in Context**
+2. **Document Recovery Actions**
    - Note what was broken and how it was fixed
    - Update context with recovery actions taken
-   - Include validated build health status
+   - Include lessons learned to prevent future issues
 
 3. **Continue with Validated Context**
-   - Proceed only after quality gates pass
+   - Proceed only after all quality gates pass
    - Include recovery experience in architectural notes
-   - Use experience to improve future context creation
-
----
-
-## Context Template Examples
-
-### **Template 1: Backend Development Task Context**
-
-```markdown
-## Blend65 Backend Development Context
-
-### Current Work Summary
-**Task:** Implement semantic analysis infrastructure for Blend65 compiler
-**Progress:** Created semantic package structure, implementing symbol table system
-**Last Actions:** Added SymbolTable interface, SymbolType definitions, basic scope management
-**Stopping Point:** Need to implement type checking for variable declarations
-**Next Steps:** Add variable declaration analysis with storage class validation
-
-### Technical Implementation Context
-**Frontend Status:** Lexer (✅ 65 tests), Parser (✅ 128 tests), AST (✅ 48 tests)
-**Backend Status:** Semantic (🔄 IN PROGRESS - 15 tests), IL (❌ Not Started), Codegen (❌ Not Started)
-**Current Package:** @blend65/semantic - building core semantic analysis infrastructure
-**Build Health:** ✅ All packages compile, 256 total tests passing
-**Recent Changes:**
-- Added packages/semantic/src/types.ts with SymbolTable, SymbolType definitions
-- Implemented packages/semantic/src/symbol-table.ts with scope management
-- Created comprehensive test suite for symbol table operations
-
-### Blend65 Specification Context
-**Target Language Version:** v0.1 core features + v0.2 enums + v0.3 callback functions
-**Grammar Compliance:** Processing variable declarations, function definitions, module imports
-**Storage Classes:** Implementing zp/ram/data/const/io semantic validation
-**Type System:** Building type compatibility checking for primitive types, arrays, named types
-**Callback System:** Need to handle callback type checking and assignment validation
-
-### Architecture & Design Context
-**Design Patterns:** Using Visitor pattern for AST traversal, Result types for error handling
-**Error Handling:** SemanticError with source location, error recovery for continued analysis
-**Quality Standards:** TypeScript strict mode, 90%+ test coverage, JSDoc for public APIs
-**Package Dependencies:** @blend65/semantic depends on @blend65/ast for node traversal
-
-### Evolution & Roadmap Context
-**Target Version:** Enables v0.1 compilation once IL and codegen complete
-**Game Compatibility:** Foundational for all analyzed games requiring semantic validation
-**Missing Features Addressed:** Symbol resolution, type checking (marked as CRITICAL in matrix)
-**Priority Level:** CRITICAL - blocks all backend development progress
-
-### Quality & Testing Context
-**Test Strategy:** Unit tests for each analyzer, integration tests for complete analysis
-**Current Coverage:** 15 tests covering symbol table, type system basics
-**Quality Gates:** ✅ All tests passing, ✅ TypeScript clean, ✅ Build successful
-**Next Validation:** Variable declaration analysis with comprehensive test coverage
-
-### Next Steps
-1. **Implement VariableAnalyzer** - Handle variable declarations with storage class validation
-2. **Add Type Checking** - Implement type compatibility for primitive types and arrays
-3. **Test Integration** - Validate complete semantic analysis pipeline
-4. **Update Documentation** - Mark semantic infrastructure as complete in evolution docs
-5. **Plan IL Development** - Prepare for Phase 2 once semantic analysis complete
-
-**Dependencies Met:** ✅ AST package complete with all node types
-**Blocked Tasks:** IL development awaits semantic analysis completion
-**Critical Path:** This task unblocks entire backend development pipeline
-```
-
-### **Template 2: Hardware API Implementation Context**
-
-```markdown
-## Blend65 Hardware API Implementation Context
-
-### Current Work Summary
-**Task:** Implement C64 sprite control APIs for hardware abstraction layer
-**Progress:** Added c64.sprites module foundation, implementing setSpritePosition and enableSprite
-**Last Actions:** Created sprite register mapping, basic sprite enable/disable functions
-**Stopping Point:** Need to implement setSpriteImage function with VIC-II memory layout
-**Next Steps:** Complete sprite image data management and sprite collision detection APIs
-
-### Technical Implementation Context
-**Frontend Status:** Complete - can parse all sprite API calls from Blend65 programs
-**Backend Status:** Semantic (✅), IL (✅), Codegen (🔄 Hardware APIs in progress)
-**Hardware Platform:** Commodore 64 VIC-II chip programming via memory-mapped registers
-**Current Module:** c64.sprites - sprite control and management APIs
-**Build Health:** ✅ All packages building, hardware API tests passing for implemented functions
-
-### Blend65 Specification Context
-**Hardware API Requirements:** c64.sprites.setSpritePosition, enableSprite, setSpriteImage, readSpriteCollisions
-**Memory Layout:** VIC-II sprite registers at $D000-$D02E, sprite data in VIC bank
-**Storage Classes:** Sprite data uses 'data' storage class for VIC-accessible memory
-**Type System:** sprite_id: byte (0-7), position coordinates: word, collision_mask: byte
-
-### Game Compatibility Context
-**Requesting Games:** [Iridis Alpha, 1nvader, C64 Space Shooter, Atomic Robokid]
-**Compatibility Impact:** Enables 85% of sprite-based games analyzed in research
-**Missing API Status:** setSpriteImage (HIGH priority), readSpriteCollisions (CRITICAL)
-**Version Target:** Required for v0.1 C64 game compilation capability
-
-### 6502 Implementation Context
-**VIC-II Programming:** Direct register writes to $D015 (sprite enable), $D000-$D00F (positions)
-**Memory Management:** Sprite data requires bank-aware memory allocation
-**Performance:** Sprite updates in raster interrupt context, timing-critical operations
-**Hardware Constraints:** 8 sprites maximum, 24x21 pixel resolution, shared VIC memory
-
-### Quality & Testing Context
-**Test Strategy:** Hardware simulation tests + real C64 validation programs
-**Current Coverage:** setSpritePosition (✅), enableSprite (✅), setSpriteImage (🔄)
-**Emulator Integration:** Testing with VICE emulator for register validation
-**Real Hardware:** Final validation on actual C64 hardware
-
-### Evolution Impact
-**Game Portability:** Moves 6 analyzed games from "Backend Pending" to "Compilable" status
-**Roadmap Progress:** Critical component for v0.1 C64 game compilation milestone
-**Feature Matrix Update:** Mark sprite control APIs as COMPLETE upon task completion
-**Next Hardware APIs:** Sound (c64.sid), Input (c64.cia), Graphics (c64.vic) priorities
-
-### Next Steps
-1. **Complete setSpriteImage** - Implement VIC bank-aware sprite data management
-2. **Add Collision Detection** - Implement readSpriteCollisions from VIC-II registers
-3. **Integration Testing** - Test complete sprite system with real game examples
-4. **Documentation Update** - Update hardware API status in evolution matrices
-5. **Game Validation** - Test sprite APIs with Iridis Alpha sprite movement code
-
-**Dependencies Met:** ✅ Code generation infrastructure, ✅ Memory management
-**Enables Next:** Sound APIs (c64.sid), Complete C64 game compilation
-**Critical for:** All sprite-based C64 games in compatibility analysis
-```
-
----
-
-## Enforcement and Compliance
-
-### **Automated Validation**
-
-The context management system should automatically validate:
-
-1. **Context Completeness** - All required sections present
-2. **Information Accuracy** - Status matches actual implementation
-3. **Specification Alignment** - References current language specification
-4. **Evolution Consistency** - Aligns with roadmap and missing features matrix
-
-### **Quality Gates Integration**
-
-**Context creation triggers quality validation:**
-
-- Build health verification (`yarn clean && yarn build && yarn test`)
-- Test coverage validation (minimum 90% for new packages)
-- TypeScript compilation verification (strict mode, zero errors)
-- Documentation currency check (API docs match implementation)
-
-### **Evolution Document Synchronization**
-
-**Context creation automatically updates:**
-
-- `docs/research/BLEND65_EVOLUTION_ROADMAP.md` with progress
-- `docs/research/BLEND65_MISSING_FEATURES_MATRIX.md` with status changes
-- `docs/PROJECT_STATUS.md` with current build health and capabilities
-- Game analysis files with updated compatibility status
+   - Update GitHub project items with recovery status
 
 ---
 
 ## Summary
 
-This task management system ensures that **no implementation context is ever lost** due to AI limitations, enabling seamless continuation of complex compiler development work. By mandating comprehensive context preservation, Blend65 development maintains architectural coherence, specification compliance, and evolution alignment across all tasks.
+This task management system ensures seamless integration between AI context preservation and GitHub project management:
 
-**Remember:** Context preservation is not optional - it's critical infrastructure for successful compiler development. Every task transition **MUST** use the `new_task` tool with comprehensive context to ensure project continuity and prevent costly rework.
+### **Key Integration Points:**
 
-The investment in detailed context creation pays dividends in:
-- ✅ **Faster development** - No time lost reconstructing context
-- ✅ **Higher quality** - Maintains architectural patterns and quality standards
-- ✅ **Specification compliance** - Continuous reference to language requirements
-- ✅ **Evolution alignment** - All work supports strategic roadmap goals
-- ✅ **Reduced technical debt** - Prevents context-loss-driven shortcuts and workarounds
+✅ **AI Context Preservation**: new_task tool maintains technical knowledge across sessions
+✅ **GitHub Project Tracking**: 5-lane workflow tracks implementation progress
+✅ **Build Health Integration**: Context always includes actual build and test status
+✅ **Specification Compliance**: Context preserves language specification alignment
+✅ **Evolution Alignment**: Context maintains roadmap and game compatibility focus
+✅ **Quality Assurance**: Context includes comprehensive quality gates and metrics
 
-**Context is code. Preserve it religiously.**
+### **Workflow Benefits:**
+
+- **No Lost Context**: Complex compiler development continues seamlessly
+- **Project Visibility**: GitHub provides clear progress tracking and task management
+- **Quality Maintenance**: Context preserves architectural patterns and standards
+- **Specification Compliance**: Continuous reference to language requirements
+- **Evolution Focus**: All work aligns with strategic roadmap and game compatibility goals
+
+**Remember:** Context preservation through new_task is critical infrastructure for successful compiler development. Combined with GitHub project management, it enables both technical excellence and project visibility.
+
+**Context is code. GitHub is progress. Together they enable success.**

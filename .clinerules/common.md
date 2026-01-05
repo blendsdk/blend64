@@ -13,8 +13,9 @@
 5. [Testing Requirements](#testing-requirements)
 6. [Architecture Principles](#architecture-principles)
 7. [Communication Standards](#communication-standards)
-8. [Automatic Documentation Updates](#automatic-documentation-updates)
-9. [Git Workflow Automation](#git-workflow-automation)
+8. [GitHub Project Integration](#github-project-integration)
+9. [Automatic Documentation Updates](#automatic-documentation-updates)
+10. [Git Workflow Automation](#git-workflow-automation)
 
 ---
 
@@ -26,6 +27,7 @@
 3. **Incremental development:** Complete each task fully before moving to the next
 4. **Real-world validation:** Test with realistic Blend65 programs, not just unit tests
 5. **File extension for blend sources** The file extension for Blend65 sources are `.blend`
+
 ### Language Specification Analysis
 
 **CRITICAL REQUIREMENT:** Before starting ANY compiler-related task (lexer, parser, AST, semantic analysis, code generation), you MUST read and analyze the Blend65 Language Specification:
@@ -360,6 +362,70 @@ When in PLAN MODE, **always ask yourself (the A.I.) these 4 questions:**
 
 ---
 
+## GitHub Project Integration
+
+### **Research to Task Creation Workflow**
+
+The Blend65 project uses a research-driven task creation approach integrated with GitHub Projects v2:
+
+```
+📋 RESEARCH & PLANNING → 🎯 GITHUB TASK CREATION → 🔄 5-LANE WORKFLOW
+```
+
+### **Task Creation from Research**
+
+When research/planning phase is complete:
+
+```bash
+# After completing analysis, create GitHub project items
+create_tasks_from_research "research_summary" "implementation_approach"
+
+# Or create specific compiler development tasks
+create_compiler_development_task "semantic" "Symbol table implementation" "Description" "High" "7"
+```
+
+### **5-Lane Development Workflow**
+
+All implementation work flows through GitHub project lanes:
+
+- **📋 BACKLOG**: Tasks created from research, ready for prioritization
+- **🔍 REFINE**: Tasks being refined with detailed specifications
+- **🛠️ IN PROGRESS**: Active implementation work
+- **🧪 TEST**: Implementation complete, testing and validation
+- **✅ DONE**: Completed and validated tasks
+
+### **GitHub Task Management Integration**
+
+**During Development:**
+- Move tasks through lanes as work progresses
+- Link commits to specific GitHub project items
+- Update task status based on implementation progress
+- Use lane distribution for project health assessment
+
+**Task Status Tracking:**
+```bash
+# Move tasks through workflow
+move_to_refine "Task Title"
+move_to_in_progress "Task Title"
+move_to_test "Task Title"
+move_to_done "Task Title" "Implementation complete"
+
+# Check project status
+get_project_status
+daily_progress_summary
+```
+
+### **Project Health Monitoring**
+
+Regular assessment of GitHub project health:
+
+- **Lane Distribution Analysis**: Balance of work across stages
+- **Completion Tracking**: Progress toward milestones
+- **Workflow Health**: Identification of bottlenecks or stalled work
+- **Next Task Recommendations**: Intelligent task prioritization
+
+---
+
 ## Automatic Documentation Updates
 
 ### Evolution Document Maintenance
@@ -439,11 +505,29 @@ When the user provides these keywords, Cline should perform the following action
 3. If there are no conflicts, push to remote (`git push`)
 4. Report any conflicts for manual resolution
 
+### GitHub Project Integration with Git Workflow
+
+**Enhanced Git Commands:**
+```bash
+# Git workflow with project updates
+gitcm_with_project_update "commit_message" "related_task"
+
+# Complete workflow with GitHub project integration
+gitcmp_with_project "commit_message" "related_task"
+```
+
+**Automatic Project Updates:**
+- Link commits to GitHub project items
+- Update task status based on commit content
+- Track progress through lane transitions
+- Generate completion summaries
+
 ### Commit Message Standards
 - **Type prefixes:** `feat:`, `fix:`, `docs:`, `test:`, `refactor:`
 - **Package scope:** `feat(semantic): add symbol table implementation`
 - **Descriptive summaries:** Explain what and why, not just what
 - **Breaking changes:** Mark with `BREAKING CHANGE:` in commit body
+- **GitHub task references:** Include project item context when relevant
 
 ---
 
@@ -454,12 +538,14 @@ When the user provides these keywords, Cline should perform the following action
 2. **Analyze Blend65 Language Specification** - For compiler tasks, read and analyze relevant specification sections
 3. **Consult evolution documents** - Review roadmap and missing features matrix
 4. **Analyze version targeting** - Determine which Blend65 version this task affects
-5. **Understand requirements and success criteria** with evolution and specification context
-6. **Implement core functionality as specified** - Follow specification exactly for compiler components
-7. **Write comprehensive tests covering all scenarios** - Include specification-driven test cases
-8. **Validate against success criteria and specification compliance** before proceeding
-9. **Document any architectural decisions** including evolution impact and specification alignment
-10. **Update evolution documents** as required by Automatic Documentation Updates
+5. **Check GitHub project status** - Understand current task distribution and priorities
+6. **Understand requirements and success criteria** with evolution and specification context
+7. **Implement core functionality as specified** - Follow specification exactly for compiler components
+8. **Write comprehensive tests covering all scenarios** - Include specification-driven test cases
+9. **Update GitHub project lanes** - Move tasks through workflow as work progresses
+10. **Validate against success criteria and specification compliance** before proceeding
+11. **Document any architectural decisions** including evolution impact and specification alignment
+12. **Update evolution documents** as required by Automatic Documentation Updates
 
 ### Quality Gates
 - **All tests passing** before moving to next task
@@ -467,6 +553,7 @@ When the user provides these keywords, Cline should perform the following action
 - **Integration tests validating phase boundaries**
 - **Performance benchmarks within acceptable range**
 - **Code review checklist completed**
+- **GitHub project status updated**
 
 ### Debugging Guidelines
 - **Use TypeScript's strict type checking** to catch errors early
