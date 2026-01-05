@@ -26,13 +26,13 @@
 The Blend65 project uses a 5-stage workflow optimized for compiler development:
 
 ```
-📋 BACKLOG → 🔍 REFINE → 🛠️ DEVELOP → 🧪 TEST → ✅ DONE
+📋 BACKLOG → 🔍 REFINE → 🛠️ IN PROGRESS → 🧪 TEST → ✅ DONE
 ```
 
 **Lane Definitions:**
 - **📋 BACKLOG**: Tasks identified but not yet detailed
 - **🔍 REFINE**: Tasks being refined with detailed specifications
-- **🛠️ DEVELOP**: Active implementation work
+- **🛠️ IN PROGRESS**: Active implementation work
 - **🧪 TEST**: Implementation complete, testing and validation
 - **✅ DONE**: Completed and validated tasks
 
@@ -312,8 +312,8 @@ move_to_refine() {
   gh issue comment $issue_number --body "🔍 **Moved to REFINE** - Detailing implementation requirements"
 }
 
-# Move item from Refine to Develop
-move_to_develop() {
+# Move item from Refine to In Progress
+move_to_in_progress() {
   local issue_number="$1"
   local item_id=$(get_project_item_id $issue_number)
 
@@ -321,13 +321,13 @@ move_to_develop() {
     --project-id $PROJECT_ID \
     --id $item_id \
     --field-id $STATUS_FIELD_ID \
-    --single-select-option-id $DEVELOP_OPTION_ID
+    --single-select-option-id $IN_PROGRESS_OPTION_ID
 
   # Add development start comment
-  gh issue comment $issue_number --body "🛠️ **Moved to DEVELOP** - Implementation started"
+  gh issue comment $issue_number --body "🛠️ **Moved to IN PROGRESS** - Implementation started"
 }
 
-# Move item from Develop to Test
+# Move item from In Progress to Test
 move_to_test() {
   local issue_number="$1"
   local item_id=$(get_project_item_id $issue_number)
@@ -400,7 +400,7 @@ bulk_move_to_lane() {
   for issue in "${issues[@]}"; do
     case $target_lane in
       "refine") move_to_refine $issue ;;
-      "develop") move_to_develop $issue ;;
+      "in-progress") move_to_in_progress $issue ;;
       "test") move_to_test $issue ;;
       "done") move_to_done $issue "Bulk completion" ;;
     esac
@@ -575,8 +575,8 @@ start_task() {
   # Assign task
   gh issue edit $issue_number --add-assignee "$developer"
 
-  # Move to Develop lane
-  move_to_develop $issue_number
+  # Move to In Progress lane
+  move_to_in_progress $issue_number
 
   # Create development branch
   local branch_name="task-$issue_number-$(gh issue view $issue_number --json title --jq '.title' | tr '[:upper:]' '[:lower:]' | tr ' ' '-')"
@@ -689,7 +689,7 @@ morning_standup() {
 
   echo "## Today's Focus:"
   gh project item-list $PROJECT_NUM --owner blendsdk --format json | \
-    jq -r '.items[] | select(.status == "Develop") | "- 🛠️ \(.content.title) (@\(.assignees[0].login // "unassigned"))"'
+    jq -r '.items[] | select(.status == "In Progress") | "- 🛠️ \(.content.title) (@\(.assignees[0].login // "unassigned"))"'
 
   echo ""
   echo "## Ready for Testing:"
@@ -714,7 +714,7 @@ evening_summary() {
   echo ""
   echo "## In Progress:"
   gh project item-list $PROJECT_NUM --owner blendsdk --format json | \
-    jq -r '.items[] | select(.status == "Develop") | "- 🔄 \(.content.title)"'
+    jq -r '.items[] | select(.status == "In Progress") | "- 🔄 \(.content.title)"'
 
   echo ""
   echo "## Tomorrow's Priorities:"
