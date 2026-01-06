@@ -354,8 +354,8 @@ export class SemanticAnalyzer {
           }
         }
 
-        // Exit module scope
-        this.symbolTable.exitScope();
+        // DON'T exit module scope yet - we need symbols to remain accessible
+        // The scope will be exited after all analysis is complete
       }
 
       // Collect optimization metadata after all declarations are processed

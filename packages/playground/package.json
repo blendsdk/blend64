@@ -18,7 +18,11 @@
         "dev": "tsc --watch",
         "test": "vitest run",
         "test:watch": "vitest",
-        "type-check": "tsc --noEmit"
+        "type-check": "tsc --noEmit",
+        "demo:builtin-complete": "node dist/demo-builtin-functions-complete-pipeline.js",
+        "demo:builtin-runner": "node dist/run-builtin-functions-demo.js",
+        "demo:visual-emulator": "node dist/demo-builtin-functions-visual-emulator.js",
+        "demo:working-assembly": "node dist/demo-manual-assembly.js"
     },
     "dependencies": {
 	"@blend65/parser": "*",

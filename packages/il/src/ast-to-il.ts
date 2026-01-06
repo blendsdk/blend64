@@ -551,6 +551,14 @@ export class ASTToILTransformer {
       case 'ExpressionStatement':
         return this.transformExpressionStatement(statement as ExpressionStatement);
 
+      case 'VariableDeclaration':
+        this.transformVariableDeclaration(statement as VariableDeclaration);
+        return {
+          instructions: [], // Instructions are added directly to function by transformVariableDeclaration
+          alwaysTransfersControl: false,
+          labels: new Map(),
+        };
+
       case 'ReturnStatement':
         return this.transformReturnStatement(statement as ReturnStatement);
 
@@ -1301,6 +1309,60 @@ export class ASTToILTransformer {
     const instructions: ILInstruction[] = [];
     const temporaries: ILTemporary[] = [];
 
+    // Check if this is a function call with identifier
+    if (callExpr.callee.type === 'Identifier') {
+      const functionName = (callExpr.callee as Identifier).name;
+
+      // Handle built-in function calls
+      if (this.isBuiltInFunction(functionName)) {
+        return this.transformBuiltInFunctionCall(functionName, callExpr.args);
+      }
+
+      // Handle user-defined function calls
+      const symbol = this.getSymbol(functionName);
+      if (symbol && symbol.symbolType === 'Function') {
+        const functionSymbol = symbol as FunctionSymbol;
+
+        // Transform arguments
+        const argValues: ILValue[] = [];
+        for (const arg of callExpr.args) {
+          const argResult = this.transformExpression(arg);
+          instructions.push(...argResult.instructions);
+          temporaries.push(...argResult.temporaries);
+          argValues.push(argResult.value);
+        }
+
+        // Create function reference for the call
+        const functionRef = createILVariable(
+          functionName,
+          { kind: 'primitive', name: 'void' }, // Function type
+          [...this.context.currentModule.qualifiedName, functionName], // Qualified name
+          null, // No storage class for functions
+          'global' // Functions are global scope
+        );
+
+        // Create call instruction
+        const callInstruction = createILInstruction(
+          ILInstructionType.CALL,
+          [functionRef, ...argValues],
+          this.context.nextInstructionId++
+        );
+
+        instructions.push(callInstruction);
+
+        // Create temporary for return value with correct type
+        const returnTemp = createILTemporary(this.context.nextTemporaryId++, functionSymbol.returnType);
+        temporaries.push(returnTemp);
+
+        return {
+          value: returnTemp,
+          instructions,
+          temporaries,
+        };
+      }
+    }
+
+    // Fallback: Transform callee as expression (for indirect calls, etc.)
     // Transform arguments
     const argValues: ILValue[] = [];
     for (const arg of callExpr.args) {
@@ -1333,6 +1395,194 @@ export class ASTToILTransformer {
 
     return {
       value: returnTemp,
+      instructions,
+      temporaries,
+    };
+  }
+
+  /**
+   * Check if a function name is a built-in function.
+   */
+  private isBuiltInFunction(name: string): boolean {
+    const builtInFunctions = ['poke', 'peek', 'pokew', 'peekw', 'sys'];
+    return builtInFunctions.includes(name);
+  }
+
+  /**
+   * Transform built-in function calls to appropriate IL instructions.
+   */
+  private transformBuiltInFunctionCall(
+    functionName: string,
+    args: Expression[]
+  ): ExpressionTransformResult {
+    const instructions: ILInstruction[] = [];
+    const temporaries: ILTemporary[] = [];
+
+    // Transform arguments
+    const argValues: ILValue[] = [];
+    for (const arg of args) {
+      const argResult = this.transformExpression(arg);
+      instructions.push(...argResult.instructions);
+      temporaries.push(...argResult.temporaries);
+      argValues.push(argResult.value);
+    }
+
+    switch (functionName) {
+      case 'poke':
+        // poke(address, value) - write byte to memory
+        if (argValues.length === 2) {
+          const pokeInstruction = createILInstruction(
+            ILInstructionType.POKE,
+            [argValues[0], argValues[1]], // address, value
+            this.context.nextInstructionId++,
+            {
+              sourceLocation: { line: 0, column: 0, offset: 0 },
+              sixtyTwoHints: {
+                preferredRegister: 'A',
+                preferredAddressingMode: 'absolute',
+                estimatedCycles: 4,
+                isHotPath: false,
+              }
+            }
+          );
+          instructions.push(pokeInstruction);
+        }
+
+        // poke returns void, so return void constant
+        return {
+          value: createILConstant({ kind: 'primitive', name: 'void' }, 0, 'decimal'),
+          instructions,
+          temporaries,
+        };
+
+      case 'peek':
+        // peek(address) - read byte from memory
+        if (argValues.length === 1) {
+          const resultTemp = createILTemporary(this.context.nextTemporaryId++, {
+            kind: 'primitive',
+            name: 'byte',
+          });
+          temporaries.push(resultTemp);
+
+          const peekInstruction = createILInstruction(
+            ILInstructionType.PEEK,
+            [argValues[0]], // address
+            this.context.nextInstructionId++,
+            {
+              result: resultTemp,
+              sourceLocation: { line: 0, column: 0, offset: 0 },
+              sixtyTwoHints: {
+                preferredRegister: 'A',
+                preferredAddressingMode: 'absolute',
+                estimatedCycles: 4,
+                isHotPath: false,
+              }
+            }
+          );
+          instructions.push(peekInstruction);
+
+          return {
+            value: resultTemp,
+            instructions,
+            temporaries,
+          };
+        }
+        break;
+
+      case 'pokew':
+        // pokew(address, value) - write word to memory
+        if (argValues.length === 2) {
+          const pokewInstruction = createILInstruction(
+            ILInstructionType.POKEW,
+            [argValues[0], argValues[1]], // address, value
+            this.context.nextInstructionId++,
+            {
+              sourceLocation: { line: 0, column: 0, offset: 0 },
+              sixtyTwoHints: {
+                preferredRegister: 'A',
+                preferredAddressingMode: 'absolute',
+                estimatedCycles: 8,
+                isHotPath: false,
+              }
+            }
+          );
+          instructions.push(pokewInstruction);
+        }
+
+        return {
+          value: createILConstant({ kind: 'primitive', name: 'void' }, 0, 'decimal'),
+          instructions,
+          temporaries,
+        };
+
+      case 'peekw':
+        // peekw(address) - read word from memory
+        if (argValues.length === 1) {
+          const resultTemp = createILTemporary(this.context.nextTemporaryId++, {
+            kind: 'primitive',
+            name: 'word',
+          });
+          temporaries.push(resultTemp);
+
+          const peekwInstruction = createILInstruction(
+            ILInstructionType.PEEKW,
+            [argValues[0]], // address
+            this.context.nextInstructionId++,
+            {
+              result: resultTemp,
+              sourceLocation: { line: 0, column: 0, offset: 0 },
+              sixtyTwoHints: {
+                preferredRegister: 'A',
+                preferredAddressingMode: 'absolute',
+                estimatedCycles: 8,
+                isHotPath: false,
+              }
+            }
+          );
+          instructions.push(peekwInstruction);
+
+          return {
+            value: resultTemp,
+            instructions,
+            temporaries,
+          };
+        }
+        break;
+
+      case 'sys':
+        // sys(address) - call machine language routine
+        if (argValues.length === 1) {
+          const sysInstruction = createILInstruction(
+            ILInstructionType.SYS,
+            [argValues[0]], // address
+            this.context.nextInstructionId++,
+            {
+              sourceLocation: { line: 0, column: 0, offset: 0 },
+              sixtyTwoHints: {
+                preferredRegister: 'A',
+                preferredAddressingMode: 'absolute',
+                estimatedCycles: 20,
+                isHotPath: false,
+              }
+            }
+          );
+          instructions.push(sysInstruction);
+        }
+
+        return {
+          value: createILConstant({ kind: 'primitive', name: 'void' }, 0, 'decimal'),
+          instructions,
+          temporaries,
+        };
+
+      default:
+        this.addError(`Unknown built-in function: ${functionName}`);
+        break;
+    }
+
+    // Fallback return for error cases
+    return {
+      value: createILConstant({ kind: 'primitive', name: 'void' }, 0, 'decimal'),
       instructions,
       temporaries,
     };

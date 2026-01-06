@@ -532,16 +532,14 @@ export class Blend65Parser extends RecursiveDescentParser<Program> {
       case 'return':
         return this.parseReturnStatement();
       case 'var':
-        // Local variable declaration (storage classes handled in parseVariableDeclaration)
-        const varDecl = this.parseVariableDeclaration();
-        return this.factory.createExpressionStatement(varDecl as any);
+        // Local variable declaration - return as statement, not wrapped in ExpressionStatement
+        return this.parseVariableDeclaration() as any;
       case 'zp':
       case 'ram':
       case 'data':
       case 'const':
-        // Storage classes in statements - let parseVariableDeclaration handle the error
-        const storageVarDecl = this.parseVariableDeclaration();
-        return this.factory.createExpressionStatement(storageVarDecl as any);
+        // Storage classes in statements - return as statement, not wrapped in ExpressionStatement
+        return this.parseVariableDeclaration() as any;
       case 'io':
         // Special case: provide helpful error for deprecated 'io' storage class in statements
         const ioToken = this.peek();

@@ -153,6 +153,17 @@ export class SimpleCodeGenerator {
       lines.push(`; Module: ${module.qualifiedName.join('.')}`);
       lines.push('');
 
+      // Generate program entry point that automatically calls main()
+      const hasMainFunction = module.functions.some((func: any) => func.name === 'main');
+
+      if (hasMainFunction) {
+        lines.push('; Program Entry Point - automatically calls main()');
+        const mainFunctionLabel = [...module.qualifiedName, 'main'].join('_');
+        lines.push(`    JSR ${mainFunctionLabel}      ; Call main() function`);
+        lines.push('    RTS              ; Return to BASIC');
+        lines.push('');
+      }
+
       for (const func of module.functions) {
         const functionLines = this.generateFunction(func);
         lines.push(...functionLines);

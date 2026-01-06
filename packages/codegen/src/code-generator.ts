@@ -333,6 +333,15 @@ export class CodeGenerator {
     lines.push(`; Module: ${module.qualifiedName.join('.')}`);
     lines.push('');
 
+    // Generate program entry point that calls main()
+    const entryPointSection = this.generateProgramEntryPoint(module);
+    lines.push(...entryPointSection.lines);
+
+    // Merge entry point labels
+    for (const [label, addr] of entryPointSection.labels) {
+      labels.set(label, addr);
+    }
+
     // Generate functions
     for (const func of module.functions) {
       const functionSection = await this.generateFunctionCode(func);
@@ -345,7 +354,7 @@ export class CodeGenerator {
 
       // Merge source lines
       for (const [sourceLine, asmLine] of functionSection.sourceLines) {
-        sourceLines.set(sourceLine, asmLine + lines.length);
+        sourceLines.set(sourceLine, asmLine);
       }
     }
 
@@ -354,6 +363,42 @@ export class CodeGenerator {
       lines,
       labels,
       sourceLines,
+    };
+  }
+
+  /**
+   * Generate program entry point that automatically calls main()
+   */
+  private generateProgramEntryPoint(module: any): AssemblySection {
+    const lines: string[] = [];
+    const labels = new Map<string, number>();
+
+    // Check if module has a main function
+    const hasMainFunction = module.functions.some((func: any) => func.name === 'main');
+
+    if (hasMainFunction) {
+      lines.push('; Program Entry Point - automatically calls main()');
+      lines.push('program_start:');
+      labels.set('program_start', lines.length - 1);
+
+      const mainFunctionLabel = [...module.qualifiedName, 'main'].join('_');
+      lines.push(`    JSR ${mainFunctionLabel}      ; Call main() function`);
+      lines.push('    RTS              ; Return to BASIC');
+      lines.push('');
+    } else {
+      // No main function - just return to BASIC
+      lines.push('; No main() function found - returning to BASIC');
+      lines.push('program_start:');
+      labels.set('program_start', lines.length - 1);
+      lines.push('    RTS              ; Return to BASIC');
+      lines.push('');
+    }
+
+    return {
+      name: 'program-entry',
+      lines,
+      labels,
+      sourceLines: new Map(),
     };
   }
 
@@ -367,21 +412,13 @@ export class CodeGenerator {
 
     // Function header
     lines.push(`; Function: ${func.name}`);
-    lines.push(`; Qualified: ${func.qualifiedName.join('.')}`);
     lines.push(`; Parameters: ${func.parameters.length}`);
-    lines.push(`; Return Type: ${func.returnType.kind || 'unknown'}`);
     lines.push('');
 
     // Function label
     const functionLabel = func.qualifiedName.join('_');
     lines.push(`${functionLabel}:`);
     labels.set(functionLabel, lines.length - 1);
-
-    // Function prologue
-    if (func.localVariables.length > 0) {
-      lines.push('    ; Function prologue');
-      // TODO: Generate actual prologue based on local variables
-    }
 
     // Generate instructions
     this.context.currentFunction = func.name;
@@ -405,17 +442,8 @@ export class CodeGenerator {
         labels.set(label, lines.length);
       }
 
-      // Update register state
-      // TODO: Track register usage for optimization
-
       // Update stack depth
       this.context.stackDepth += mappingResult.stackChange;
-    }
-
-    // Function epilogue
-    if (func.localVariables.length > 0) {
-      lines.push('    ; Function epilogue');
-      // TODO: Generate actual epilogue based on local variables
     }
 
     lines.push('');
@@ -434,7 +462,7 @@ export class CodeGenerator {
   private generateCleanupSection(): AssemblySection {
     const lines: string[] = [];
 
-    lines.push('; Platform Cleanup');
+    lines.push('; Program cleanup');
     lines.push(this.platform.generateCleanup());
     lines.push('');
 
@@ -526,7 +554,6 @@ export class CodeGenerator {
 
     return lines.length * 2; // Rough estimate: 2 bytes per instruction
   }
-
 }
 
 /**

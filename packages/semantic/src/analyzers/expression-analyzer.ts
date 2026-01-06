@@ -266,7 +266,7 @@ function validateBuiltInFunctionCall(
   funcDef: BuiltInFunctionDefinition,
   args: Expression[],
   context: ExpressionContext,
-  analyzer: ExpressionAnalyzer
+  _analyzer: ExpressionAnalyzer
 ): ValidationResult {
   const result: ValidationResult = {
     isValid: true,
@@ -289,13 +289,14 @@ function validateBuiltInFunctionCall(
     return result;
   }
 
-  // Validate argument types
+  // Validate argument types with built-in function specific compatibility rules
+  // Use simple type determination without generating errors
   for (let i = 0; i < args.length; i++) {
-    const argResult = analyzer.analyzeExpression(args[i], context);
-    const argType = argResult.resolvedType;
+    const argType = getExpressionTypeSimple(args[i]);
     const expectedType = funcDef.parameters[i].type;
 
-    if (!isAssignmentCompatible(expectedType, argType)) {
+    // Special compatibility rules for built-in functions
+    if (!isBuiltInFunctionArgumentCompatible(expectedType, argType)) {
       result.isValid = false;
       result.errors.push({
         errorType: 'TypeMismatch',
@@ -307,30 +308,22 @@ function validateBuiltInFunctionCall(
         ],
       });
     }
-
-    // Also collect any errors from argument analysis
-    result.errors.push(...argResult.errors);
-    result.warnings.push(...argResult.warnings);
   }
 
-  // Platform-specific validation
+  // Platform-specific validation (this generates warnings and specialized errors)
   if (funcDef.validation) {
     if (funcDef.validation.requiresAddressValidation && args.length > 0) {
       const addressValidation = validateMemoryAddress(args[0], funcDef.name, context);
-      if (!addressValidation.isValid) {
-        result.errors.push(...addressValidation.errors);
-        result.warnings.push(...addressValidation.warnings);
-        result.isValid = result.isValid && addressValidation.isValid;
-      }
+      result.errors.push(...addressValidation.errors);
+      result.warnings.push(...addressValidation.warnings);
+      result.isValid = result.isValid && addressValidation.isValid;
     }
 
     if (funcDef.validation.requiresValueValidation && args.length > 1) {
       const valueValidation = validateValueRange(args[1], funcDef.name, funcDef.parameters[1].type);
-      if (!valueValidation.isValid) {
-        result.errors.push(...valueValidation.errors);
-        result.warnings.push(...valueValidation.warnings);
-        result.isValid = result.isValid && valueValidation.isValid;
-      }
+      result.errors.push(...valueValidation.errors);
+      result.warnings.push(...valueValidation.warnings);
+      result.isValid = result.isValid && valueValidation.isValid;
     }
 
     if (funcDef.validation.customValidation) {
@@ -406,6 +399,76 @@ function validateMemoryAddress(
   }
 
   return result;
+}
+
+/**
+ * Simple type determination for built-in function validation.
+ * This doesn't generate errors, just determines types for compatibility checking.
+ */
+function getExpressionTypeSimple(expr: Expression): Blend65Type {
+  switch (expr.type) {
+    case 'Literal':
+      const literal = expr as Literal;
+      if (typeof literal.value === 'number') {
+        // For any number, determine byte vs word (don't generate errors here)
+        if (literal.value >= 0 && literal.value <= 255) {
+          return createPrimitiveType('byte');
+        } else {
+          return createPrimitiveType('word'); // Covers both valid words and invalid ranges
+        }
+      }
+      if (typeof literal.value === 'boolean') {
+        return createPrimitiveType('boolean');
+      }
+      if (typeof literal.value === 'string') {
+        return createArrayType(createPrimitiveType('byte'), literal.value.length);
+      }
+      return createPrimitiveType('void');
+
+    case 'Identifier':
+      // Return word type for any identifier - let validation handle specifics
+      return createPrimitiveType('word');
+
+    case 'BinaryExpr':
+      const binaryExpr = expr as BinaryExpr;
+      const leftType = getExpressionTypeSimple(binaryExpr.left);
+      const rightType = getExpressionTypeSimple(binaryExpr.right);
+
+      // Promote to word if either operand is word
+      if (isPrimitiveType(leftType) && isPrimitiveType(rightType)) {
+        if (leftType.name === 'word' || rightType.name === 'word') {
+          return createPrimitiveType('word');
+        }
+        return createPrimitiveType('byte');
+      }
+      return createPrimitiveType('word');
+
+    default:
+      // Conservative default
+      return createPrimitiveType('word');
+  }
+}
+
+/**
+ * Check if an argument type is compatible with a built-in function parameter type.
+ * This is more permissive than standard assignment compatibility to allow
+ * byte-to-word promotion for addresses and values.
+ */
+function isBuiltInFunctionArgumentCompatible(expectedType: Blend65Type, actualType: Blend65Type): boolean {
+  // Standard assignment compatibility
+  if (isAssignmentCompatible(expectedType, actualType)) {
+    return true;
+  }
+
+  // Built-in function specific compatibility: allow byte -> word promotion
+  if (isPrimitiveType(expectedType) && isPrimitiveType(actualType)) {
+    // Allow byte values to be passed where word is expected (address parameters)
+    if (expectedType.name === 'word' && actualType.name === 'byte') {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -1143,10 +1206,13 @@ export class ExpressionAnalyzer {
       if (isBuiltInFunction(functionName)) {
         const builtInDef = getBuiltInFunction(functionName)!;
 
-        // Validate built-in function call
+        // Skip argument type analysis for built-in functions, let validation handle it
+        // This prevents double error reporting and ensures built-in specific error messages
+
+        // Do built-in specific validation (this provides the correct error messages)
         const validation = validateBuiltInFunctionCall(builtInDef, expr.args, context, this);
 
-        // Add validation errors and warnings
+        // Add validation errors and warnings (these are the authoritative errors for built-ins)
         this.errors.push(...validation.errors);
         this.warnings.push(...validation.warnings);
 
@@ -1162,35 +1228,65 @@ export class ExpressionAnalyzer {
       }
 
       // Check for user-defined function symbols
-      const functionSymbol = this.symbolTable.lookupSymbol(functionName);
-      if (functionSymbol && isFunctionSymbol(functionSymbol)) {
+      const symbol = this.symbolTable.lookupSymbol(functionName);
+      if (symbol && isFunctionSymbol(symbol)) {
         // Validate argument count
-        if (expr.args.length !== functionSymbol.parameters.length) {
+        if (expr.args.length !== symbol.parameters.length) {
           this.addError({
             errorType: 'TypeMismatch',
-            message: `Function '${functionSymbol.name}' expects ${functionSymbol.parameters.length} arguments, got ${expr.args.length}`,
+            message: `Function '${symbol.name}' expects ${symbol.parameters.length} arguments, got ${expr.args.length}`,
             location: expr.metadata?.start || { line: 0, column: 0, offset: 0 },
           });
         }
 
         // Validate argument types
-        for (let i = 0; i < Math.min(expr.args.length, functionSymbol.parameters.length); i++) {
+        for (let i = 0; i < Math.min(expr.args.length, symbol.parameters.length); i++) {
           const argType = this.analyzeExpressionType(expr.args[i], context);
-          const paramType = functionSymbol.parameters[i].type;
+          const paramType = symbol.parameters[i].type;
 
           if (!isAssignmentCompatible(paramType, argType)) {
             this.addError({
               errorType: 'TypeMismatch',
-              message: `Argument ${i + 1} to function '${functionSymbol.name}': expected '${typeToString(paramType)}', got '${typeToString(argType)}'`,
+              message: `Argument ${i + 1} to function '${symbol.name}': expected '${typeToString(paramType)}', got '${typeToString(argType)}'`,
               location: expr.args[i].metadata?.start || { line: 0, column: 0, offset: 0 },
             });
           }
         }
 
-        return functionSymbol.returnType;
+        return symbol.returnType;
       }
 
-      // If we reach here, the identifier is not a known function
+      // Check if identifier is a callback variable
+      if (symbol && isVariableSymbol(symbol) && isCallbackType(symbol.varType)) {
+        const callbackType = symbol.varType;
+
+        // Validate arguments against callback signature
+        if (expr.args.length !== callbackType.parameterTypes.length) {
+          this.addError({
+            errorType: 'TypeMismatch',
+            message: `Callback expects ${callbackType.parameterTypes.length} arguments, got ${expr.args.length}`,
+            location: expr.metadata?.start || { line: 0, column: 0, offset: 0 },
+          });
+        }
+
+        // Analyze argument types for type checking
+        for (let i = 0; i < Math.min(expr.args.length, callbackType.parameterTypes.length); i++) {
+          const argType = this.analyzeExpressionType(expr.args[i], context);
+          const expectedType = callbackType.parameterTypes[i];
+
+          if (!isAssignmentCompatible(expectedType, argType)) {
+            this.addError({
+              errorType: 'TypeMismatch',
+              message: `Callback argument ${i + 1}: expected '${typeToString(expectedType)}', got '${typeToString(argType)}'`,
+              location: expr.args[i].metadata?.start || { line: 0, column: 0, offset: 0 },
+            });
+          }
+        }
+
+        return callbackType.returnType;
+      }
+
+      // If we reach here, the identifier is not a known function or callback
       this.addError({
         errorType: 'UndefinedSymbol',
         message: `Undefined function '${functionName}'`,
@@ -1204,7 +1300,7 @@ export class ExpressionAnalyzer {
       return createPrimitiveType('void');
     }
 
-    // Analyze callee for non-identifier cases
+    // Analyze callee for non-identifier cases or identifier that might be a callback variable
     const calleeType = this.analyzeExpressionType(expr.callee, context);
 
     // Callback function call
@@ -1216,6 +1312,20 @@ export class ExpressionAnalyzer {
           message: `Callback expects ${calleeType.parameterTypes.length} arguments, got ${expr.args.length}`,
           location: expr.metadata?.start || { line: 0, column: 0, offset: 0 },
         });
+      }
+
+      // Analyze argument types for type checking
+      for (let i = 0; i < Math.min(expr.args.length, calleeType.parameterTypes.length); i++) {
+        const argType = this.analyzeExpressionType(expr.args[i], context);
+        const expectedType = calleeType.parameterTypes[i];
+
+        if (!isAssignmentCompatible(expectedType, argType)) {
+          this.addError({
+            errorType: 'TypeMismatch',
+            message: `Callback argument ${i + 1}: expected '${typeToString(expectedType)}', got '${typeToString(argType)}'`,
+            location: expr.args[i].metadata?.start || { line: 0, column: 0, offset: 0 },
+          });
+        }
       }
 
       return calleeType.returnType;
@@ -1318,7 +1428,7 @@ export class ExpressionAnalyzer {
    */
   private analyzeLiteralType(expr: Literal, _context: ExpressionContext): Blend65Type {
     if (typeof expr.value === 'number') {
-      // Check range for 6502 compatibility
+      // Check for clearly invalid ranges for standalone literal analysis
       if (expr.value < 0 || expr.value > 65535) {
         this.addError({
           errorType: 'TypeMismatch',
@@ -1329,7 +1439,7 @@ export class ExpressionAnalyzer {
         return createPrimitiveType('void');
       }
 
-      // Determine if byte or word
+      // Determine if byte or word for valid ranges
       return expr.value <= 255 ? createPrimitiveType('byte') : createPrimitiveType('word');
     }
 

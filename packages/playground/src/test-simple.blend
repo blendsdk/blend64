@@ -1,0 +1,6 @@
+module Test
+
+function simpleTest(): void
+    // Just one poke call
+    poke(0xD020, 2)
+end function

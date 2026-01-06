@@ -204,6 +204,7 @@ export interface RecordLiteral extends Blend65ASTNode {
  */
 export type Statement =
   | ExpressionStatement
+  | VariableDeclaration
   | ReturnStatement
   | IfStatement
   | WhileStatement
