@@ -76,7 +76,7 @@ describe('Callback Keyword Lexing', () => {
     const lexer = new Lexer(source);
     const tokens = lexer.tokenize();
 
-    expect(tokens[0].type).toBe(TokenType.STRING);
+    expect(tokens[0].type).toBe(TokenType.STRING_LITERAL);
     expect(tokens[0].value).toBe('This is a callback function');
   });
 

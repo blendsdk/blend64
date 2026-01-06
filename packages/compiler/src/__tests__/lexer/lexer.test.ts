@@ -105,9 +105,9 @@ describe('Blend65Lexer', () => {
       const tokens = tokenize(source);
 
       // Keywords inside strings should remain as string content
-      expect(tokens[0].type).toBe(TokenType.STRING);
+      expect(tokens[0].type).toBe(TokenType.STRING_LITERAL);
       expect(tokens[0].value).toBe('break continue default enum');
-      expect(tokens[1].type).toBe(TokenType.STRING);
+      expect(tokens[1].type).toBe(TokenType.STRING_LITERAL);
       expect(tokens[1].value).toBe('loop break continue');
       expect(tokens[2].type).toBe(TokenType.EOF);
     });
@@ -180,7 +180,7 @@ describe('Blend65Lexer', () => {
       const source = '"Hello, World!"';
       const tokens = tokenize(source);
 
-      expect(tokens[0].type).toBe(TokenType.STRING);
+      expect(tokens[0].type).toBe(TokenType.STRING_LITERAL);
       expect(tokens[0].value).toBe('Hello, World!');
     });
 
@@ -188,7 +188,7 @@ describe('Blend65Lexer', () => {
       const source = "'Hello, World!'";
       const tokens = tokenize(source);
 
-      expect(tokens[0].type).toBe(TokenType.STRING);
+      expect(tokens[0].type).toBe(TokenType.STRING_LITERAL);
       expect(tokens[0].value).toBe('Hello, World!');
     });
 
@@ -196,7 +196,7 @@ describe('Blend65Lexer', () => {
       const source = '"Hello\\nWorld\\t!"';
       const tokens = tokenize(source);
 
-      expect(tokens[0].type).toBe(TokenType.STRING);
+      expect(tokens[0].type).toBe(TokenType.STRING_LITERAL);
       expect(tokens[0].value).toBe('Hello\nWorld\t!');
     });
   });
@@ -206,9 +206,9 @@ describe('Blend65Lexer', () => {
       const source = 'true false';
       const tokens = tokenize(source);
 
-      expect(tokens[0].type).toBe(TokenType.BOOLEAN);
+      expect(tokens[0].type).toBe(TokenType.BOOLEAN_LITERAL);
       expect(tokens[0].value).toBe('true');
-      expect(tokens[1].type).toBe(TokenType.BOOLEAN);
+      expect(tokens[1].type).toBe(TokenType.BOOLEAN_LITERAL);
       expect(tokens[1].value).toBe('false');
     });
   });
@@ -378,8 +378,10 @@ io var VIC_REG: byte`;
       expect(tokens[14].type).toBe(TokenType.NEWLINE);
 
       // Third line: io var VIC_REG: byte (no memory placement)
-      expect(tokens[16].type).toBe(TokenType.IDENTIFIER);
-      expect(tokens[17].type).toBe(TokenType.VAR);
+      expect(tokens[15].type).toBe(TokenType.IDENTIFIER); // "io"
+      expect(tokens[15].value).toBe('io');
+      expect(tokens[16].type).toBe(TokenType.VAR); // "var"
+      expect(tokens[17].type).toBe(TokenType.IDENTIFIER); // "VIC_REG"
       expect(tokens[17].value).toBe('VIC_REG');
       expect(tokens[18].type).toBe(TokenType.COLON);
       expect(tokens[19].type).toBe(TokenType.BYTE);

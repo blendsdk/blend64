@@ -40,13 +40,13 @@ describe('Blend65Lexer Edge Cases', () => {
 
     it('should handle empty strings', () => {
       const tokens = tokenize('""');
-      expect(tokens[0].type).toBe(TokenType.STRING);
+      expect(tokens[0].type).toBe(TokenType.STRING_LITERAL);
       expect(tokens[0].value).toBe('');
     });
 
     it('should handle strings with special characters', () => {
       const tokens = tokenize('"\\n\\t\\r\\\\"');
-      expect(tokens[0].type).toBe(TokenType.STRING);
+      expect(tokens[0].type).toBe(TokenType.STRING_LITERAL);
       expect(tokens[0].value).toBe('\n\t\r\\');
     });
 
@@ -54,8 +54,8 @@ describe('Blend65Lexer Edge Cases', () => {
       // Lexer may pass through invalid escapes rather than throwing
       const tokens1 = tokenize('"\\z"');
       const tokens2 = tokenize('"\\x"');
-      expect(tokens1[0].type).toBe(TokenType.STRING);
-      expect(tokens2[0].type).toBe(TokenType.STRING);
+      expect(tokens1[0].type).toBe(TokenType.STRING_LITERAL);
+      expect(tokens2[0].type).toBe(TokenType.STRING_LITERAL);
     });
   });
 
