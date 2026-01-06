@@ -353,7 +353,7 @@ describe('VariableAnalyzer', () => {
       }
     });
 
-    it('should allow ram and io storage classes', () => {
+    it('should allow ram storage class', () => {
       const ramVar: VariableDeclaration = {
         type: 'VariableDeclaration',
         name: 'gameData',
@@ -368,6 +368,11 @@ describe('VariableAnalyzer', () => {
         metadata: { start: mockLocation, end: mockLocation },
       };
 
+      const ramResult = variableAnalyzer.analyzeVariableDeclaration(ramVar, 'Global');
+      expect(ramResult.success).toBe(true);
+    });
+
+    it('should reject io storage class (removed in favor of peek/poke)', () => {
       const ioVar: VariableDeclaration = {
         type: 'VariableDeclaration',
         name: 'VIC_REGISTER',
@@ -376,17 +381,18 @@ describe('VariableAnalyzer', () => {
           name: 'byte',
           metadata: { start: mockLocation, end: mockLocation },
         },
-        storageClass: 'io',
+        storageClass: 'io' as any, // Force invalid storage class for test
         initializer: null,
         exported: false,
         metadata: { start: mockLocation, end: mockLocation },
       };
 
-      const ramResult = variableAnalyzer.analyzeVariableDeclaration(ramVar, 'Global');
       const ioResult = variableAnalyzer.analyzeVariableDeclaration(ioVar, 'Global');
-
-      expect(ramResult.success).toBe(true);
-      expect(ioResult.success).toBe(true);
+      expect(ioResult.success).toBe(false);
+      if (!ioResult.success) {
+        expect(ioResult.errors[0].errorType).toBe('InvalidStorageClass');
+        expect(ioResult.errors[0].message).toContain('io');
+      }
     });
   });
 
@@ -845,11 +851,11 @@ describe('VariableAnalyzer', () => {
           { storageClass: 'ram' }
         ),
         createVariableSymbol(
-          'VIC_REG',
+          'gameData',
           createPrimitiveType('byte'),
           symbolTable.getCurrentScope(),
           mockLocation,
-          { storageClass: 'io' }
+          { storageClass: 'data' }
         ),
         createVariableSymbol(
           'gameScore',
@@ -1001,19 +1007,19 @@ describe('VariableAnalyzer', () => {
         );
       });
 
-      it('should reject I/O variables', () => {
+      it('should handle data storage class variables appropriately', () => {
         const candidates = variableAnalyzer.analyzeZeroPageCandidates(testVariables);
 
-        // Find VIC_REG candidate (I/O variable)
-        const ioCandidate = candidates.find(c =>
-          c.antiPromotionFactors.some(f => f.factor === 'io_access')
+        // Find gameData candidate (data storage class)
+        const dataCandidate = candidates.find(c =>
+          c.antiPromotionFactors.some(f => f.factor === 'const_data')
         );
-        expect(ioCandidate).toBeDefined();
-        expect(ioCandidate!.antiPromotionFactors).toContainEqual(
+        expect(dataCandidate).toBeDefined();
+        expect(dataCandidate!.antiPromotionFactors).toContainEqual(
           expect.objectContaining({
-            factor: 'io_access',
-            weight: 100,
-            description: 'I/O variables should remain in I/O address space',
+            factor: 'const_data',
+            weight: expect.any(Number),
+            description: expect.any(String),
           })
         );
       });

@@ -449,7 +449,7 @@ end function
 Storage classes are a unique feature of Blend65 that map directly to 6502 memory organization:
 
 ```ebnf
-storage_class = "zp" | "ram" | "data" | "const" | "io" ;
+storage_class = "zp" | "ram" | "data" | "const" ;
 variable_declaration = [ storage_class ] "var" identifier ":" type_annotation
                       [ "=" expression ] statement_terminator ;
 ```
@@ -1232,7 +1232,6 @@ data var spriteData: byte[64] = [      // Pre-initialized sprite data
   // ... more sprite data
 ]
 const var SCREEN_WIDTH: byte = 40      // Compile-time constant
-io var VIC_BACKGROUND: byte            // Hardware register
 
 export function setupMemory(): void
   var i: byte
@@ -1245,8 +1244,8 @@ export function setupMemory(): void
   // Copy sprite data to VIC memory
   copyMemory(spriteData, $2000, 64)
 
-  // Set background color
-  VIC_BACKGROUND = $0E
+  // Set background color using peek/poke
+  poke(VIC_BACKGROUND, $0E)
 end function
 ```
 
@@ -1308,14 +1307,13 @@ data var colorTable: byte[16] = [      // Pre-initialized color palette
   $08, $09, $0A, $0B, $0C, $0D, $0E, $0F
 ]
 const var GAME_SPEED: byte = 2         // Game speed constant
-io var RASTER_LINE: byte              // Raster interrupt register
 
 export function gameMain(): void
   initializeGame()
 
   while true
     // Wait for vertical sync
-    while RASTER_LINE != 250
+    while peek(RASTER_LINE) != 250
       // Wait for raster line
     end while
 
@@ -1451,7 +1449,7 @@ end function
 
 ```js
 const var table: byte[256]             // ERROR: const requires initialization
-io var normalVar: byte = 5             // ERROR: io variables cannot be initialized
+// NOTE: 'io' storage class has been removed - use peek/poke for hardware access
 ```
 
 #### Array Bounds Errors
@@ -1523,8 +1521,9 @@ Blend65 is designed with 6502 memory architecture in mind:
 zp var fastCounter: byte               // Allocated to $00-$FF range
 zp var tempPointer: word               // Uses 2 consecutive zero page bytes
 
-// Manual zero page addressing (advanced feature)
-io var ZERO_PAGE_TEMP: byte            // Can be mapped to specific ZP address
+// Hardware access now uses peek/poke with imported constants
+import ZERO_PAGE_TEMP from c64.registers
+poke(ZERO_PAGE_TEMP, value)            // Hardware register access via peek/poke
 ```
 
 #### Bank Switching Support (Future)

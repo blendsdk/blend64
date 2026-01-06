@@ -2622,6 +2622,26 @@ export function validateStorageClassUsage(
   scope: ScopeType,
   hasInitializer: boolean
 ): SemanticResult<void> {
+  // Validate that storage class is one of the allowed values
+  const validStorageClasses: StorageClass[] = ['zp', 'ram', 'data', 'const'];
+  if (!validStorageClasses.includes(storageClass)) {
+    return {
+      success: false,
+      errors: [
+        {
+          errorType: 'InvalidStorageClass',
+          message: `Invalid storage class '${storageClass}'. Valid storage classes are: ${validStorageClasses.join(', ')}`,
+          location: { line: 0, column: 0, offset: 0 },
+          suggestions: [
+            'Use one of the valid storage classes: zp, ram, data, const',
+            'For hardware I/O, use peek/poke functions with imported constants',
+            `Remove the invalid '${storageClass}' storage class`,
+          ],
+        },
+      ],
+    };
+  }
+
   // Storage classes only allowed at global/module scope
   if (scope === 'Function' || scope === 'Block') {
     return {
