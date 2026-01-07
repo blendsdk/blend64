@@ -1,89 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import type { LexerOptions } from '../../lexer/lexer.js';
-import { tokenize } from '../../lexer/utils.js';
-import type { Token } from '../../lexer/types.js';
 import { TokenType } from '../../lexer/types.js';
 import {
   AstNodeKind,
-  Parser,
   ParserDiagnosticCode,
   createParserState,
-  type ParserOptions,
-  type ParserState,
   parseTokens,
+  type ParserOptions,
 } from '../../parser/index.js';
-
-/**
- * Minimal parser subclass used to surface protected members for white-box tests.
- */
-class TestHarnessParser extends Parser {
-  /**
-   * Exposes parser options so tests can ensure caller-provided objects remain intact.
-   */
-  public exposeOptions(): ParserOptions {
-    return this.options;
-  }
-
-  /**
-   * Exposes parser state so unit tests can perform white-box assertions.
-   */
-  public exposeState(): ParserState {
-    return this.state;
-  }
-}
-
-/**
- * Creates a token with zeroed span data for direct parser invocations.
- *
- * @param type - Token kind to synthesize.
- * @param value - Optional token text (defaults to empty string).
- * @returns Token instance ready for parseTokens.
- */
-function createToken(type: TokenType, value = ''): Token {
-  return {
-    type,
-    value,
-    start: { line: 0, column: 0, offset: 0 },
-    end: { line: 0, column: 0, offset: 0 },
-  };
-}
-
-const LEXER_OPTIONS: LexerOptions = {
-  skipComments: false,
-  skipWhitespace: true,
-};
-
-/**
- * Runs the real lexer over raw source text so parser specs stay end-to-end.
- *
- * @param source - Raw Blend65 code snippet under test.
- * @param overrides - Optional lexer configuration overrides for individual specs.
- * @returns Token stream emitted by the lexer.
- */
-function lexSource(source: string, overrides: Partial<LexerOptions> = {}): Token[] {
-  return tokenize(source, { ...LEXER_OPTIONS, ...overrides });
-}
-
-/**
- * Convenience helper that feeds lexed tokens directly into the parser entry point.
- *
- * @param source - Raw source text to tokenize and parse.
- * @param options - Optional parser configuration switches propagated to Parser.
- * @returns Result emitted by parseTokens for the provided source.
- */
-function parseSource(source: string, options?: ParserOptions) {
-  return parseTokens(lexSource(source), options);
-}
-
-/**
- * Builds a parser that immediately exposes its internal state for assertions.
- * Keeping the helper local avoids scattering token boilerplate across specs.
- *
- * @param tokens - Token array fed straight into the parser constructor.
- */
-function createStatefulParser(tokens: Token[] = [createToken(TokenType.EOF)]) {
-  return new TestHarnessParser(tokens, {});
-}
+import {
+  ParserTestHarness,
+  createStatefulParser,
+  createToken,
+  lexSource,
+  parseSource,
+} from './test-helpers.js';
 
 describe('Parser state bookkeeping', () => {
   it('initializes deterministic defaults via factory helper', () => {
@@ -167,7 +97,7 @@ describe('Parser scaffolding (token level)', () => {
   });
 
   it('emits missing identifier diagnostics when declaration keyword lacks a name', () => {
-    const parser = new TestHarnessParser(
+    const parser = new ParserTestHarness(
       [createToken(TokenType.MODULE), createToken(TokenType.NEWLINE), createToken(TokenType.EOF)],
       {}
     );
@@ -178,7 +108,7 @@ describe('Parser scaffolding (token level)', () => {
   });
 
   it('emits unexpected EOF diagnostics when declarations miss names', () => {
-    const parser = new TestHarnessParser(
+    const parser = new ParserTestHarness(
       [createToken(TokenType.MODULE), createToken(TokenType.EOF)],
       {}
     );
@@ -245,7 +175,7 @@ describe('Parser end-to-end behavior (source → lexer → parser)', () => {
 
   it('passes parser options through without mutation', () => {
     const options: ParserOptions = { captureDocComments: true };
-    const parser = new TestHarnessParser(lexSource(''), options);
+    const parser = new ParserTestHarness(lexSource(''), options);
 
     expect(parser.exposeOptions()).toEqual(options);
   });
