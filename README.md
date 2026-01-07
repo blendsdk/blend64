@@ -23,7 +23,7 @@ import setSpritePosition, enableSprite from c64.sprites
 import joystickLeft, joystickRight from c64.input
 import playNote from c64.sid
 
-zp var snakeX: byte = 160      // Zero-page variable allocation
+@zp var snakeX: byte = 160     // Zero-page variable allocation
 var score: word = 0            // 16-bit integer
 var gameState: GameState = PLAYING
 
@@ -49,9 +49,9 @@ end function
 
 Variables can be declared with specific memory allocation strategies:
 
-- `zp var` - Zero page allocation for fastest access
-- `ram var` - Standard RAM allocation
-- `data var` - Initialized data section
+- `@zp var` - Zero page allocation for fastest access
+- `@ram var` - Standard RAM allocation
+- `@data var` - Initialized data section
 - `const var` - Compile-time constants
 - `io var` - Memory-mapped I/O registers
 

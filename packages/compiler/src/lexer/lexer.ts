@@ -122,6 +122,11 @@ export class Lexer {
       return this.readString(char);
     }
 
+    // Storage class keywords with @ prefix
+    if (char === '@') {
+      return this.readStorageClassKeyword();
+    }
+
     // Identifiers and keywords
     if (this.isAlpha(char) || char === '_') {
       return this.readIdentifierOrKeyword();
@@ -364,6 +369,39 @@ export class Lexer {
     this.advance(); // Skip closing quote
 
     return this.createToken(TokenType.STRING_LITERAL, value, start);
+  }
+
+  /**
+   * Reads a storage class keyword that starts with '@' prefix
+   * Handles @zp, @ram, and @data storage class keywords
+   * @returns Token representing a storage class keyword
+   * @throws Error if the '@' is not followed by a valid storage class keyword
+   */
+  protected readStorageClassKeyword(): Token {
+    const start = this.getCurrentPosition();
+    let value = '';
+
+    // Read the '@' character
+    value += this.getCurrentChar();
+    this.advance();
+
+    // Read the rest of the keyword
+    while (this.isAlphaNumeric(this.getCurrentChar())) {
+      value += this.getCurrentChar();
+      this.advance();
+    }
+
+    // Check if it's a valid storage class keyword
+    if (value === '@zp') {
+      return this.createToken(TokenType.ZP, value, start);
+    } else if (value === '@ram') {
+      return this.createToken(TokenType.RAM, value, start);
+    } else if (value === '@data') {
+      return this.createToken(TokenType.DATA, value, start);
+    }
+
+    // Invalid storage class keyword
+    throw new Error(`Invalid storage class keyword '${value}' at line ${start.line}, column ${start.column}`);
   }
 
   /**

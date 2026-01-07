@@ -172,13 +172,13 @@ describe('Blend65Lexer Edge Cases', () => {
 
   describe('Memory Address Edge Cases', () => {
     it('should reject memory placement operator', () => {
-      expect(() => tokenize('@ $0000')).toThrow("Unexpected character '@' at line 1, column 1");
-      expect(() => tokenize('@ $FFFF')).toThrow("Unexpected character '@' at line 1, column 1");
+      expect(() => tokenize('@ $0000')).toThrow("Invalid storage class keyword '@' at line 1, column 1");
+      expect(() => tokenize('@ $FFFF')).toThrow("Invalid storage class keyword '@' at line 1, column 1");
     });
 
     it('should reject memory addresses with expressions', () => {
       expect(() => tokenize('@ $D000 + offset')).toThrow(
-        "Unexpected character '@' at line 1, column 1"
+        "Invalid storage class keyword '@' at line 1, column 1"
       );
     });
   });
@@ -187,8 +187,8 @@ describe('Blend65Lexer Edge Cases', () => {
     it('should tokenize complex Blend65 code structure', () => {
       const source = `module Game.Snake
 // Initialize game state
-zp let snakeX: byte[32] = [120, 119, 118, 117]
-ram let gameState: byte = 0
+@zp let snakeX: byte[32] = [120, 119, 118, 117]
+@ram let gameState: byte = 0
 
 import clearScreen, setPixel from c64.graphics.screen
 import joystickUp, joystickDown from c64.input.joystick
@@ -211,8 +211,8 @@ end function`;
     });
 
     it('should handle storage class combinations', () => {
-      const source = `zp const ZERO_PAGE_CONST: byte = $FF
-ram let INITIALIZED_RAM: word[100] = [1, 2, 3]
+      const source = `@zp const ZERO_PAGE_CONST: byte = $FF
+@ram let INITIALIZED_RAM: word[100] = [1, 2, 3]
 const MAX_SPEED: byte = 5`;
 
       const tokens = tokenize(source);
@@ -235,7 +235,7 @@ const MAX_SPEED: byte = 5`;
 
     it('should handle unexpected characters', () => {
       expect(() => tokenize('let x @ #invalid')).toThrow(
-        "Unexpected character '@' at line 1, column 7"
+        "Invalid storage class keyword '@' at line 1, column 7"
       );
       expect(() => tokenize('let `backtick`')).toThrow();
     });

@@ -32,7 +32,7 @@ describe('Blend65Lexer', () => {
     });
 
     it('should recognize storage class keywords', () => {
-      const source = 'zp ram data const';
+      const source = '@zp @ram @data const';
       const tokens = tokenize(source);
 
       expect(tokens[0].type).toBe(TokenType.ZP);
@@ -271,7 +271,7 @@ describe('Blend65Lexer', () => {
     it('should reject unsupported memory placement operator', () => {
       const source = '@';
 
-      expect(() => tokenize(source)).toThrow("Unexpected character '@' at line 1, column 1");
+      expect(() => tokenize(source)).toThrow("Invalid storage class keyword '@' at line 1, column 1");
     });
 
     it('should parse punctuation', () => {
@@ -349,13 +349,13 @@ end function`;
     });
 
     it('should tokenize storage declarations', () => {
-      const source = `zp let counter: byte
-ram let buffer: byte[256]
-data const initialized: word = 1000`;
+      const source = `@zp let counter: byte
+@ram let buffer: byte[256]
+@data const initialized: word = 1000`;
 
       const tokens = tokenize(source);
 
-      // First line: zp let counter: byte
+      // First line: @zp let counter: byte
       expect(tokens[0].type).toBe(TokenType.ZP);
       expect(tokens[1].type).toBe(TokenType.LET);
       expect(tokens[2].type).toBe(TokenType.IDENTIFIER);
@@ -364,7 +364,7 @@ data const initialized: word = 1000`;
       expect(tokens[4].type).toBe(TokenType.BYTE);
       expect(tokens[5].type).toBe(TokenType.NEWLINE);
 
-      // Second line: ram let buffer: byte[256]
+      // Second line: @ram let buffer: byte[256]
       expect(tokens[6].type).toBe(TokenType.RAM);
       expect(tokens[7].type).toBe(TokenType.LET);
       expect(tokens[8].type).toBe(TokenType.IDENTIFIER);
@@ -377,7 +377,7 @@ data const initialized: word = 1000`;
       expect(tokens[13].type).toBe(TokenType.RIGHT_BRACKET);
       expect(tokens[14].type).toBe(TokenType.NEWLINE);
 
-      // Third line: data const initialized: word = 1000
+      // Third line: @data const initialized: word = 1000
       expect(tokens[15].type).toBe(TokenType.DATA);
       expect(tokens[16].type).toBe(TokenType.CONST);
       expect(tokens[17].type).toBe(TokenType.IDENTIFIER);

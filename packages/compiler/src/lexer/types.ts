@@ -216,9 +216,9 @@ export const eControlFlowKeyword = {
  * - DATA: Initialized data section
  */
 export const eStorageClass = {
-  ZP: 'zp',
-  RAM: 'ram',
-  DATA: 'data',
+  ZP: '@zp',
+  RAM: '@ram',
+  DATA: '@data',
 };
 
 /**
