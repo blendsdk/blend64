@@ -497,13 +497,37 @@ EBNF:
 storage_class = "@zp" | "@ram" | "@data" ;
 ```
 
+### Default Storage Class
+
+**When no storage class is explicitly specified, variables are allocated in `@ram` (general-purpose RAM) by default.**
+
+These declarations are equivalent:
+
+<!-- prettier-ignore -->
+```js
+@ram let counter: byte = 0;
+let counter: byte = 0;  // Defaults to @ram
+```
+
+**Rationale:**
+- `@zp` (zero page) is a precious 256-byte resource and should be explicitly requested
+- `@data` is for pre-initialized constants and should be explicit
+- `@ram` is the general-purpose choice suitable for most variables
+
 Storage classes typically prefix variable declarations:
 
 <!-- prettier-ignore -->
 ```js
-@zp let counter: byte;
-@ram let buffer: byte[256];
-@data const initialized: word = 1000;
+// Explicit storage classes
+@zp let counter: byte;          // Zero page (fast access)
+@data const initialized: word = 1000;  // Initialized data section
+
+// Default @ram (can be omitted)
+let buffer: byte[256];          // Defaults to @ram
+let temp: byte;                 // Defaults to @ram
+
+// Equivalent explicit form
+@ram let buffer: byte[256];     // Explicit @ram
 ```
 
 ---
@@ -512,7 +536,7 @@ Storage classes typically prefix variable declarations:
 
 The lexer tokens imply a declaration style that includes:
 
-- Optional storage class
+- Optional storage class (defaults to `@ram` when omitted)
 - Mutability modifier: `let` or `const`
 - Name: identifier
 - Optional type annotation: `:` followed by a type
@@ -522,9 +546,13 @@ Tested examples:
 
 <!-- prettier-ignore -->
 ```js
+// With explicit storage classes
 @zp let counter: byte;
-@ram let buffer: byte[256];
 @data const initialized: word = 1000;
+
+// Without storage class (defaults to @ram)
+let buffer: byte[256];
+let score: word = 0;
 ```
 
 EBNF (expected):
@@ -538,7 +566,9 @@ type_expr = type_name
           | type_name , "[" , integer , "]" ;
 ```
 
-> Note: Variable declarations require semicolons when used as statements.
+> **Note**: Storage class is optional. When omitted, `@ram` is used by default.
+> 
+> **Note**: Variable declarations require semicolons when used as statements.
 
 Array type shapes are suggested by the presence of `[` `]` tokens and test cases like `byte[256]`.
 
@@ -1071,13 +1101,48 @@ let x /* unterminated
 The storage class system is a first-class 6502 feature:
 
 - `@zp` indicates zero-page allocation (fast addressing modes).
-- `@ram` indicates general RAM allocation.
+- `@ram` indicates general RAM allocation (default).
 - `@data` indicates an initialized data region.
 
 ```js
 @zp let fastCounter: byte = 0;
 @ram let screenBuffer: byte[1000];
 @data const fontData: byte[2048] = [0, 1, 2];
+```
+
+### Storage Class Selection Guidelines
+
+Choose the appropriate storage class based on your variable's characteristics:
+
+**Use `@zp` (zero page) when:**
+- Variable is accessed frequently in performance-critical code
+- Variable is a byte or word (8 or 16 bits)
+- You need fast zero-page addressing modes (saves cycles and bytes)
+- ⚠️ **Warning**: Zero page is limited to 256 bytes total and shared with system/runtime
+
+**Use `@ram` (or omit storage class) when:**
+- General-purpose variables
+- Large arrays or buffers
+- No special performance requirements
+- This is the **default** and most common choice
+- Suitable for 99% of variables
+
+**Use `@data` when:**
+- Constant data that must be pre-initialized at compile time
+- ROM-able constant tables (lookup tables, tile data, etc.)
+- Data that should not consume RAM
+- Usually combined with `const` declarations
+
+**Example:**
+```js
+// Performance-critical loop counter in zero page
+@zp let frameCount: byte = 0;
+
+// Large buffer uses default @ram (no annotation needed)
+let screenBuffer: byte[1000];
+
+// Constant lookup table in data section
+@data const sinTable: byte[256] = [...];
 ```
 
 ### Callback keyword

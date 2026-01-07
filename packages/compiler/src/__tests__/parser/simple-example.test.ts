@@ -218,3 +218,119 @@ let x: byte = 1;`;
     expect(ast.getDeclarations()).toHaveLength(1);
   });
 });
+
+describe('SimpleExampleParser - Default Storage Class (@ram)', () => {
+  /**
+   * Helper function to parse source code
+   */
+  function parse(source: string) {
+    const lexer = new Lexer(source);
+    const tokens = lexer.tokenize();
+    const parser = new SimpleExampleParser(tokens);
+    const ast = parser.parse();
+
+    return {
+      ast,
+      diagnostics: parser.getDiagnostics(),
+      hasErrors: parser.hasErrors(),
+    };
+  }
+
+  it('should default to @ram when storage class is omitted', () => {
+    const source = 'let buffer: byte = 0;';
+    const { ast, hasErrors } = parse(source);
+
+    expect(hasErrors).toBe(false);
+
+    const varDecl = ast.getDeclarations()[0] as any;
+    expect(varDecl.getName()).toBe('buffer');
+    expect(varDecl.getStorageClass()).toBe('RAM'); // Should default to RAM
+  });
+
+  it('should accept explicit @ram storage class', () => {
+    const source = '@ram let buffer: byte = 0;';
+    const { ast, hasErrors } = parse(source);
+
+    expect(hasErrors).toBe(false);
+
+    const varDecl = ast.getDeclarations()[0] as any;
+    expect(varDecl.getName()).toBe('buffer');
+    expect(varDecl.getStorageClass()).toBe('RAM');
+  });
+
+  it('should treat explicit @ram and omitted storage class as equivalent', () => {
+    const source1 = '@ram let x: byte = 1;';
+    const source2 = 'let x: byte = 1;';
+
+    const result1 = parse(source1);
+    const result2 = parse(source2);
+
+    expect(result1.hasErrors).toBe(false);
+    expect(result2.hasErrors).toBe(false);
+
+    const varDecl1 = result1.ast.getDeclarations()[0] as any;
+    const varDecl2 = result2.ast.getDeclarations()[0] as any;
+
+    // Both should have RAM storage class
+    expect(varDecl1.getStorageClass()).toBe('RAM');
+    expect(varDecl2.getStorageClass()).toBe('RAM');
+  });
+
+  it('should handle mixed storage classes with defaults', () => {
+    const source = `@zp let counter: byte = 0;
+let buffer: byte = 1;
+@ram let explicit: byte = 2;
+@data const table: byte = 3;`;
+
+    const { ast, hasErrors } = parse(source);
+
+    expect(hasErrors).toBe(false);
+    expect(ast.getDeclarations()).toHaveLength(4);
+
+    const decls = ast.getDeclarations() as any[];
+
+    // @zp explicit
+    expect(decls[0].getName()).toBe('counter');
+    expect(decls[0].getStorageClass()).toBe('ZP');
+
+    // No storage class (defaults to RAM)
+    expect(decls[1].getName()).toBe('buffer');
+    expect(decls[1].getStorageClass()).toBe('RAM');
+
+    // @ram explicit
+    expect(decls[2].getName()).toBe('explicit');
+    expect(decls[2].getStorageClass()).toBe('RAM');
+
+    // @data explicit
+    expect(decls[3].getName()).toBe('table');
+    expect(decls[3].getStorageClass()).toBe('DATA');
+  });
+
+  it('should default const variables to @ram', () => {
+    const source = 'const MAX: byte = 255;';
+    const { ast, hasErrors } = parse(source);
+
+    expect(hasErrors).toBe(false);
+
+    const varDecl = ast.getDeclarations()[0] as any;
+    expect(varDecl.isConst()).toBe(true);
+    expect(varDecl.getStorageClass()).toBe('RAM'); // Should default to RAM
+  });
+
+  it('should parse all three storage classes explicitly', () => {
+    const source = `@zp let fast: byte = 0;
+@ram let general: byte = 1;
+@data const preInit: byte = 2;`;
+
+    const { ast, hasErrors } = parse(source);
+
+    expect(hasErrors).toBe(false);
+    expect(ast.getDeclarations()).toHaveLength(3);
+
+    const decls = ast.getDeclarations() as any[];
+
+    expect(decls[0].getStorageClass()).toBe('ZP');
+    expect(decls[1].getStorageClass()).toBe('RAM');
+    expect(decls[2].getStorageClass()).toBe('DATA');
+  });
+});

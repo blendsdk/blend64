@@ -11,13 +11,8 @@
  * This is the foundation that all concrete parsers build upon.
  */
 
+import { Diagnostic, DiagnosticCode, DiagnosticCollector, SourceLocation } from '../ast/index.js';
 import { Token, TokenType } from '../lexer/types.js';
-import {
-  Diagnostic,
-  DiagnosticCode,
-  DiagnosticCollector,
-  SourceLocation,
-} from '../ast/index.js';
 import {
   ParserConfig,
   createParserConfig,
@@ -40,11 +35,9 @@ export class ParseError extends Error {
    */
   constructor(
     message: string,
-    public readonly token: Token,
+    public readonly token: Token
   ) {
-    super(
-      `Parse error at line ${token.start.line}, column ${token.start.column}: ${message}`,
-    );
+    super(`Parse error at line ${token.start.line}, column ${token.start.column}: ${message}`);
     this.name = 'ParseError';
   }
 }
@@ -270,14 +263,8 @@ export abstract class Parser {
    * @param message - Error message
    * @param location - Optional custom location (defaults to current token)
    */
-  protected reportError(
-    code: DiagnosticCode,
-    message: string,
-    location?: SourceLocation,
-  ): void {
-    const loc =
-      location ||
-      this.createLocation(this.getCurrentToken(), this.getCurrentToken());
+  protected reportError(code: DiagnosticCode, message: string, location?: SourceLocation): void {
+    const loc = location || this.createLocation(this.getCurrentToken(), this.getCurrentToken());
 
     this.diagnostics.error(code, message, loc);
 
@@ -285,7 +272,7 @@ export abstract class Parser {
     if (this.diagnostics.getErrors().length >= this.config.maxErrors) {
       throw new ParseError(
         `Maximum error limit (${this.config.maxErrors}) reached`,
-        this.getCurrentToken(),
+        this.getCurrentToken()
       );
     }
   }
@@ -297,16 +284,10 @@ export abstract class Parser {
    * @param message - Warning message
    * @param location - Optional custom location
    */
-  protected reportWarning(
-    code: DiagnosticCode,
-    message: string,
-    location?: SourceLocation,
-  ): void {
+  protected reportWarning(code: DiagnosticCode, message: string, location?: SourceLocation): void {
     if (!this.config.collectWarnings) return;
 
-    const loc =
-      location ||
-      this.createLocation(this.getCurrentToken(), this.getCurrentToken());
+    const loc = location || this.createLocation(this.getCurrentToken(), this.getCurrentToken());
 
     this.diagnostics.warning(code, message, loc);
   }
@@ -353,7 +334,7 @@ export abstract class Parser {
           TokenType.EXPORT,
           TokenType.MATCH,
           TokenType.TYPE,
-          TokenType.ENUM,
+          TokenType.ENUM
         )
       ) {
         return; // Don't skip the keyword - let parser handle it
@@ -378,7 +359,7 @@ export abstract class Parser {
     if (this.hasExplicitModule) {
       this.reportError(
         DiagnosticCode.DUPLICATE_MODULE,
-        'Only one module declaration allowed per file',
+        'Only one module declaration allowed per file'
       );
     }
     this.hasExplicitModule = true;
@@ -420,7 +401,7 @@ export abstract class Parser {
       this.reportError(
         DiagnosticCode.INVALID_MODULE_SCOPE,
         `Unexpected token '${token.value}' at module scope. ` +
-          `Only declarations (variables, functions, types, enums) and imports/exports are allowed at module level.`,
+          `Only declarations (variables, functions, types, enums) and imports/exports are allowed at module level.`
       );
     }
   }
@@ -490,16 +471,14 @@ export abstract class Parser {
    * Used for statement separation (semicolons are now required).
    *
    * @param message - Error message if no semicolon found (optional)
-   * 
+   *
    * @example
    * ```typescript
    * const stmt = this.parseVariableDecl();
    * this.expectSemicolon('Expected semicolon after variable declaration');
    * ```
    */
-  protected expectSemicolon(
-    message: string = 'Expected semicolon',
-  ): void {
+  protected expectSemicolon(message: string = 'Expected semicolon'): void {
     if (!this.match(TokenType.SEMICOLON)) {
       // Report error even at EOF - semicolons are strictly required
       this.reportError(DiagnosticCode.EXPECTED_TOKEN, message);
@@ -577,8 +556,11 @@ export abstract class Parser {
    * Checks if current token is a storage class
    *
    * Storage classes: @zp, @ram, @data
+   * 
+   * Note: This only checks for explicit storage class tokens.
+   * Use parseStorageClass() to get the effective storage class (including default).
    *
-   * @returns True if current token is a storage class
+   * @returns True if current token is an explicit storage class token
    */
   protected isStorageClass(): boolean {
     return this.check(TokenType.ZP, TokenType.RAM, TokenType.DATA);
@@ -587,15 +569,27 @@ export abstract class Parser {
   /**
    * Parses an optional storage class
    *
-   * Consumes storage class token if present.
+   * Consumes storage class token if present (@zp, @ram, @data).
+   * When no storage class is specified, defaults to @ram.
    *
-   * @returns Storage class token type or null
+   * @returns Storage class token type (always returns a value; defaults to TokenType.RAM)
+   *
+   * @example
+   * ```typescript
+   * // Explicit storage class
+   * // @zp let x: byte;     // Returns TokenType.ZP
+   * // @ram let y: byte;    // Returns TokenType.RAM
+   * // @data const z: byte; // Returns TokenType.DATA
+   *
+   * // No storage class specified
+   * // let w: byte;         // Returns TokenType.RAM (default)
+   * ```
    */
   protected parseStorageClass(): TokenType | null {
     if (this.match(TokenType.ZP)) return TokenType.ZP;
     if (this.match(TokenType.RAM)) return TokenType.RAM;
     if (this.match(TokenType.DATA)) return TokenType.DATA;
-    return null;
+    return TokenType.RAM; // Default storage class
   }
 
   // ============================================
