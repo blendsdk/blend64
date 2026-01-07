@@ -21,9 +21,12 @@ export enum ParserDiagnosticSeverity {
  */
 export enum ParserDiagnosticCode {
   UnexpectedToken = 'PAR0001',
-  UnterminatedBlock = 'PAR0002',
-  DuplicateDeclaration = 'PAR0003',
-  InvalidDecoratorPlacement = 'PAR0004',
+  UnexpectedEOF = 'PAR0002',
+  MissingIdentifier = 'PAR0003',
+  MissingDeclarationKeyword = 'PAR0004',
+  UnterminatedBlock = 'PAR0005',
+  DuplicateDeclaration = 'PAR0006',
+  InvalidDecoratorPlacement = 'PAR0007',
   InternalParserError = 'PAR9999',
 }
 
