@@ -5,8 +5,6 @@
 > This compiler is currently under active development and does not produce working code.
 > The project is in the implementation phase - while the frontend (lexer, parser, AST) is complete,
 > the backend code generation is not yet implemented. No executable programs can be compiled at this time.
->
-> Follow development progress in the [Project Status](docs/PROJECT_STATUS.md) documentation.
 
 ## Overview
 
@@ -52,8 +50,7 @@ Variables can be declared with specific memory allocation strategies:
 - `@zp var` - Zero page allocation for fastest access
 - `@ram var` - Standard RAM allocation
 - `@data var` - Initialized data section
-- `const var` - Compile-time constants
-- `io var` - Memory-mapped I/O registers
+- `var` - Same as `@ram var`
 
 ### Hardware Integration
 
@@ -93,6 +90,7 @@ var enemyBehaviors: behaviorFunction[16]
 ## Implementation Status
 
 **Completed Components:**
+
 - Lexical analysis (tokenization)
 - Syntax parsing (AST generation)
 - Semantic analysis (type checking, symbol resolution)
@@ -100,28 +98,16 @@ var enemyBehaviors: behaviorFunction[16]
 - Optimization framework and pattern analysis
 
 **In Development:**
+
 - 6502 code generation
 - Platform-specific hardware APIs
 - Assembly output and linking
 
 **Planned:**
+
 - Emulator integration testing
 - Performance optimization passes
 - Debugging information generation
-
-## Project Structure
-
-```
-├── docs/                          # Documentation
-├── examples/                      # Sample programs
-├── packages/
-│   ├── lexer/                     # Tokenization
-│   ├── parser/                    # Syntax analysis
-│   ├── ast/                       # Abstract syntax tree
-│   ├── semantic/                  # Type checking and analysis
-│   ├── il/                        # Intermediate language
-│   └── core/                      # Shared utilities
-```
 
 ## Development
 
@@ -143,13 +129,7 @@ yarn clean
 
 ## Documentation
 
-- [Language Specification](docs/BLEND65_LANGUAGE_SPECIFICATION.md) - Complete syntax and semantics reference
-- [Project Status](docs/PROJECT_STATUS.md) - Current development state and progress
-- [Examples](examples/) - Sample Blend65 programs and syntax demonstrations
-
-## Contributing
-
-This project is in active development. Check the [Project Status](docs/PROJECT_STATUS.md) for current priorities and development roadmap.
+- [Language Specification](docs/language-specification.md) - Complete syntax and semantics reference
 
 ## License
 
