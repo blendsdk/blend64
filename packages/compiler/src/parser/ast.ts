@@ -215,15 +215,18 @@ export interface EnumDeclarationNode extends AstNodeBase {
  * @property {DecoratorNode} [storageClass] - Storage class metadata extracted
  * from decorators to streamline semantic analysis.
  * @property {boolean} isConst - Tracks `const` vs `mut` for mutability checks.
+ * @property {boolean} isExported - Indicates whether the variable is exported at
+ * parse time so later passes do not need to re-check wrappers.
  */
-export interface VariableDeclarationNode extends AstNodeBase {
-  kind: AstNodeKind.VariableDeclaration;
-  name: IdentifierNode;
-  type?: TypeReferenceNode;
-  initializer?: ExpressionNode;
-  storageClass?: DecoratorNode;
-  isConst: boolean;
-}
+ export interface VariableDeclarationNode extends AstNodeBase {
+   kind: AstNodeKind.VariableDeclaration;
+   name: IdentifierNode;
+   type?: TypeReferenceNode;
+   initializer?: ExpressionNode;
+   storageClass?: DecoratorNode;
+   isConst: boolean;
+   isExported: boolean;
+ }
 
 /**
  * Represents individual enum members as literal nodes so evaluators can reuse

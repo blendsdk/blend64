@@ -27,6 +27,16 @@ export enum ParserDiagnosticCode {
   UnterminatedBlock = 'PAR0005',
   DuplicateDeclaration = 'PAR0006',
   InvalidDecoratorPlacement = 'PAR0007',
+  DuplicateModuleDeclaration = 'PAR0008',
+  MissingModuleDeclaration = 'PAR0009',
+  UnexpectedTopLevelToken = 'PAR0010',
+  MissingFromClause = 'PAR0011',
+  EmptyImportList = 'PAR0012',
+  MissingEndFunction = 'PAR0013',
+  MissingEndEnum = 'PAR0014',
+  MissingConstInitializer = 'PAR0015',
+  DuplicateExportedMain = 'PAR0016',
+  ImplicitMainExport = 'PAR0017',
   InternalParserError = 'PAR9999',
 }
 

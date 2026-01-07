@@ -7,7 +7,9 @@ import {
   AstNodeKind,
   Parser,
   ParserDiagnosticCode,
+  createParserState,
   type ParserOptions,
+  type ParserState,
   parseTokens,
 } from '../../parser/index.js';
 
@@ -20,6 +22,13 @@ class TestHarnessParser extends Parser {
    */
   public exposeOptions(): ParserOptions {
     return this.options;
+  }
+
+  /**
+   * Exposes parser state so unit tests can perform white-box assertions.
+   */
+  public exposeState(): ParserState {
+    return this.state;
   }
 }
 
@@ -65,6 +74,58 @@ function lexSource(source: string, overrides: Partial<LexerOptions> = {}): Token
 function parseSource(source: string, options?: ParserOptions) {
   return parseTokens(lexSource(source), options);
 }
+
+/**
+ * Builds a parser that immediately exposes its internal state for assertions.
+ * Keeping the helper local avoids scattering token boilerplate across specs.
+ *
+ * @param tokens - Token array fed straight into the parser constructor.
+ */
+function createStatefulParser(tokens: Token[] = [createToken(TokenType.EOF)]) {
+  return new TestHarnessParser(tokens, {});
+}
+
+describe('Parser state bookkeeping', () => {
+  it('initializes deterministic defaults via factory helper', () => {
+    const state = createParserState();
+
+    expect(state).toMatchObject({
+      hasExplicitModule: false,
+      hasImplicitModule: false,
+      sawMainFunction: false,
+      exportedMainCount: 0,
+    });
+    expect(state.firstExportedMainSpan).toBeUndefined();
+  });
+
+  it('returns isolated state objects on each invocation', () => {
+    const first = createParserState();
+    const second = createParserState();
+
+    expect(first).not.toBe(second);
+  });
+
+  it('attaches a fresh parser state per parser instance', () => {
+    const parserA = createStatefulParser();
+    const parserB = createStatefulParser();
+
+    parserA.exposeState().hasExplicitModule = true;
+
+    expect(parserB.exposeState().hasExplicitModule).toBe(false);
+  });
+
+  it('marks explicit modules when declaration parsing is triggered', () => {
+    const parser = createStatefulParser([
+      createToken(TokenType.MODULE),
+      createToken(TokenType.IDENTIFIER, 'demo'),
+      createToken(TokenType.EOF),
+    ]);
+
+    parser.parseProgram();
+
+    expect(parser.exposeState().hasExplicitModule).toBe(true);
+  });
+});
 
 describe('Parser scaffolding (token level)', () => {
   it('returns an empty program when only EOF is provided', () => {

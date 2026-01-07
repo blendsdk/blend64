@@ -20,6 +20,42 @@ import { createProgram } from './factory.js';
 import { createSourceSpan, UNKNOWN_SOURCE_SPAN, type SourceSpan } from './source.js';
 
 /**
+ * Mutable bookkeeping container that tracks parser-level state across the span
+ * of a single file parse. Having an explicit structure keeps future invariants
+ * (implicit vs explicit modules, exported main counting, etc.) discoverable.
+ */
+export interface ParserState {
+  /** True once the file declares a module explicitly. */
+  hasExplicitModule: boolean;
+  /** True when the parser synthesizes `module global`. */
+  hasImplicitModule: boolean;
+  /** Tracks whether `function main` has been seen at all. */
+  sawMainFunction: boolean;
+  /** Number of exported `main` declarations observed so far. */
+  exportedMainCount: number;
+  /** Span of the first exported `main`, used for duplicate diagnostics. */
+  firstExportedMainSpan?: SourceSpan;
+}
+
+/**
+ * Creates a parser state container with deterministic defaults.
+ *
+ * Abstracting the initialization into a helper keeps the constructor tidy and
+ * gives tests a single location to validate expectations when future fields are
+ * added.
+ *
+ * @returns Fresh parser state for an individual file parse.
+ */
+export function createParserState(): ParserState {
+  return {
+    hasExplicitModule: false,
+    hasImplicitModule: false,
+    sawMainFunction: false,
+    exportedMainCount: 0,
+  };
+}
+
+/**
  * Configuration toggles for the parser.
  * Additional switches (e.g., decorator support) can be appended without
  * breaking callers because partial options are accepted.
@@ -73,6 +109,8 @@ export class Parser {
   public readonly diagnostics: ParserDiagnostic[] = [];
   /** Span representing the entire input file. */
   protected readonly fileSpan: SourceSpan;
+  /** Mutable bookkeeping about module/main parsing requirements. */
+  protected readonly state: ParserState;
 
   /**
    * @param tokens - Token stream ending with EOF.
@@ -82,6 +120,7 @@ export class Parser {
     this.tokens = tokens.length > 0 ? tokens : Parser.createImplicitEOF();
     this.options = options;
     this.fileSpan = Parser.computeFileSpan(this.tokens);
+    this.state = createParserState();
   }
 
   /**
@@ -94,7 +133,13 @@ export class Parser {
 
     while (!this.isAtEnd()) {
       this.skipTrivia();
+      this.skipNewlines();
       if (this.isAtEnd()) {
+        break;
+      }
+
+      const lookahead = this.peekEffectiveToken();
+      if (lookahead.type === TokenType.EOF) {
         break;
       }
 
@@ -131,6 +176,7 @@ export class Parser {
    * scaffolding diagnostics with real grammar production rules.
    */
   protected parseDeclaration(): DeclarationNode | StatementNode | null {
+    this.state.hasExplicitModule = true;
     const keyword = this.current();
     this.advance();
 
@@ -181,6 +227,53 @@ export class Parser {
     }
   }
 
+  /** Determines whether a token should be treated as trivia. */
+  protected isTriviaToken(tokenType: TokenType): boolean {
+    switch (tokenType) {
+      case TokenType.NEWLINE:
+      case TokenType.LINE_COMMENT:
+      case TokenType.BLOCK_COMMENT:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * Peeks ahead while skipping trivia tokens so callers can reason about the
+   * next meaningful token without mutating the parser cursor.
+   *
+   * @param offset - Number of non-trivia tokens to skip before returning.
+   * @returns The offset-th non-trivia token or EOF when the stream ends.
+   */
+  protected peekEffectiveToken(offset = 0): Token {
+    let index = this.currentIndex;
+    let remaining = offset;
+
+    while (index < this.tokens.length) {
+      const token = this.tokens[index];
+      if (!this.isTriviaToken(token.type)) {
+        if (remaining === 0) {
+          return token;
+        }
+        remaining -= 1;
+      }
+      index += 1;
+    }
+
+    return this.tokens[this.tokens.length - 1];
+  }
+
+  /**
+   * Consumes contiguous NEWLINE tokens while leaving other trivia intact so
+   * declaration parsers can make layout-sensitive decisions.
+   */
+  protected skipNewlines(): void {
+    while (!this.isAtEnd() && this.current().type === TokenType.NEWLINE) {
+      this.advance();
+    }
+  }
+
   /** Advances the cursor and returns the previous token. */
   protected advance(): Token {
     if (!this.isAtEnd()) {
@@ -227,19 +320,13 @@ export class Parser {
   }
 
   /**
-   * Skips trivia that should not impact grammar decisions.
-   * Currently skips NEWLINE and both comment flavors; future constructs
-   * (such as decorators) can hook in here without touching parse loops.
+   * Skips comment trivia while leaving newline tokens intact so layout-aware
+   * helpers ({@link skipNewlines}) can make independent decisions.
    */
   protected skipTrivia(): void {
-    // Continue skipping until we encounter a meaningful token.
-    while (true) {
+    while (!this.isAtEnd()) {
       const tokenType = this.current().type;
-      if (
-        tokenType === TokenType.NEWLINE ||
-        tokenType === TokenType.LINE_COMMENT ||
-        tokenType === TokenType.BLOCK_COMMENT
-      ) {
+      if (tokenType === TokenType.LINE_COMMENT || tokenType === TokenType.BLOCK_COMMENT) {
         this.advance();
         continue;
       }
