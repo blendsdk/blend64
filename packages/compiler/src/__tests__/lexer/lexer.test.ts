@@ -296,14 +296,13 @@ describe('Blend65Lexer', () => {
       const source = 'let x // This is a comment\nlet y';
       const tokens = tokenize(source);
 
-      // Should only have let, x, newline, let, y, EOF
-      expect(tokens.length).toBe(6);
+      // Should only have let, x, let, y, EOF (newlines are now skipped)
+      expect(tokens.length).toBe(5);
       expect(tokens[0].type).toBe(TokenType.LET);
       expect(tokens[1].type).toBe(TokenType.IDENTIFIER);
-      expect(tokens[2].type).toBe(TokenType.NEWLINE);
-      expect(tokens[3].type).toBe(TokenType.LET);
-      expect(tokens[4].type).toBe(TokenType.IDENTIFIER);
-      expect(tokens[5].type).toBe(TokenType.EOF);
+      expect(tokens[2].type).toBe(TokenType.LET);
+      expect(tokens[3].type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[4].type).toBe(TokenType.EOF);
     });
 
     it('should skip block comments by default', () => {
@@ -335,17 +334,17 @@ end function`;
       expect(tokens[2].type).toBe(TokenType.DOT);
       expect(tokens[3].type).toBe(TokenType.IDENTIFIER);
       expect(tokens[3].value).toBe('Main');
-      expect(tokens[4].type).toBe(TokenType.NEWLINE);
+      // Newlines are now skipped as trivial whitespace
 
-      expect(tokens[5].type).toBe(TokenType.IMPORT);
-      expect(tokens[6].type).toBe(TokenType.IDENTIFIER);
-      expect(tokens[6].value).toBe('setSpritePosition');
-      expect(tokens[7].type).toBe(TokenType.FROM);
-      expect(tokens[8].type).toBe(TokenType.IDENTIFIER);
-      expect(tokens[8].value).toBe('target');
-      expect(tokens[9].type).toBe(TokenType.DOT);
-      expect(tokens[10].type).toBe(TokenType.IDENTIFIER);
-      expect(tokens[10].value).toBe('sprites');
+      expect(tokens[4].type).toBe(TokenType.IMPORT);
+      expect(tokens[5].type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[5].value).toBe('setSpritePosition');
+      expect(tokens[6].type).toBe(TokenType.FROM);
+      expect(tokens[7].type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[7].value).toBe('target');
+      expect(tokens[8].type).toBe(TokenType.DOT);
+      expect(tokens[9].type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[9].value).toBe('sprites');
     });
 
     it('should tokenize storage declarations', () => {
@@ -355,39 +354,37 @@ end function`;
 
       const tokens = tokenize(source);
 
-      // First line: @zp let counter: byte
+      // First line: @zp let counter: byte (newlines are now skipped)
       expect(tokens[0].type).toBe(TokenType.ZP);
       expect(tokens[1].type).toBe(TokenType.LET);
       expect(tokens[2].type).toBe(TokenType.IDENTIFIER);
       expect(tokens[2].value).toBe('counter');
       expect(tokens[3].type).toBe(TokenType.COLON);
       expect(tokens[4].type).toBe(TokenType.BYTE);
-      expect(tokens[5].type).toBe(TokenType.NEWLINE);
 
       // Second line: @ram let buffer: byte[256]
-      expect(tokens[6].type).toBe(TokenType.RAM);
-      expect(tokens[7].type).toBe(TokenType.LET);
-      expect(tokens[8].type).toBe(TokenType.IDENTIFIER);
-      expect(tokens[8].value).toBe('buffer');
-      expect(tokens[9].type).toBe(TokenType.COLON);
-      expect(tokens[10].type).toBe(TokenType.BYTE);
-      expect(tokens[11].type).toBe(TokenType.LEFT_BRACKET);
-      expect(tokens[12].type).toBe(TokenType.NUMBER);
-      expect(tokens[12].value).toBe('256');
-      expect(tokens[13].type).toBe(TokenType.RIGHT_BRACKET);
-      expect(tokens[14].type).toBe(TokenType.NEWLINE);
+      expect(tokens[5].type).toBe(TokenType.RAM);
+      expect(tokens[6].type).toBe(TokenType.LET);
+      expect(tokens[7].type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[7].value).toBe('buffer');
+      expect(tokens[8].type).toBe(TokenType.COLON);
+      expect(tokens[9].type).toBe(TokenType.BYTE);
+      expect(tokens[10].type).toBe(TokenType.LEFT_BRACKET);
+      expect(tokens[11].type).toBe(TokenType.NUMBER);
+      expect(tokens[11].value).toBe('256');
+      expect(tokens[12].type).toBe(TokenType.RIGHT_BRACKET);
 
       // Third line: @data const initialized: word = 1000
-      expect(tokens[15].type).toBe(TokenType.DATA);
-      expect(tokens[16].type).toBe(TokenType.CONST);
-      expect(tokens[17].type).toBe(TokenType.IDENTIFIER);
-      expect(tokens[17].value).toBe('initialized');
-      expect(tokens[18].type).toBe(TokenType.COLON);
-      expect(tokens[19].type).toBe(TokenType.WORD);
-      expect(tokens[20].type).toBe(TokenType.ASSIGN);
-      expect(tokens[21].type).toBe(TokenType.NUMBER);
-      expect(tokens[21].value).toBe('1000');
-      expect(tokens[22].type).toBe(TokenType.EOF);
+      expect(tokens[13].type).toBe(TokenType.DATA);
+      expect(tokens[14].type).toBe(TokenType.CONST);
+      expect(tokens[15].type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[15].value).toBe('initialized');
+      expect(tokens[16].type).toBe(TokenType.COLON);
+      expect(tokens[17].type).toBe(TokenType.WORD);
+      expect(tokens[18].type).toBe(TokenType.ASSIGN);
+      expect(tokens[19].type).toBe(TokenType.NUMBER);
+      expect(tokens[19].value).toBe('1000');
+      expect(tokens[20].type).toBe(TokenType.EOF);
     });
 
     // v0.2 Sample Code Tests

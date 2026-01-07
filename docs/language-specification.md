@@ -58,26 +58,26 @@ The lexer operates over Unicode strings, but the language tokenization rules ass
 
 ### Whitespace and Newlines
 
-Whitespace characters:
+Whitespace characters (all treated as insignificant):
 
 - Space (`' '`)
 - Tab (`'\t'`)
 - Carriage return (`'\r'`)
+- Newline (`'\n'`)
 
-These are skipped by the lexer.
+All whitespace is skipped by the lexer and treated as trivial.
 
-**Newline (`'\n'`) is significant** and becomes a `NEWLINE` token. This matters because Blend65 uses newline
-as a primary statement separator (tests rely on this).
+**Statement Separation**: Blend65 uses **semicolons (`;`)** as statement separators, not newlines.
+This allows expressions and statements to span multiple lines naturally.
 
 EBNF (lexical):
 
 ```ebnf
-whitespace     = " " | "\t" | "\r" ;
-newline        = "\n" ;
-separator      = { whitespace } , [ newline ] ;
+whitespace     = " " | "\t" | "\r" | "\n" ;
+separator      = ";" ;
 ```
 
-> Note: The lexer does not create an explicit token for general whitespace; only `NEWLINE` is emitted.
+> Note: The lexer treats all whitespace uniformly. Semicolons are emitted as `SEMICOLON` tokens and are required for statement termination.
 
 ### Tokens
 
@@ -303,7 +303,6 @@ EBNF meta-notation:
 ### Common building blocks
 
 ```ebnf
-NEWLINE   = "\n" ;
 EOF       = ? end of input ? ;
 
 name      = identifier , { "." , identifier } ;
@@ -320,12 +319,12 @@ literal   = number_literal | string_literal | boolean_literal ;
 
 At a high level, Blend65 source is a sequence of top-level declarations.
 
-The lexer indicates **newlines are significant**, so most constructs are newline-delimited.
+**Statements require semicolons** for termination. **Declarations are self-terminating** (no semicolon needed).
 
 EBNF (top level):
 
 ```ebnf
-program = { top_level_item , { NEWLINE } } , EOF ;
+program = { top_level_item } , EOF ;
 
 top_level_item = module_decl
                | import_decl
@@ -333,8 +332,8 @@ top_level_item = module_decl
                | function_decl
                | type_decl
                | enum_decl
-               | variable_decl
-               | statement ;
+               | variable_decl , ";"
+               | statement , ";" ;
 ```
 
 > Note: The parser may enforce a stricter structure (e.g. `module` must be first), but the lexer alone does not.
@@ -502,9 +501,9 @@ Storage classes typically prefix variable declarations:
 
 <!-- prettier-ignore -->
 ```js
-@zp let counter: byte
-@ram let buffer: byte[256]
-@data const initialized: word = 1000
+@zp let counter: byte;
+@ram let buffer: byte[256];
+@data const initialized: word = 1000;
 ```
 
 ---
@@ -523,9 +522,9 @@ Tested examples:
 
 <!-- prettier-ignore -->
 ```js
-@zp let counter: byte
-@ram let buffer: byte[256]
-@data const initialized: word = 1000
+@zp let counter: byte;
+@ram let buffer: byte[256];
+@data const initialized: word = 1000;
 ```
 
 EBNF (expected):
@@ -538,6 +537,8 @@ variable_decl = [ storage_class ] , ( "let" | "const" ) , identifier
 type_expr = type_name
           | type_name , "[" , integer , "]" ;
 ```
+
+> Note: Variable declarations require semicolons when used as statements.
 
 Array type shapes are suggested by the presence of `[` `]` tokens and test cases like `byte[256]`.
 
@@ -715,22 +716,23 @@ unary_expr = [ "!" | "~" | "+" | "-" ] , unary_expr
 
 ## Statements
 
-Statements are generally separated by `NEWLINE` (and sometimes also by `;` in the future).
-The lexer provides `SEMICOLON`, but the tests primarily show newlines used for separation.
+**Statements are separated by semicolons (`;`)**. This allows statements and expressions to span multiple lines.
+
+The lexer provides `SEMICOLON` tokens, and the parser requires them for all statements.
 
 EBNF (expected):
 
 ```ebnf
-statement = variable_decl
-          | assignment_stmt
-          | return_stmt
+statement = variable_decl , ";"
+          | assignment_stmt , ";"
+          | return_stmt , ";"
           | if_stmt
           | while_stmt
           | for_stmt
           | match_stmt
-          | break_stmt
-          | continue_stmt
-          | expr_stmt ;
+          | break_stmt , ";"
+          | continue_stmt , ";"
+          | expr_stmt , ";" ;
 
 assignment_stmt = lvalue , assignment_op , expression ;
 lvalue          = qualified_identifier | index_expr ;
@@ -741,14 +743,16 @@ break_stmt      = "break" ;
 continue_stmt   = "continue" ;
 ```
 
+> Note: Control flow constructs (`if`, `while`, `for`, `match`) are self-terminating with `end` keywords and do not require semicolons.
+
 Examples:
 
 <!-- prettier-ignore -->
 ```js
-snakeX = snakeX - 2
-score += 10
-break
-continue
+snakeX = snakeX - 2;
+score += 10;
+break;
+continue;
 ```
 
 ---
@@ -762,16 +766,16 @@ Tests show the `if ... then ... end if` style.
 <!-- prettier-ignore -->
 ```js
 if i == 5 then
-  break
+  break;
 end if
 ```
 
 EBNF (expected):
 
 ```ebnf
-if_stmt = "if" , expression , "then" , { NEWLINE }
-        , { statement , { NEWLINE } }
-        , [ "else" , { NEWLINE } , { statement , { NEWLINE } } ]
+if_stmt = "if" , expression , "then"
+        , { statement }
+        , [ "else" , { statement } ]
         , "end" , "if" ;
 ```
 
@@ -779,15 +783,15 @@ if_stmt = "if" , expression , "then" , { NEWLINE }
 
 ```js
 while true
-  updateGame()
+  updateGame();
 end while
 ```
 
 EBNF (expected):
 
 ```ebnf
-while_stmt = "while" , expression , { NEWLINE }
-           , { statement , { NEWLINE } }
+while_stmt = "while" , expression
+           , { statement }
            , "end" , "while" ;
 ```
 
@@ -804,8 +808,8 @@ next i
 EBNF (expected):
 
 ```ebnf
-for_stmt = "for" , identifier , "=" , expression , "to" , expression , { NEWLINE }
-        , { statement , { NEWLINE } }
+for_stmt = "for" , identifier , "=" , expression , "to" , expression
+        , { statement }
         , "next" , identifier ;
 ```
 
@@ -816,25 +820,25 @@ Tests show `match expr ... case X: ... default: ... end match`.
 ```js
 match gameState
   case MENU:
-    showMenu()
+    showMenu();
   default:
-    handleError()
+    handleError();
 end match
 ```
 
 EBNF (expected):
 
 ```ebnf
-match_stmt = "match" , expression , { NEWLINE }
-           , { case_clause , { NEWLINE } }
-           , [ default_clause , { NEWLINE } ]
+match_stmt = "match" , expression
+           , { case_clause }
+           , [ default_clause ]
            , "end" , "match" ;
 
-case_clause = "case" , expression , ":" , { NEWLINE }
-            , { statement , { NEWLINE } } ;
+case_clause = "case" , expression , ":"
+            , { statement } ;
 
-default_clause = "default" , ":" , { NEWLINE }
-               , { statement , { NEWLINE } } ;
+default_clause = "default" , ":"
+               , { statement } ;
 ```
 
 ---
@@ -927,9 +931,9 @@ end function
 
 <!-- prettier-ignore -->
 ```js
-@zp let counter: byte
-@ram let buffer: byte[256]
-@data const initialized: word = 1000
+@zp let counter: byte;
+@ram let buffer: byte[256];
+@data const initialized: word = 1000;
 ```
 
 ### Loop with break/continue
@@ -938,10 +942,10 @@ end function
 ```js
 for i = 0 to 10
   if i == 5 then
-    break
+    break;
   end if
   if i == 3 then
-    continue
+    continue;
   end if
 next i
 ```
@@ -952,11 +956,11 @@ next i
 ```js
 match gameState
   case MENU:
-    showMenu()
+    showMenu();
   case PLAYING:
-    updateGame()
+    updateGame();
   default:
-    handleError()
+    handleError();
 end match
 ```
 
@@ -972,12 +976,29 @@ function gameLoop(): void
   while true
     match currentState
       case GameState.MENU:
-        handleMenu()
+        handleMenu();
       default:
-        currentState = GameState.MENU
+        currentState = GameState.MENU;
     end match
   end while
 end function
+```
+
+### Multi-line expressions
+
+Semicolons allow expressions to span multiple lines naturally:
+
+<!-- prettier-ignore -->
+```js
+@zp let screenAddr: word = 
+  $D000 + 
+  (row * 40) + 
+  column;
+
+let result: byte =
+  calculateBase() +
+  applyOffset() +
+  getFinalValue();
 ```
 
 ---
@@ -1054,9 +1075,9 @@ The storage class system is a first-class 6502 feature:
 - `@data` indicates an initialized data region.
 
 ```js
-@zp let fastCounter: byte = 0
-@ram let screenBuffer: byte[1000]
-@data const fontData: byte[2048] = [0, 1, 2]
+@zp let fastCounter: byte = 0;
+@ram let screenBuffer: byte[1000];
+@data const fontData: byte[2048] = [0, 1, 2];
 ```
 
 ### Callback keyword
@@ -1076,8 +1097,134 @@ end function
 
 <!-- prettier-ignore -->
 ```js
-let handler: callback = myFunction
+let handler: callback = myFunction;
 ```
 
 > Note: The lexer treats the exact string `callback` as a keyword token. Identifiers like `callbackCount`
 > remain normal identifiers.
+
+---
+
+## Migration Guide: Newline-Based to Semicolon-Based Syntax
+
+### Breaking Change
+
+**Blend65 now requires semicolons** (`;`) to separate statements, replacing the previous newline-based approach.
+
+### Why This Change?
+
+1. **Familiarity**: Semicolons align with C/C++/Java/JavaScript syntax, familiar to most programmers
+2. **Multi-line flexibility**: Expressions and statements can naturally span multiple lines without special handling
+3. **Simplicity**: Removes parser complexity around optional vs. required newlines
+4. **Clarity**: Explicit statement boundaries are clearer than implicit newline rules
+
+### Migration Steps
+
+**Simple find-and-replace approach:**
+
+1. Add `;` after every statement (variable declarations, assignments, `return`, `break`, `continue`, etc.)
+2. Do NOT add `;` after declarations (`module`, `import`, `export function`, `enum`, `type`)
+3. Do NOT add `;` after control flow blocks (`end if`, `end while`, `end for`, `end match`, `end function`, `end enum`)
+
+### Before and After Examples
+
+#### Variable Declarations
+
+**Before:**
+```js
+@zp let x: byte = 5
+@ram let y: word = 10
+const MAX: byte = 255
+```
+
+**After:**
+```js
+@zp let x: byte = 5;
+@ram let y: word = 10;
+const MAX: byte = 255;
+```
+
+#### Statements in Functions
+
+**Before:**
+```js
+function update(): void
+  snakeX = snakeX + 1
+  snakeY = snakeY - 1
+  if snakeX > 320 then
+    snakeX = 0
+  end if
+end function
+```
+
+**After:**
+```js
+function update(): void
+  snakeX = snakeX + 1;
+  snakeY = snakeY - 1;
+  if snakeX > 320 then
+    snakeX = 0;
+  end if
+end function
+```
+
+#### Module and Import Declarations (NO SEMICOLONS)
+
+**Before:**
+```js
+module Game.Main
+import clearScreen from c64.graphics
+```
+
+**After (unchanged):**
+```js
+module Game.Main
+import clearScreen from c64.graphics
+```
+
+### What Requires Semicolons
+
+✅ **Statements (require `;`):**
+- Variable declarations: `let x: byte = 5;`
+- Assignments: `x = 10;`
+- Function calls: `clearScreen();`
+- `return` statements: `return value;`
+- `break` and `continue`: `break;` `continue;`
+
+❌ **Declarations (NO `;`):**
+- Module: `module Game.Main`
+- Import: `import foo from bar`
+- Export + function: `export function main(): void`
+- Function: `function name(): void` ... `end function`
+- Enum: `enum State` ... `end enum`
+- Type: `type Alias = byte`
+- Control flow: `if ... end if`, `while ... end while`, `for ... next`, `match ... end match`
+
+### Error Messages
+
+Missing semicolons will produce clear error messages:
+
+```
+Parse error at line 5, column 20: Expected semicolon
+```
+
+### Benefits of New Syntax
+
+**Multi-line expressions work naturally:**
+```js
+let result: word =
+  calculateBaseAddress() +
+  getOffset() +
+  getFinalValue();
+```
+
+**No ambiguity about statement boundaries:**
+```js
+x = 5; y = 10; z = 15;  // Multiple statements on one line (if needed)
+```
+
+**Cleaner separation of concerns:**
+- Lexer: Tokenize everything, skip whitespace (including newlines)
+- Parser: Use semicolons for statement separation
+
+---

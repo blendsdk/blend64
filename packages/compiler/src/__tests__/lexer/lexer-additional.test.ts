@@ -33,7 +33,8 @@ describe('Blend65Lexer Additional Coverage', () => {
       expect(blockCommentToken?.start.line).toBe(1);
       expect(blockCommentToken?.end.line).toBe(2);
       expect(blockCommentToken?.value.startsWith('/*')).toBe(true);
-      expect(tokens.some(token => token.type === TokenType.NEWLINE)).toBe(true);
+      // Newlines are now treated as trivial whitespace (no NEWLINE tokens emitted)
+      expect(tokens.some(token => token.type === TokenType.NEWLINE)).toBe(false);
     });
   });
 
@@ -50,15 +51,27 @@ describe('Blend65Lexer Additional Coverage', () => {
   });
 
   describe('Newline normalization', () => {
-    it('should treat CRLF sequences as significant newline tokens', () => {
+    it('should skip CRLF sequences as trivial whitespace', () => {
       // Use Windows-style line endings to guard against platform-specific regressions.
+      // Newlines are now treated as trivial whitespace (semicolons separate statements)
       const source = 'let a\r\nlet b\r\nlet c';
       const tokens = tokenize(source);
       const newlineTokens = tokens.filter(token => token.type === TokenType.NEWLINE);
 
-      expect(newlineTokens).toHaveLength(2);
-      expect(newlineTokens[0].start.line).toBe(1);
-      expect(newlineTokens[1].start.line).toBe(2);
+      // No NEWLINE tokens should be emitted
+      expect(newlineTokens).toHaveLength(0);
+      
+      // Tokens should be: let, a, let, b, let, c, EOF
+      expect(tokens[0].type).toBe(TokenType.LET);
+      expect(tokens[1].type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[1].value).toBe('a');
+      expect(tokens[2].type).toBe(TokenType.LET);
+      expect(tokens[3].type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[3].value).toBe('b');
+      expect(tokens[4].type).toBe(TokenType.LET);
+      expect(tokens[5].type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[5].value).toBe('c');
+      expect(tokens[6].type).toBe(TokenType.EOF);
     });
   });
 

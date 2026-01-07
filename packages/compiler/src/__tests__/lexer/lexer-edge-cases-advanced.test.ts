@@ -41,8 +41,17 @@ let score: byte
       expect(leftBracketCount).toBe(2);
       // Both brackets should close cleanly despite embedded newlines
       expect(rightBracketCount).toBe(2);
-      // The lexer must emit newline separators between array elements
-      expect(newlineCount).toBeGreaterThan(0);
+      // Newlines are now skipped as trivial whitespace (semicolons separate statements)
+      expect(newlineCount).toBe(0);
+      
+      // Verify array elements are tokenized correctly
+      const numberTokens = tokens.filter(token => token.type === TokenType.NUMBER);
+      expect(numberTokens).toHaveLength(5); // 4 (array size) + 0,1,2,3 (4 elements) = but array size is separate
+      expect(numberTokens[0].value).toBe('4'); // Array size
+      expect(numberTokens[1].value).toBe('0');
+      expect(numberTokens[2].value).toBe('1');
+      expect(numberTokens[3].value).toBe('2');
+      expect(numberTokens[4].value).toBe('3');
     });
   });
 

@@ -103,15 +103,6 @@ export class Lexer {
       return this.readBlockComment();
     }
 
-    // Newlines (significant in Blend65 for statement separation)
-    if (char === '\n') {
-      const token = this.createToken(TokenType.NEWLINE, char, start);
-      this.advance();
-      this.line++;
-      this.column = 1;
-      return token;
-    }
-
     // Numbers (including hex and binary)
     if (this.isDigit(char) || (char === '$' && this.isHexDigit(this.peek()))) {
       return this.readNumber();
@@ -571,16 +562,19 @@ export class Lexer {
   }
 
   /**
-   * Skips whitespace characters (space, tab, carriage return)
-   * Does not skip newlines as they are significant in Blend65 for statement separation
+   * Skips whitespace characters (space, tab, carriage return, and newlines)
+   * Newlines are now treated as trivial whitespace (semicolons separate statements)
    */
   protected skipWhitespace(): void {
-    while (
-      !this.isAtEnd() &&
-      this.isWhitespace(this.getCurrentChar()) &&
-      this.getCurrentChar() !== '\n'
-    ) {
-      this.advance();
+    while (!this.isAtEnd() && this.isWhitespace(this.getCurrentChar())) {
+      // Track line numbers for newlines
+      if (this.getCurrentChar() === '\n') {
+        this.line++;
+        this.column = 1;
+        this.position++;
+      } else {
+        this.advance();
+      }
     }
   }
 
@@ -682,13 +676,13 @@ export class Lexer {
   }
 
   /**
-   * Checks if a character is whitespace (space, tab, or carriage return)
-   * Does not include newline as newlines are significant tokens
+   * Checks if a character is whitespace (space, tab, carriage return, or newline)
+   * Newlines are now treated as trivial whitespace (semicolons separate statements)
    * @param char - Character to check
    * @returns True if character is whitespace
    */
   protected isWhitespace(char: string): boolean {
-    return char === ' ' || char === '\r' || char === '\t';
+    return char === ' ' || char === '\r' || char === '\t' || char === '\n';
   }
 
   /**

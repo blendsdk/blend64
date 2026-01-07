@@ -150,23 +150,36 @@ describe('Blend65Lexer Edge Cases', () => {
   describe('Whitespace and Newline Edge Cases', () => {
     it('should handle various newline types', () => {
       const tokens = tokenize('let\nx\r\ny\n\rz');
+      // Newlines are now treated as trivial whitespace (skipped)
       const newlineCount = tokens.filter(t => t.type === TokenType.NEWLINE).length;
-      expect(newlineCount).toBeGreaterThan(0);
+      expect(newlineCount).toBe(0);
+      
+      // Tokens should just be: let, x, y, z, EOF
+      expect(tokens[0].type).toBe(TokenType.LET);
+      expect(tokens[1].type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[1].value).toBe('x');
+      expect(tokens[2].type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[2].value).toBe('y');
+      expect(tokens[3].type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[3].value).toBe('z');
     });
 
     it('should handle multiple consecutive newlines', () => {
       const tokens = tokenize('let\n\n\n\nx');
+      // Multiple newlines are skipped as whitespace
       expect(tokens[0].type).toBe(TokenType.LET);
-      expect(tokens[1].type).toBe(TokenType.NEWLINE);
-      // Multiple newlines may be collapsed or preserved
-      expect(tokens[tokens.length - 2].type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[1].type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[1].value).toBe('x');
+      expect(tokens[2].type).toBe(TokenType.EOF);
     });
 
     it('should handle mixed whitespace', () => {
       const tokens = tokenize('let   \t  \n  \t x');
+      // All whitespace (including newlines) is now skipped
       expect(tokens[0].type).toBe(TokenType.LET);
-      expect(tokens[1].type).toBe(TokenType.NEWLINE);
-      expect(tokens[2].type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[1].type).toBe(TokenType.IDENTIFIER);
+      expect(tokens[1].value).toBe('x');
+      expect(tokens[2].type).toBe(TokenType.EOF);
     });
   });
 
