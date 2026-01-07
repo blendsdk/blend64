@@ -11,19 +11,20 @@
 2. [Lexical Structure](#lexical-structure)
 3. [Grammar Overview](#grammar-overview)
 4. [Program Structure](#program-structure)
-5. [Module System](#module-system)
-6. [Type System](#type-system)
-7. [Storage Classes](#storage-classes)
-8. [Variable Declarations](#variable-declarations)
-9. [Function Declarations](#function-declarations)
-10. [Expressions](#expressions)
-11. [Statements](#statements)
-12. [Control Flow](#control-flow)
-13. [Import/Export System](#importexport-system)
-14. [Comments](#comments)
-15. [Examples](#examples)
-16. [Error Handling](#error-handling)
-17. [6502 Specific Features](#6502-specific-features)
+5. [Top-Level Ordering Rules](#top-level-ordering-rules)
+6. [Module System](#module-system)
+7. [Type System](#type-system)
+8. [Storage Classes](#storage-classes)
+9. [Variable Declarations](#variable-declarations)
+10. [Function Declarations](#function-declarations)
+11. [Expressions](#expressions)
+12. [Statements](#statements)
+13. [Control Flow](#control-flow)
+14. [Import/Export System](#importexport-system)
+15. [Comments](#comments)
+16. [Examples](#examples)
+17. [Error Handling](#error-handling)
+18. [6502 Specific Features](#6502-specific-features)
 
 ---
 
@@ -337,10 +338,40 @@ top_level_item = module_decl
 ```
 
 > Note: The parser may enforce a stricter structure (e.g. `module` must be first), but the lexer alone does not.
+>
+> The mandatory parser-enforced ordering is detailed in [Top-Level Ordering Rules](#top-level-ordering-rules); consult that section whenever introducing new top-level constructs to keep the spec consistent.
+
+---
+
+## Top-Level Ordering Rules
+
+Blend65 source files follow deterministic top-level ordering semantics so that downstream passes can assume a predictable module layout. The parser introduced in Phase 2 enforces these rules even though the lexer would otherwise accept more permissive token streams. These rules supersede the historical `plans/ordering.md` document, which will be removed once this specification is canonical.
+
+### 1. Single module per file
+- The first non-trivia token in a file must be `module`. Comments and blank lines may precede it, but any other construct before the module header is rejected.
+- When the token stream lacks an explicit module, the parser synthesizes `module global` so the AST always has a module root.
+- After an implicit module has been inserted, encountering a real `module` declaration raises `DuplicateModuleDeclaration`. The implicit module is not replaced; diagnostics instruct the author to declare the module explicitly at the top of the file.
+
+### 2. Globals-only body
+- After the module header, only global declarations are allowed: storage-class-prefixed `let`/`const` variables, function declarations (optionally `callback`), type aliases, enums, imports, and export wrappers around those declarations.
+- Any other token at module scope (e.g., expression statements, stray keywords) produces an `UnexpectedTopLevelToken` diagnostic and the parser synchronizes at the next newline or declaration keyword.
+
+### 3. Exports and entry point
+- Variables and functions may be explicitly exported via the `export` keyword; future analyzer stages will also honor exported type aliases and enums.
+- Exactly one exported `main` function may appear per file. If `main` is declared without `export`, the parser marks it as exported and emits an `ImplicitMainExport` warning to encourage explicit intent.
+- Declaring additional exported `main` functions results in `DuplicateExportedMain` errors so that the generated assembly has a single entry point.
+
+### 4. Constant initialization
+- `const` declarations must include an initializer expression even though the surface grammar allows otherwise. Missing initializers trigger `MissingConstInitializer` so that analyzer/codegen never encounter uninitialized constants.
+
+### 5. No executable global statements
+- Executable statements (e.g., `init()`, `if` chains, assignments) are not permitted at module scope. The parser rejects them so that global code remains pure declarations and zero-overhead initialization happens via generated assembly routines instead of eager execution.
 
 ---
 
 ## Module System
+
+> Ordering reminder: The module declaration rules in [Top-Level Ordering Rules](#top-level-ordering-rules) govern placement, implicit `module global`, and duplicate module diagnostics.
 
 ### Module declaration
 
@@ -841,6 +872,13 @@ Exports are expressed with the `export` keyword.
 ```js
 export function main(): void
 end function
+```
+
+Re-exports where a previously imported identifier is exported without an inline declaration are **not** supported yet:
+
+```js
+import foo from some.lib
+export foo    // ❌ ReExportNotSupported
 ```
 
 EBNF (expected):
