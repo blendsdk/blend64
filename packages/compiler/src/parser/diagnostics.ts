@@ -20,23 +20,95 @@ export enum ParserDiagnosticSeverity {
  * analyzer (`ANA0001`), optimizer, or codegen codes later.
  */
 export enum ParserDiagnosticCode {
+  /**
+   * Emitted when the parser encounters a token that does not match the expected
+   * production (e.g., seeing `let` where a module keyword is required).
+   */
   UnexpectedToken = 'PAR0001',
+  /**
+   * Signals that the token stream terminated before the current construct could
+   * be fully parsed (e.g., missing `end function`).
+   */
   UnexpectedEOF = 'PAR0002',
+  /**
+   * Raised when a required identifier is missing, such as `function` without a
+   * name or `module` without an identifier.
+   */
   MissingIdentifier = 'PAR0003',
+  /**
+   * Indicates that a declaration keyword is missing before a top-level
+   * identifier, keeping ordering semantics explicit.
+   */
   MissingDeclarationKeyword = 'PAR0004',
+  /**
+   * Generic guard for blocks that lack their terminating keyword when recovery
+   * cannot determine the specific declaration kind.
+   */
   UnterminatedBlock = 'PAR0005',
+  /**
+   * Reported when the same identifier is declared multiple times in a scope,
+   * preserving single-responsibility naming.
+   */
   DuplicateDeclaration = 'PAR0006',
+  /**
+   * Ensures decorators only appear where supported (e.g., globals/functions) so
+   * ordering-sensitive metadata stays predictable.
+   */
   InvalidDecoratorPlacement = 'PAR0007',
+  /**
+   * Guardrail keeping module declarations unique per file. Encountering a second
+   * `module` after the implicit `global` triggers this diagnostic.
+   */
   DuplicateModuleDeclaration = 'PAR0008',
+  /**
+   * Raised when a file omits an explicit module and implicit synthesis is
+   * disabled or unavailable, reminding authors about `module global` behavior.
+   */
   MissingModuleDeclaration = 'PAR0009',
+  /**
+   * Catch-all for stray tokens at the top level so recovery can continue toward
+   * the next declaration boundary.
+   */
   UnexpectedTopLevelToken = 'PAR0010',
+  /**
+   * Import declarations must include a `from` clause to document their source;
+   * this diagnostic fires when it is omitted.
+   */
   MissingFromClause = 'PAR0011',
+  /**
+   * Enforces that import lists are non-empty (e.g., `import from Foo` is
+   * meaningless), anchoring ordering expectations early.
+   */
   EmptyImportList = 'PAR0012',
+  /**
+   * Warns when a function block reaches EOF without `end function`, preventing
+   * later declarations from drifting.
+   */
   MissingEndFunction = 'PAR0013',
+  /**
+   * Parallel to {@link MissingEndFunction} but for enums, guaranteeing `end
+   * enum` anchors parser recovery.
+   */
   MissingEndEnum = 'PAR0014',
+  /**
+   * Future analyzer enforcement placeholder ensuring compile-time constants are
+   * initialized; included here for completeness with ordering diagnostics.
+   */
   MissingConstInitializer = 'PAR0015',
+  /**
+   * Only one exported `main` may exist across the program. Additional exported
+   * mains trigger this error to protect entry-point determinism.
+   */
   DuplicateExportedMain = 'PAR0016',
+  /**
+   * When `main` lacks an explicit `export`, the parser will auto-export it while
+   * emitting this warning so the behavior remains visible to authors.
+   */
   ImplicitMainExport = 'PAR0017',
+  /**
+   * Fallback for unexpected parser states so downstream tooling can flag bugs
+   * without crashing the compilation pipeline.
+   */
   InternalParserError = 'PAR9999',
 }
 
