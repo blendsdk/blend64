@@ -587,8 +587,6 @@ These statements are **self-terminating**:
 - ❌ Match statements: `match ... end match`
 - ❌ Function declarations: `function ... end function`
 
-See [Migration Guide](30-migration-guide.md) for details on semicolon-based syntax.
-
 ## Best Practices
 
 ### 1. Use Parentheses for Clarity

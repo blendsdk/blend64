@@ -326,8 +326,6 @@ Semicolons are **required** for statement termination, except for:
 - Block-structured statements (if, while, for, match)
 - Declarations (module, function, type, enum)
 
-See [Migration Guide](30-migration-guide.md) for the transition from newline-based to semicolon-based syntax.
-
 ## Ambiguity Resolution
 
 The grammar is designed to be unambiguous:

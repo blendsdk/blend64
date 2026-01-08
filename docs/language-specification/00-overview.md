@@ -82,8 +82,6 @@ let x: byte = 5;
 let y: byte = 10;
 ```
 
-See [Migration Guide](30-migration-guide.md) for details on migrating from newline-based syntax.
-
 ### Block-Structured with Explicit Terminators
 
 Control flow and declarations use block structure with `end` terminators:

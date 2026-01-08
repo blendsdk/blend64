@@ -32,7 +32,7 @@ whitespace     = " " | "\t" | "\r" | "\n" ;
 separator      = ";" ;
 ```
 
-> **Note**: The lexer treats all whitespace uniformly. Semicolons are emitted as `SEMICOLON` tokens and are required for statement termination. See [Migration Guide](30-migration-guide.md) for details.
+> **Note**: The lexer treats all whitespace uniformly. Semicolons are emitted as `SEMICOLON` tokens and are required for statement termination.
 
 ## Tokens
 

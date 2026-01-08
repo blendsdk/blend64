@@ -39,12 +39,6 @@ Blend65 provides structured programming, modularity, and a practical type system
 | [20-error-handling.md](20-error-handling.md) | Lexer-level errors and diagnostics |
 | [21-examples.md](21-examples.md) | Complete working code examples |
 
-### Migration & History
-
-| Document | Description |
-|----------|-------------|
-| [30-migration-guide.md](30-migration-guide.md) | Migration guide: newline-based → semicolon-based syntax |
-
 ## Quick Start
 
 **New to Blend65?** Start with:

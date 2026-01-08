@@ -250,8 +250,6 @@ function main(): void
 end function
 ```
 
-See [Migration Guide](30-migration-guide.md) for details on migrating from newline-based syntax.
-
 ## Example Program Structure
 
 Here's a complete, well-structured Blend65 program:
