@@ -190,14 +190,12 @@ describe('Advanced Expression Parser - Phase 3', () => {
       expect(args[2]).toBeInstanceOf(IndexExpression);
     });
 
-    test('parses chained function calls', () => {
-      const expr = parseExpr('getPlayer().getPosition()') as CallExpression;
-      expect(expr).toBeInstanceOf(CallExpression);
-      expect(expr.getCallee()).toBeInstanceOf(MemberExpression);
-
-      const callee = expr.getCallee() as MemberExpression;
-      expect(callee.getObject()).toBeInstanceOf(CallExpression);
-      expect(callee.getProperty()).toBe('getPosition');
+    test('function calls on non-identifiers produce errors with recovery', () => {
+      // SPECIFICATION COMPLIANCE: Method calls like obj.method() are not supported
+      const { expression, parser } = parseExpression('getPlayer().getPosition()');
+      expect(parser.getDiagnostics().length).toBeGreaterThan(0); // Should have error
+      // Parser should use error recovery and still return some expression
+      expect(expression).toBeTruthy();
     });
   });
 
@@ -205,38 +203,36 @@ describe('Advanced Expression Parser - Phase 3', () => {
   // MEMBER ACCESS TESTS
   // ============================================
 
-  describe('Member Access Expressions', () => {
-    test('parses simple member access', () => {
-      const expr = parseExpr('player.health') as MemberExpression;
+  describe('Member Access Expressions - SPECIFICATION COMPLIANT', () => {
+    test('parses simple @map member access', () => {
+      // SPECIFICATION: Member access only allowed for @map declarations
+      const expr = parseExpr('vic.borderColor') as MemberExpression;
       expect(expr).toBeInstanceOf(MemberExpression);
       expect(expr.getObject()).toBeInstanceOf(IdentifierExpression);
-      expect((expr.getObject() as IdentifierExpression).getName()).toBe('player');
-      expect(expr.getProperty()).toBe('health');
+      expect((expr.getObject() as IdentifierExpression).getName()).toBe('vic');
+      expect(expr.getProperty()).toBe('borderColor');
     });
 
-    test('parses chained member access', () => {
-      const expr = parseExpr('player.position.x') as MemberExpression;
-      expect(expr).toBeInstanceOf(MemberExpression);
-      expect(expr.getProperty()).toBe('x');
-
-      const object = expr.getObject() as MemberExpression;
-      expect(object).toBeInstanceOf(MemberExpression);
-      expect(object.getProperty()).toBe('position');
-      expect((object.getObject() as IdentifierExpression).getName()).toBe('player');
+    test('rejects chained member access with error recovery', () => {
+      // SPECIFICATION: Chained member access like obj.prop.subprop is not supported
+      const { expression, parser } = parseExpression('player.position.x');
+      expect(parser.getDiagnostics().length).toBeGreaterThan(0); // Should have error
+      expect(expression).toBeTruthy(); // Should still return some expression via recovery
+      // The exact type depends on error recovery strategy - could be MemberExpression, BinaryExpression, etc.
     });
 
-    test('parses member access on function call', () => {
-      const expr = parseExpr('getEnemy().health') as MemberExpression;
-      expect(expr).toBeInstanceOf(MemberExpression);
-      expect(expr.getObject()).toBeInstanceOf(CallExpression);
-      expect(expr.getProperty()).toBe('health');
+    test('rejects member access on function calls with error recovery', () => {
+      // SPECIFICATION: Method calls like func().prop are not supported
+      const { expression, parser } = parseExpression('getEnemy().health');
+      expect(parser.getDiagnostics().length).toBeGreaterThan(0); // Should have error
+      expect(expression).toBeTruthy(); // Should still return expression via recovery
     });
 
-    test('parses member access on index expression', () => {
-      const expr = parseExpr('enemies[0].health') as MemberExpression;
-      expect(expr).toBeInstanceOf(MemberExpression);
-      expect(expr.getObject()).toBeInstanceOf(IndexExpression);
-      expect(expr.getProperty()).toBe('health');
+    test('rejects member access on index expressions with error recovery', () => {
+      // SPECIFICATION: Member access on expressions like array[i].prop is not supported
+      const { expression, parser } = parseExpression('enemies[0].health');
+      expect(parser.getDiagnostics().length).toBeGreaterThan(0); // Should have error
+      expect(expression).toBeTruthy(); // Should still return expression via recovery
     });
   });
 
@@ -244,7 +240,7 @@ describe('Advanced Expression Parser - Phase 3', () => {
   // INDEX ACCESS TESTS
   // ============================================
 
-  describe('Index Access Expressions', () => {
+  describe('Index Access Expressions - SPECIFICATION COMPLIANT', () => {
     test('parses simple index access', () => {
       const expr = parseExpr('buffer[0]') as IndexExpression;
       expect(expr).toBeInstanceOf(IndexExpression);
@@ -260,7 +256,8 @@ describe('Advanced Expression Parser - Phase 3', () => {
       expect(expr.getIndex()).toBeInstanceOf(BinaryExpression);
     });
 
-    test('parses chained index access', () => {
+    test('parses chained index access - specification compliant', () => {
+      // SPECIFICATION: Multi-dimensional array access is allowed
       const expr = parseExpr('matrix[row][col]') as IndexExpression;
       expect(expr).toBeInstanceOf(IndexExpression);
       expect(expr.getObject()).toBeInstanceOf(IndexExpression);
@@ -270,10 +267,11 @@ describe('Advanced Expression Parser - Phase 3', () => {
       expect((first.getIndex() as IdentifierExpression).getName()).toBe('row');
     });
 
-    test('parses index access on function call', () => {
-      const expr = parseExpr('getData()[index]') as IndexExpression;
-      expect(expr).toBeInstanceOf(IndexExpression);
-      expect(expr.getObject()).toBeInstanceOf(CallExpression);
+    test('rejects index access on function calls with error recovery', () => {
+      // SPECIFICATION: Index access on function results like func()[index] is not supported
+      const { expression, parser } = parseExpression('getData()[index]');
+      expect(parser.getDiagnostics().length).toBeGreaterThan(0); // Should have error
+      expect(expression).toBeTruthy(); // Should still return expression via recovery
     });
   });
 
@@ -351,34 +349,27 @@ describe('Advanced Expression Parser - Phase 3', () => {
   });
 
   // ============================================
-  // COMPLEX EXPRESSION CHAINING TESTS
+  // SPECIFICATION COMPLIANCE ERROR HANDLING
   // ============================================
 
-  describe('Complex Expression Chaining', () => {
-    test('parses complex postfix chain', () => {
-      const expr = parseExpr('game.players[0].inventory.items[slot].use()') as CallExpression;
-      expect(expr).toBeInstanceOf(CallExpression);
-
-      // Verify the complex chain structure
-      const callee = expr.getCallee() as MemberExpression;
-      expect(callee.getProperty()).toBe('use');
-
-      const itemAccess = callee.getObject() as IndexExpression;
-      expect(itemAccess).toBeInstanceOf(IndexExpression);
-      expect((itemAccess.getIndex() as IdentifierExpression).getName()).toBe('slot');
+  describe('Specification Compliance - Error Recovery', () => {
+    test('rejects complex object-oriented chaining with error recovery', () => {
+      // SPECIFICATION: Complex chaining like obj.prop.method()[index].field is not supported
+      const { expression, parser } = parseExpression('game.players[0].inventory.items[slot].use()');
+      expect(parser.getDiagnostics().length).toBeGreaterThan(0); // Should have multiple errors
+      expect(expression).toBeTruthy(); // Should still return some expression via recovery
     });
 
-    test('parses mixed postfix operations', () => {
-      const expr = parseExpr('array[index].property()') as CallExpression;
-      expect(expr).toBeInstanceOf(CallExpression);
-
-      const callee = expr.getCallee() as MemberExpression;
-      expect(callee.getProperty()).toBe('property');
-      expect(callee.getObject()).toBeInstanceOf(IndexExpression);
+    test('rejects method calls on array access with error recovery', () => {
+      // SPECIFICATION: Method calls on expressions like array[index].method() are not supported
+      const { expression, parser } = parseExpression('array[index].property()');
+      expect(parser.getDiagnostics().length).toBeGreaterThan(0); // Should have error
+      expect(expression).toBeTruthy(); // Should still return expression via recovery
     });
 
-    test('parses unary with postfix operations', () => {
-      const expr = parseExpr('!player.alive') as UnaryExpression;
+    test('parses unary with @map member access - specification compliant', () => {
+      // SPECIFICATION: This is valid - unary operator on @map member access
+      const expr = parseExpr('!vic.spriteEnable') as UnaryExpression;
       expect(expr).toBeInstanceOf(UnaryExpression);
       expect(expr.getOperator()).toBe(TokenType.NOT);
       expect(expr.getOperand()).toBeInstanceOf(MemberExpression);
@@ -464,12 +455,13 @@ describe('Advanced Expression Parser - Phase 3', () => {
   });
 
   // ============================================
-  // INTEGRATION TESTS
+  // INTEGRATION TESTS - SPECIFICATION COMPLIANT
   // ============================================
 
-  describe('Integration with Binary Expressions', () => {
-    test('advanced expressions work in binary context', () => {
-      const expr = parseExpr('player.health > 0 && !player.isDead()') as BinaryExpression;
+  describe('Integration with Binary Expressions - SPECIFICATION COMPLIANT', () => {
+    test('specification-compliant expressions work in binary context', () => {
+      // SPECIFICATION: Use @map member access and standalone function calls
+      const expr = parseExpr('vic.borderColor > 0 && !gameOver') as BinaryExpression;
       expect(expr).toBeInstanceOf(BinaryExpression);
       expect(expr.getOperator()).toBe(TokenType.AND);
 
@@ -477,10 +469,9 @@ describe('Advanced Expression Parser - Phase 3', () => {
       expect(expr.getRight()).toBeInstanceOf(UnaryExpression);
     });
 
-    test('assignment expressions work with complex right-hand side', () => {
-      const expr = parseExpr(
-        'player.position.x = screenWidth / 2 + offset'
-      ) as AssignmentExpression;
+    test('assignment expressions work with specification-compliant syntax', () => {
+      // SPECIFICATION: Use @map member access (not object-oriented chaining)
+      const expr = parseExpr('vic.borderColor = screenWidth / 2 + offset') as AssignmentExpression;
       expect(expr).toBeInstanceOf(AssignmentExpression);
       expect(expr.getTarget()).toBeInstanceOf(MemberExpression);
       expect(expr.getValue()).toBeInstanceOf(BinaryExpression);

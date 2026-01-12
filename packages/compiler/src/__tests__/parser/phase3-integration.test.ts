@@ -79,13 +79,13 @@ describe('Phase 3 Integration - Advanced Expressions in Statements', () => {
   // MEMBER ACCESS IN VARIABLE DECLARATIONS
   // ============================================
 
-  test('member access works in variable declarations', () => {
+  test('member access works only for @map declarations - specification compliant', () => {
     const source = `
       module Test
 
-      let health: byte = player.health;
-      let x: byte = player.position.x;
-      let spriteData: byte = vic.sprites[0].data;
+      let borderColor: byte = vic.borderColor;
+      let backgroundColor: byte = vic.backgroundColor;
+      let spriteData: byte = sid.voice1Freq;
     `;
 
     const { program, hasErrors } = parseBlendProgram(source);
@@ -93,12 +93,12 @@ describe('Phase 3 Integration - Advanced Expressions in Statements', () => {
     expect(hasErrors).toBe(false);
     expect(program.getDeclarations()).toHaveLength(3);
 
-    // Verify member access is parsed correctly
-    const healthDecl = program.getDeclarations()[0] as VariableDecl;
-    expect(healthDecl.getInitializer()).toBeInstanceOf(MemberExpression);
+    // Verify @map member access is parsed correctly
+    const borderDecl = program.getDeclarations()[0] as VariableDecl;
+    expect(borderDecl.getInitializer()).toBeInstanceOf(MemberExpression);
 
-    const xDecl = program.getDeclarations()[1] as VariableDecl;
-    expect(xDecl.getInitializer()).toBeInstanceOf(MemberExpression);
+    const bgDecl = program.getDeclarations()[1] as VariableDecl;
+    expect(bgDecl.getInitializer()).toBeInstanceOf(MemberExpression);
 
     const spriteDecl = program.getDeclarations()[2] as VariableDecl;
     expect(spriteDecl.getInitializer()).toBeInstanceOf(MemberExpression);
@@ -167,32 +167,23 @@ describe('Phase 3 Integration - Advanced Expressions in Statements', () => {
   });
 
   // ============================================
-  // COMPLEX EXPRESSION CHAINS
+  // SPECIFICATION COMPLIANCE ERROR TESTS
   // ============================================
 
-  test('complex expression chains work in variable declarations', () => {
+  test('non-compliant complex expressions produce errors with recovery', () => {
     const source = `
       module Test
 
-      let value: word = player.inventory.items[slot].getValue();
-      let result: byte = !enemies[i].isAlive() && player.health > 0;
-      let calculated: word = -getOffset() + array[index].property;
+      let invalid1: word = player.inventory.items[slot].getValue();
+      let invalid2: byte = enemies[i].isAlive();
+      let invalid3: word = array[index].property;
     `;
 
-    const { program, hasErrors } = parseBlendProgram(source);
+    const { program, hasErrors, diagnostics } = parseBlendProgram(source);
 
-    expect(hasErrors).toBe(false);
-    expect(program.getDeclarations()).toHaveLength(3);
-
-    // Verify complex chains are parsed correctly
-    const valueDecl = program.getDeclarations()[0] as VariableDecl;
-    expect(valueDecl.getInitializer()).toBeInstanceOf(CallExpression);
-
-    const resultDecl = program.getDeclarations()[1] as VariableDecl;
-    expect(resultDecl.getInitializer()).toBeInstanceOf(BinaryExpression);
-
-    const calcDecl = program.getDeclarations()[2] as VariableDecl;
-    expect(calcDecl.getInitializer()).toBeInstanceOf(BinaryExpression);
+    expect(hasErrors).toBe(true); // Should have errors due to non-compliant syntax
+    expect(diagnostics.length).toBeGreaterThan(0); // Should report multiple errors
+    expect(program.getDeclarations()).toHaveLength(3); // Should still parse declarations via recovery
   });
 
   // ============================================
@@ -217,14 +208,14 @@ describe('Phase 3 Integration - Advanced Expressions in Statements', () => {
   });
 
   // ============================================
-  // INTEGRATION WITH EXISTING BINARY EXPRESSIONS
+  // INTEGRATION WITH EXISTING BINARY EXPRESSIONS - SPECIFICATION COMPLIANT
   // ============================================
 
-  test('advanced expressions integrate with binary expressions', () => {
+  test('specification-compliant expressions integrate with binary expressions', () => {
     const source = `
       module Test
 
-      let comparison: boolean = player.health > getMaxHealth() / 2;
+      let comparison: boolean = vic.borderColor > getMaxHealth() / 2;
       let calculation: word = getValue() + array[index] * factor;
       let complex: boolean = !flag && (getValue() > 0 || array[0] == target);
     `;
@@ -234,7 +225,7 @@ describe('Phase 3 Integration - Advanced Expressions in Statements', () => {
     expect(hasErrors).toBe(false);
     expect(program.getDeclarations()).toHaveLength(3);
 
-    // Verify advanced expressions work within binary expressions
+    // Verify specification-compliant expressions work within binary expressions
     const compDecl = program.getDeclarations()[0] as VariableDecl;
     expect(compDecl.getInitializer()).toBeInstanceOf(BinaryExpression);
 
@@ -246,17 +237,17 @@ describe('Phase 3 Integration - Advanced Expressions in Statements', () => {
   });
 
   // ============================================
-  // PRECEDENCE AND ASSOCIATIVITY VERIFICATION
+  // PRECEDENCE AND ASSOCIATIVITY VERIFICATION - SPECIFICATION COMPLIANT
   // ============================================
 
-  test('precedence works correctly with advanced expressions', () => {
+  test('precedence works correctly with specification-compliant expressions', () => {
     const source = `
       module Test
 
       let test1: word = func() + value;
       let test2: boolean = !flag || getValue() > 0;
       let test3: byte = array[index] * 2 + offset;
-      let test4: word = obj.prop + func() * array[i];
+      let test4: word = vic.borderColor + func() * array[i];
     `;
 
     const { program, hasErrors } = parseBlendProgram(source);
@@ -296,27 +287,27 @@ describe('Phase 3 Integration - Advanced Expressions in Statements', () => {
   });
 
   // ============================================
-  // REAL-WORLD USAGE SCENARIOS
+  // REAL-WORLD USAGE SCENARIOS - SPECIFICATION COMPLIANT
   // ============================================
 
-  test('real-world C64 game expressions', () => {
+  test('real-world C64 game expressions - specification compliant', () => {
     const source = `
       module C64Game
 
-      // Sprite collision detection
-      let collision: boolean = !sprites[0].isActive() || getDistance(player.x, player.y, enemy.x, enemy.y) < 16;
+      // Sprite collision detection - using standalone functions and arrays
+      let collision: boolean = !sprites[0] || getDistance(playerX, playerY, enemyX, enemyY) < 16;
 
-      // Screen memory calculations
-      let screenAddr: word = @screen + player.y * 40 + player.x;
+      // Screen memory calculations - using @map and variables
+      let screenAddr: word = @screen + playerY * 40 + playerX;
 
-      // Color cycling
+      // Color cycling - simple arithmetic
       let newColor: byte = (borderColor + 1) == 16;
 
-      // Sound frequency calculation
+      // Sound frequency calculation - array access and arithmetic
       let frequency: word = baseFreq * notes[currentNote] / 256;
 
-      // Joystick input processing
-      let moveRight: boolean = (joystick[0] & 8) == 0 && player.x < SCREEN_WIDTH - 1;
+      // Joystick input processing - array access and bit operations
+      let moveRight: boolean = (joystick[0] & 8) == 0 && playerX < SCREEN_WIDTH - 1;
     `;
 
     const { program, hasErrors } = parseBlendProgram(source);
@@ -324,31 +315,30 @@ describe('Phase 3 Integration - Advanced Expressions in Statements', () => {
     expect(hasErrors).toBe(false);
     expect(program.getDeclarations()).toHaveLength(5);
 
-    // Verify all complex expressions parse correctly
+    // Verify all specification-compliant expressions parse correctly
     program.getDeclarations().forEach(decl => {
       const variableDecl = decl as VariableDecl;
       expect(variableDecl.getInitializer()).toBeTruthy();
-      // Each expression should be either a binary expression or complex expression
+      // Each expression should be either a binary expression or simple expression
       expect(
         variableDecl.getInitializer() instanceof BinaryExpression ||
           variableDecl.getInitializer() instanceof CallExpression ||
           variableDecl.getInitializer() instanceof UnaryExpression ||
-          variableDecl.getInitializer() instanceof MemberExpression ||
           variableDecl.getInitializer() instanceof IndexExpression
       ).toBe(true);
     });
   });
 
   // ============================================
-  // PERFORMANCE WITH COMPLEX EXPRESSIONS
+  // PERFORMANCE WITH SPECIFICATION-COMPLIANT EXPRESSIONS
   // ============================================
 
-  test('performance with many advanced expressions', () => {
+  test('performance with many specification-compliant expressions', () => {
     let source = 'module Performance\n';
 
-    // Generate many complex expressions
+    // Generate many specification-compliant expressions
     for (let i = 0; i < 50; i++) {
-      source += `let expr${i}: word = getValue${i}() + array[${i}] * factor.multiplier;\n`;
+      source += `let expr${i}: word = getValue${i}() + array[${i}] * vic.borderColor;\n`;
     }
 
     const startTime = performance.now();
@@ -364,57 +354,51 @@ describe('Phase 3 Integration - Advanced Expressions in Statements', () => {
   });
 
   // ============================================
-  // COMPREHENSIVE INTEGRATION TEST
+  // COMPREHENSIVE INTEGRATION TEST - SPECIFICATION COMPLIANT
   // ============================================
 
-  test('comprehensive Phase 3 integration test', () => {
+  test('comprehensive Phase 3 integration test - specification compliant', () => {
     const source = `
       module ComprehensiveTest
 
-      // All advanced expression types in realistic context
+      // All specification-compliant expression types
       let functionCall: word = calculateScore(level, multiplier);
-      let memberAccess: byte = player.health;
+      let memberAccess: byte = vic.borderColor;
       let indexAccess: byte = buffer[offset];
       let unaryNot: boolean = !gameOver;
       let unaryMinus: word = -velocity;
       let unaryBitwise: byte = ~mask;
       let addressOf: word = @counter;
 
-      // Complex chains
-      let chain1: word = player.inventory.items[slot].getValue();
-      let chain2: boolean = enemies[i].isAlive() && player.health > 0;
-      let chain3: byte = getSprite(index).x + offset;
-
-      // Mixed with binary operators
-      let mixed1: word = func() + value * 2;
+      // Mixed with binary operators - specification compliant
+      let mixed1: word = getFunc() + value * 2;
       let mixed2: boolean = array[i] == target && !disabled;
       let mixed3: byte = ~flags | getValue() & mask;
 
-      // Deeply nested
-      let nested: boolean = ((func() + array[i]) * factor) > (player.health - damage);
+      // Deeply nested but specification compliant
+      let nested: boolean = ((getFunc() + array[i]) * factor) > (vic.borderColor - damage);
 
-      // Real C64 scenarios
+      // Real C64 scenarios - specification compliant
       let spriteCollision: boolean = (vic.spriteCollision & (1 << spriteIndex)) != 0;
       let colorCycle: byte = colorTable[(frameCounter + colorOffset) % COLOR_TABLE_SIZE];
-      let soundFreq: word = frequencies[noteIndex] + vibrato.getValue();
+      let soundFreq: word = frequencies[noteIndex] + getVibrato();
     `;
 
     const { program, hasErrors, diagnostics } = parseBlendProgram(source);
 
     expect(hasErrors).toBe(false);
     expect(diagnostics).toHaveLength(0);
-    expect(program.getDeclarations()).toHaveLength(17);
+    expect(program.getDeclarations()).toHaveLength(14);
 
     // Verify each declaration has a valid initializer
     program.getDeclarations().forEach((decl, index) => {
       const variableDecl = decl as VariableDecl;
       expect(variableDecl.getInitializer()).toBeTruthy();
       expect(variableDecl.getName()).toMatch(
-        /^(functionCall|memberAccess|indexAccess|unary|addressOf|chain|mixed|nested|spriteCollision|colorCycle|soundFreq)/
+        /^(functionCall|memberAccess|indexAccess|unary|addressOf|mixed|nested|spriteCollision|colorCycle|soundFreq)/
       );
     });
 
-    // This test confirms that Phase 3 advanced expressions are fully integrated
-    // and working correctly in the main Parser implementation
+    // This test confirms that Phase 3 expressions work correctly with specification compliance
   });
 });

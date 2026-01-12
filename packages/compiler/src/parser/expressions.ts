@@ -319,35 +319,66 @@ export abstract class ExpressionParser extends BaseParser {
   }
 
   /**
-   * Parses postfix expressions (calls, member access, indexing)
+   * Parses postfix expressions - SPECIFICATION COMPLIANT
    *
-   * Postfix expressions have left-to-right associativity and highest precedence.
-   * They support chaining: obj.method()[index].property
+   * Blend65 has LIMITED support for postfix operations, unlike object-oriented languages:
    *
-   * Supported postfix operators:
-   * - () (function call): func(), add(1, 2)
-   * - [] (indexing): array[0], buffer[i]
-   * - . (member access): player.health, Game.score
+   * SUPPORTED (specification-compliant):
+   * - Function calls on identifiers: func(), calculateScore(a, b)
+   * - Array indexing: array[0], matrix[row][col] (chained indexing allowed)
+   * - @map member access: vic.borderColor (single level only)
    *
-   * Grammar: postfix_expr = primary_expr , { postfix_suffix }
-   *          postfix_suffix = call_suffix | index_suffix | member_suffix
+   * NOT SUPPORTED (not in specification):
+   * - Method calls: obj.method()
+   * - Complex chaining: obj.prop.method()[index].field
+   * - Mixed operation chains: player.inventory.items[slot].getValue()
    *
-   * @returns Expression AST node representing postfix or primary expression
+   * @returns Expression AST node representing postfix or atomic expression
    */
   protected parsePostfixExpression(): Expression {
     // Start with primary expression (atomic expressions)
     let expr = this.parseAtomicExpression();
 
-    // Chain postfix operators left-to-right
-    while (this.isPostfixOperator()) {
+    // SPECIFICATION ENFORCEMENT: Only ONE postfix operation allowed, no chaining
+    if (this.isPostfixOperator()) {
       if (this.check(TokenType.LEFT_PAREN)) {
+        // Function calls: only on identifiers, absolutely no chaining after
         expr = this.parseCallExpression(expr);
+
+        // CRITICAL: Detect and reject any further chaining attempts
+        if (this.isPostfixOperator()) {
+          this.reportError(
+            DiagnosticCode.UNEXPECTED_TOKEN,
+            'Chaining after function calls is not supported in Blend65. Use standalone function calls only.'
+          );
+        }
+        return expr;
       } else if (this.check(TokenType.LEFT_BRACKET)) {
-        expr = this.parseIndexExpression(expr);
+        // Array indexing: allow multiple brackets (matrix[row][col])
+        while (this.check(TokenType.LEFT_BRACKET)) {
+          expr = this.parseIndexExpression(expr);
+        }
+
+        // CRITICAL: Detect and reject member access or function calls after indexing
+        if (this.check(TokenType.DOT) || this.check(TokenType.LEFT_PAREN)) {
+          this.reportError(
+            DiagnosticCode.UNEXPECTED_TOKEN,
+            'Member access and function calls after array indexing are not supported in Blend65.'
+          );
+        }
+        return expr;
       } else if (this.check(TokenType.DOT)) {
+        // Member access: only for @map, single level only
         expr = this.parseMemberExpression(expr);
-      } else {
-        break; // Should not happen if isPostfixOperator() is correct
+
+        // CRITICAL: Detect and reject any further chaining after member access
+        if (this.isPostfixOperator()) {
+          this.reportError(
+            DiagnosticCode.UNEXPECTED_TOKEN,
+            'Chaining after member access is not supported in Blend65. Use simple @map access only.'
+          );
+        }
+        return expr;
       }
     }
 
@@ -500,21 +531,38 @@ export abstract class ExpressionParser extends BaseParser {
   // ============================================
 
   /**
-   * Parses function call expressions
+   * Parses function call expressions - SPECIFICATION COMPLIANT
    *
-   * Function calls have the form: expression()
-   * - Empty arguments: func()
-   * - Single argument: func(arg)
-   * - Multiple arguments: func(arg1, arg2, arg3)
-   * - Expression arguments: func(x + 1, getValue(), array[i])
+   * Function calls in Blend65 can ONLY be called on identifiers (standalone functions).
+   * Object-oriented method calls (obj.method()) are NOT supported in Blend65.
+   *
+   * Valid calls:
+   * - init()
+   * - calculateScore(level, bonus)
+   * - getValue()
+   *
+   * Invalid calls (not in specification):
+   * - obj.method()  // No method calls
+   * - array[i].func()  // No method calls on expressions
    *
    * Grammar: call_suffix = "(" , [ argument_list ] , ")" ;
    *          argument_list = expression , { "," , expression } ;
    *
-   * @param callee - The expression being called (function name/expression)
+   * @param callee - The expression being called (MUST be identifier only)
    * @returns CallExpression AST node
    */
   protected parseCallExpression(callee: Expression): CallExpression {
+    // SPECIFICATION COMPLIANCE: Only allow function calls on identifiers
+    if (!(callee instanceof IdentifierExpression)) {
+      this.reportError(
+        DiagnosticCode.UNEXPECTED_TOKEN,
+        'Function calls can only be made on standalone function names, not on expressions. Blend65 does not support object methods.'
+      );
+      // Return dummy call for error recovery
+      const location = this.mergeLocations(callee.getLocation(), this.currentLocation());
+      return new CallExpression(callee, [], location);
+    }
+
     // Consume opening parenthesis
     this.expect(TokenType.LEFT_PAREN, "Expected '(' for function call");
 
@@ -538,20 +586,35 @@ export abstract class ExpressionParser extends BaseParser {
   }
 
   /**
-   * Parses member access expressions
+   * Parses member access expressions - SPECIFICATION COMPLIANT
    *
-   * Member access has the form: expression.identifier
-   * - Simple access: player.health
-   * - Chained access: player.position.x
-   * - On function calls: getPlayer().health
-   * - On arrays: enemies[0].health
+   * Member access in Blend65 is ONLY allowed for @map declarations (memory-mapped registers).
+   * General object-oriented member access is NOT supported in Blend65.
+   *
+   * Valid member access:
+   * - vic.borderColor  // If vic is a @map declaration
+   * - sid.voice1Freq   // If sid is a @map declaration
+   *
+   * Invalid member access (not in specification):
+   * - player.health    // No general object access
+   * - obj.prop.subprop // No nested object access
+   * - array[i].field   // No member access on expressions
    *
    * Grammar: member_suffix = "." , identifier ;
    *
-   * @param object - The expression being accessed (left side of dot)
+   * @param object - The expression being accessed (MUST be @map identifier only)
    * @returns MemberExpression AST node
    */
   protected parseMemberExpression(object: Expression): MemberExpression {
+    // SPECIFICATION COMPLIANCE: Only allow member access on @map declarations
+    // For now, we only allow simple identifiers (not complex expressions)
+    if (!(object instanceof IdentifierExpression)) {
+      this.reportError(
+        DiagnosticCode.UNEXPECTED_TOKEN,
+        'Member access can only be used on @map declarations, not on expressions. Blend65 does not support general object-oriented syntax.'
+      );
+    }
+
     // Consume dot operator
     this.expect(TokenType.DOT, "Expected '.' for member access");
 
