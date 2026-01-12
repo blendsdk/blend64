@@ -2,7 +2,7 @@
  * Parser Class for Blend65 Compiler
  *
  * Final concrete parser class that extends the full inheritance chain:
- * BaseParser → ExpressionParser → DeclarationParser → ModuleParser → Parser
+ * BaseParser → ExpressionParser → DeclarationParser → ModuleParser → StatementParser → Parser
  *
  * This class provides the main entry point and orchestration for parsing
  * Blend65 source code into Abstract Syntax Trees (AST).
@@ -12,6 +12,7 @@
  * - Expression parsing with Pratt parser (ExpressionParser)
  * - Variable and @map declaration parsing (DeclarationParser)
  * - Module system parsing (ModuleParser)
+ * - Statement parsing infrastructure (StatementParser)
  *
  * This class focuses solely on high-level orchestration and provides
  * the public API that external code uses.
@@ -19,7 +20,7 @@
 
 import { Declaration, DiagnosticCode, Program } from '../ast/index.js';
 import { TokenType } from '../lexer/types.js';
-import { ModuleParser } from './modules.js';
+import { StatementParser } from './statements.js';
 
 /**
  * Complete Blend65 parser - final concrete implementation
@@ -57,7 +58,7 @@ import { ModuleParser } from './modules.js';
  * }
  * ```
  */
-export class Parser extends ModuleParser {
+export class Parser extends StatementParser {
   // ============================================
   // MAIN ENTRY POINT
   // ============================================

@@ -18,8 +18,12 @@ import {
   DiagnosticCode,
 } from '../ast/index.js';
 import { TokenType } from '../lexer/types.js';
-import { getPrecedence, isBinaryOperator, isRightAssociative } from './index.js';
-import { OperatorPrecedence } from './precedence.js';
+import {
+  getPrecedence,
+  isBinaryOperator,
+  isRightAssociative,
+  OperatorPrecedence,
+} from './precedence.js';
 import { BaseParser } from './base.js';
 
 /**
@@ -183,7 +187,7 @@ export abstract class ExpressionParser extends BaseParser {
     let left = this.parsePrimaryExpression();
 
     // Parse binary operators with precedence climbing
-    while (this.isBinaryOp() && this.getCurrentPrecedence() > minPrecedence) {
+    while (this.isBinaryOp() && this.getCurrentPrecedence() >= minPrecedence) {
       const operator = this.getCurrentToken().type;
       const precedence = this.getCurrentPrecedence();
 

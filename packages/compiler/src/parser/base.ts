@@ -370,6 +370,7 @@ export abstract class BaseParser {
       TokenType.ZP, // Storage classes
       TokenType.RAM,
       TokenType.DATA,
+      TokenType.MAP, // @map declarations
       TokenType.EOF,
       TokenType.NEWLINE,
       TokenType.LINE_COMMENT,

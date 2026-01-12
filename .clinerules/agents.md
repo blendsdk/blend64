@@ -73,7 +73,51 @@ These rules are **mandatory** and must be applied **strictly and consistently**.
 
 ---
 
-### **Rule 1: Internal Self-Check**
+### **Rule 1: Shell Commands & Package Management**
+
+**CRITICAL:** All shell command execution must follow these strict rules:
+
+**Shell Command Requirements:**
+
+1. **✅ Always prefix shell commands with `clear &&`**
+   - Every `execute_command` must start with `clear &&`
+   - This ensures a clean terminal for each command
+   - Example: `clear && yarn build` NOT `yarn build`
+
+2. **✅ Use YARN exclusively - NEVER use NPM or NPX**
+   - ❌ Never use: `npm install`, `npm run`, `npx`
+   - ✅ Always use: `yarn install`, `yarn run`, `yarn`
+   - ❌ Never use: `npx create-react-app`
+   - ✅ Always use: `yarn create react-app`
+
+3. **✅ Standard test command from project root**
+   - For building and testing: `clear && yarn clean && yarn build && yarn test`
+   - This runs all packages and ensures complete build/test cycle
+   - Always run from project root (`/Users/gevik/workdir/blend65`)
+
+**Examples:**
+
+❌ **Wrong:**
+
+```bash
+npm test
+npx vitest
+yarn test
+```
+
+✅ **Correct:**
+
+```bash
+clear && yarn test
+clear && yarn clean && yarn build && yarn test
+clear && yarn install
+```
+
+**Purpose:** These rules ensure consistent environment, clean terminal output, and proper package management across the entire project.
+
+---
+
+### **Rule 2: Internal Self-Check**
 
 Before providing any response, perform an **internal self-check** by asking yourself:
 
@@ -98,7 +142,7 @@ Before providing any response, perform an **internal self-check** by asking your
 
 ---
 
-### **Rule 2: Enhance Requirements**
+### **Rule 3: Enhance Requirements**
 
 If you identify issues with the user's request:
 
@@ -123,7 +167,7 @@ User says: _"Add error handling"_
 
 ---
 
-### **Rule 3: Verify Previous Task Completion**
+### **Rule 4: Verify Previous Task Completion**
 
 Before starting any new task implementation, **verify the previous task was fully completed**:
 
@@ -145,7 +189,7 @@ Before starting any new task implementation, **verify the previous task was full
 
 ---
 
-### **Rule 4: Update Task Plan Documents**
+### **Rule 5: Update Task Plan Documents**
 
 Track progress by updating task plan documents throughout implementation:
 
@@ -171,7 +215,7 @@ Track progress by updating task plan documents throughout implementation:
 
 ---
 
-### **Rule 5: Final Verification Before Completion**
+### **Rule 6: Final Verification Before Completion**
 
 Before marking any task as complete or calling `attempt_completion`, perform a **comprehensive final check**:
 
@@ -219,11 +263,12 @@ Before marking any task as complete or calling `attempt_completion`, perform a *
 
 **Every Single Time You Respond:**
 
-1. 🧠 Perform internal self-check (Rule 1)
-2. ❓ Ask questions if anything is unclear (Rule 2 - Plan Mode)
-3. ✅ Verify previous work is complete (Rule 3 - before new tasks)
-4. 📝 Update task progress (Rule 4 - during implementation)
-5. 🔍 Final verification before completion (Rule 5 - before finishing)
+1. 🔧 Follow shell command rules (Rule 1 - use `clear &&` and yarn only)
+2. 🧠 Perform internal self-check (Rule 2)
+3. 💡 Enhance requirements if unclear (Rule 3 - Plan Mode)
+4. ✅ Verify previous work is complete (Rule 4 - before new tasks)
+5. 📝 Update task progress (Rule 5 - during implementation)
+6. 🔍 Final verification before completion (Rule 6 - before finishing)
 
 **Remember:** These rules exist to ensure high-quality, complete implementations. Following them prevents errors, rework, and wasted effort.
 

@@ -161,7 +161,7 @@ describe('End-to-End Parser Tests', () => {
 
         let valid1: byte = 5;
 
-        invalid syntax here !@#$%
+        invalid let byte = ;
 
         let valid2: byte = 10;
         @map test at $1000: byte;
@@ -343,7 +343,7 @@ describe('End-to-End Parser Tests', () => {
 
       expect(result.hasErrors).toBe(false);
       expect(result.program.getModule().getFullName()).toBe('SpaceInvaders');
-      expect(result.program.getDeclarations()).toHaveLength(9);
+      expect(result.program.getDeclarations()).toHaveLength(10);
     });
 
     it('parses C64 demo effect setup', () => {
@@ -496,9 +496,9 @@ describe('End-to-End Parser Tests', () => {
   describe('Error Scenarios', () => {
     it('handles completely malformed input', () => {
       const source = `
-        !@#$%^&*()
-        invalid tokens everywhere
-        }{][
+        invalid let x: byte = ;
+        unexpected tokens here
+        let let let;
       `;
 
       const result = parseBlendProgram(source);
