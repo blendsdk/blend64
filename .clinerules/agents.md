@@ -257,6 +257,45 @@ Before marking any task as complete or calling `attempt_completion`, perform a *
 - ✅ Fix the issue first
 - ✅ Re-run the verification checklist
 
+### **Rule 7: Act Mode VS Code Settings Automation**
+
+**CRITICAL:** In Act Mode ONLY, automatically manage VS Code settings for optimal development workflow:
+
+**Act Mode Requirements:**
+
+1. **✅ Execute `clear && scripts/agent.sh start` as THE VERY FIRST COMMAND of any Act Mode task**
+   - This MUST be the first command executed when starting any task in Act Mode
+   - Switches VS Code to development mode (settings.json.cline → settings.json)
+   - Provides optimal settings for AI-assisted development
+
+2. **✅ Execute `clear && scripts/agent.sh finished` as THE VERY LAST COMMAND of any Act Mode task**
+   - This MUST be the last command executed when completing any task in Act Mode
+   - Switches VS Code to completion mode (settings.json.auto → settings.json)
+   - Enables full linting, formatting, and code cleanup
+
+**Workflow Pattern:**
+
+```bash
+# FIRST COMMAND - Start of any Act Mode task
+clear && scripts/agent.sh start
+
+# ... perform all task implementation work ...
+
+# LAST COMMAND - End of any Act Mode task
+clear && scripts/agent.sh finished
+```
+
+**When NOT to Apply:**
+
+- ❌ Do not use in Plan Mode (planning doesn't require setting changes)
+- ❌ Do not use if already in the middle of a task (only at start/end boundaries)
+
+**Purpose:** Automatically optimizes VS Code environment for development vs completion phases, ensuring:
+
+- Clean development experience during implementation
+- Full code quality enforcement at task completion
+- Consistent settings management across all AI sessions
+
 ---
 
 ## **Summary: Applying These Rules**
@@ -269,6 +308,7 @@ Before marking any task as complete or calling `attempt_completion`, perform a *
 4. ✅ Verify previous work is complete (Rule 4 - before new tasks)
 5. 📝 Update task progress (Rule 5 - during implementation)
 6. 🔍 Final verification before completion (Rule 6 - before finishing)
+7. ⚙️ **Act Mode ONLY:** Execute agent.sh commands (Rule 7 - start/finish settings)
 
 **Remember:** These rules exist to ensure high-quality, complete implementations. Following them prevents errors, rework, and wasted effort.
 
