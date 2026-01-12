@@ -1,5 +1,82 @@
 ### A.I Agent Instructions / Cline Instructions
 
+## **🚨 ULTRA-CRITICAL RULE: NEVER ASSUME - ALWAYS QUERY LANGUAGE SPECIFICATION 🚨**
+
+**When implementing ANY compiler subcomponent, NEVER make assumptions - ALWAYS query the language specification FIRST.**
+
+### **MANDATORY Pre-Implementation Check:**
+
+**Before writing ANY code for compiler components:**
+
+1. ⚠️ **STOP** - Do not proceed with assumptions
+2. 📖 **READ** - Query `docs/language-specification/` sections
+3. ✅ **VERIFY** - Confirm exact behavior in specification
+4. 🔍 **CROSS-REFERENCE** - Check EBNF grammar and examples
+5. 💭 **QUESTION** - Challenge any "obvious" assumptions
+
+### **ALL Compiler Areas - NEVER ASSUME:**
+
+**🔤 Lexer/Tokenization:**
+
+- ❌ Token definitions, keywords, operators
+- ❌ Comment styles, string literal formats
+- ❌ Numeric literal parsing rules
+- ❌ Whitespace and newline handling
+- ❌ Character encoding or escape sequences
+
+**🌳 Parser/AST:**
+
+- ❌ Grammar rules, precedence, associativity
+- ❌ AST node structures and relationships
+- ❌ Statement vs expression classifications
+- ❌ Block structure and scoping rules
+- ❌ Control flow syntax patterns
+
+**📋 Type System:**
+
+- ❌ Type definitions, inference rules
+- ❌ Conversion and coercion behavior
+- ❌ Generic/template mechanisms
+- ❌ Constraint and validation logic
+- ❌ Memory layout assumptions
+
+**🔧 Code Generation:**
+
+- ❌ Instruction selection patterns
+- ❌ Register allocation strategies
+- ❌ Memory addressing modes
+- ❌ Optimization opportunities
+- ❌ Runtime calling conventions
+
+**⚠️ Error Handling:**
+
+- ❌ Error message formats
+- ❌ Recovery strategies
+- ❌ Diagnostic severity levels
+- ❌ Error propagation patterns
+- ❌ User-facing error presentation
+
+**✅ ALWAYS QUERY SPECIFICATION FOR:**
+
+- Exact syntax rules and grammar patterns
+- Semantic behavior and edge cases
+- Error conditions and handling requirements
+- Examples and documented usage patterns
+- Cross-references between language features
+
+### **Emergency Stop Protocol:**
+
+**If you catch yourself making ANY assumption about language behavior:**
+
+1. 🛑 **IMMEDIATE STOP** - Halt current implementation
+2. 📖 **SPECIFICATION QUERY** - Read relevant docs sections
+3. 🔍 **VERIFY UNDERSTANDING** - Confirm behavior is documented
+4. ✅ **PROCEED ONLY AFTER CONFIRMATION** - Implementation matches spec
+
+**This rule supersedes ALL other considerations. When uncertain about ANY language feature, specification consultation is MANDATORY.**
+
+---
+
 ## **CRITICAL RULE: Task Granularity & Architecture**
 
 **To prevent AI context window limitations, ALL tasks must be broken down into granular subtasks with proper architecture.**
@@ -372,6 +449,7 @@ clear && scripts/agent.sh finished
 
 ## **Cross-References**
 
+- See **specification-compliance.md** for detailed compiler implementation compliance rules and "Never Assume" protocols
 - See **plans.md** for detailed guidance on creating implementation plans with proper task breakdown
 - See **code.md** for coding standards, testing requirements, and quality guidelines
 - See **git-commands.md** for git workflow instructions

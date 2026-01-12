@@ -8,7 +8,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'vitest';
-import { DiagnosticCode, ModuleDecl } from '../../ast/index.js';
+import { DiagnosticCode, ImportDecl, ModuleDecl, VariableDecl } from '../../ast/index.js';
 import { Token, TokenType } from '../../lexer/types.js';
 import { ModuleParser } from '../../parser/modules.js';
 
@@ -29,6 +29,15 @@ class TestModuleParser extends ModuleParser {
 
   public testValidateModuleScopeItem(token: Token) {
     this.validateModuleScopeItem(token);
+  }
+
+  // Phase 5: Import/Export testing methods
+  public testParseImportDecl() {
+    return this.parseImportDecl();
+  }
+
+  public testParseExportDecl() {
+    return this.parseExportDecl();
   }
 }
 
@@ -257,6 +266,365 @@ describe('ModuleParser', () => {
       expect(location.start.column).toBe(1);
       expect(location.end.line).toBe(1);
       expect(location.end.column).toBe(12);
+    });
+  });
+
+  // ============================================
+  // PHASE 5: IMPORT DECLARATION PARSING TESTS
+  // ============================================
+
+  describe('Import Declaration Parsing (Phase 5.1)', () => {
+    it('parses single import from simple module', () => {
+      const tokens = [
+        createToken(TokenType.IMPORT, 'import'),
+        createToken(TokenType.IDENTIFIER, 'clearScreen'),
+        createToken(TokenType.FROM, 'from'),
+        createToken(TokenType.IDENTIFIER, 'c64'),
+        createToken(TokenType.DOT, '.'),
+        createToken(TokenType.IDENTIFIER, 'graphics'),
+        createToken(TokenType.SEMICOLON, ';'),
+        createToken(TokenType.EOF, ''),
+      ];
+      parser = new TestModuleParser(tokens);
+
+      const importDecl = parser.testParseImportDecl() as ImportDecl;
+      expect(importDecl).toBeInstanceOf(ImportDecl);
+      expect(importDecl.getIdentifiers()).toEqual(['clearScreen']);
+      expect(importDecl.getModulePath()).toEqual(['c64', 'graphics']);
+      expect(importDecl.getModuleName()).toBe('c64.graphics');
+      expect(importDecl.isWildcardImport()).toBe(false);
+    });
+
+    it('parses multiple imports from module', () => {
+      const tokens = [
+        createToken(TokenType.IMPORT, 'import'),
+        createToken(TokenType.IDENTIFIER, 'clearScreen'),
+        createToken(TokenType.COMMA, ','),
+        createToken(TokenType.IDENTIFIER, 'setPixel'),
+        createToken(TokenType.COMMA, ','),
+        createToken(TokenType.IDENTIFIER, 'drawLine'),
+        createToken(TokenType.FROM, 'from'),
+        createToken(TokenType.IDENTIFIER, 'c64'),
+        createToken(TokenType.DOT, '.'),
+        createToken(TokenType.IDENTIFIER, 'graphics'),
+        createToken(TokenType.DOT, '.'),
+        createToken(TokenType.IDENTIFIER, 'screen'),
+        createToken(TokenType.SEMICOLON, ';'),
+        createToken(TokenType.EOF, ''),
+      ];
+      parser = new TestModuleParser(tokens);
+
+      const importDecl = parser.testParseImportDecl() as ImportDecl;
+      expect(importDecl).toBeInstanceOf(ImportDecl);
+      expect(importDecl.getIdentifiers()).toEqual(['clearScreen', 'setPixel', 'drawLine']);
+      expect(importDecl.getModulePath()).toEqual(['c64', 'graphics', 'screen']);
+      expect(importDecl.getModuleName()).toBe('c64.graphics.screen');
+      expect(importDecl.isWildcardImport()).toBe(false);
+    });
+
+    it('parses imports from deeply nested modules', () => {
+      const tokens = [
+        createToken(TokenType.IMPORT, 'import'),
+        createToken(TokenType.IDENTIFIER, 'initSID'),
+        createToken(TokenType.COMMA, ','),
+        createToken(TokenType.IDENTIFIER, 'playNote'),
+        createToken(TokenType.FROM, 'from'),
+        createToken(TokenType.IDENTIFIER, 'c64'),
+        createToken(TokenType.DOT, '.'),
+        createToken(TokenType.IDENTIFIER, 'audio'),
+        createToken(TokenType.DOT, '.'),
+        createToken(TokenType.IDENTIFIER, 'sid'),
+        createToken(TokenType.DOT, '.'),
+        createToken(TokenType.IDENTIFIER, 'player'),
+        createToken(TokenType.SEMICOLON, ';'),
+        createToken(TokenType.EOF, ''),
+      ];
+      parser = new TestModuleParser(tokens);
+
+      const importDecl = parser.testParseImportDecl() as ImportDecl;
+      expect(importDecl).toBeInstanceOf(ImportDecl);
+      expect(importDecl.getIdentifiers()).toEqual(['initSID', 'playNote']);
+      expect(importDecl.getModulePath()).toEqual(['c64', 'audio', 'sid', 'player']);
+      expect(importDecl.getModuleName()).toBe('c64.audio.sid.player');
+    });
+
+    it('handles import declaration error recovery - missing identifier', () => {
+      const tokens = [
+        createToken(TokenType.IMPORT, 'import'),
+        createToken(TokenType.FROM, 'from'), // Missing identifier
+        createToken(TokenType.IDENTIFIER, 'module'),
+        createToken(TokenType.SEMICOLON, ';'),
+        createToken(TokenType.EOF, ''),
+      ];
+      parser = new TestModuleParser(tokens);
+
+      parser.testParseImportDecl();
+      const diagnostics = parser.getDiagnostics();
+      expect(diagnostics.length).toBe(1);
+      expect(diagnostics[0].code).toBe(DiagnosticCode.EXPECTED_TOKEN);
+    });
+
+    it('handles import declaration error recovery - missing from', () => {
+      const tokens = [
+        createToken(TokenType.IMPORT, 'import'),
+        createToken(TokenType.IDENTIFIER, 'function'),
+        createToken(TokenType.IDENTIFIER, 'module'), // Missing 'from' keyword
+        createToken(TokenType.SEMICOLON, ';'),
+        createToken(TokenType.EOF, ''),
+      ];
+      parser = new TestModuleParser(tokens);
+
+      parser.testParseImportDecl();
+      const diagnostics = parser.getDiagnostics();
+      expect(diagnostics.length).toBe(1);
+      expect(diagnostics[0].code).toBe(DiagnosticCode.EXPECTED_TOKEN);
+    });
+
+    it('handles import declaration error recovery - missing module name', () => {
+      const tokens = [
+        createToken(TokenType.IMPORT, 'import'),
+        createToken(TokenType.IDENTIFIER, 'function'),
+        createToken(TokenType.FROM, 'from'),
+        createToken(TokenType.SEMICOLON, ';'), // Missing module name
+        createToken(TokenType.EOF, ''),
+      ];
+      parser = new TestModuleParser(tokens);
+
+      parser.testParseImportDecl();
+      const diagnostics = parser.getDiagnostics();
+      expect(diagnostics.length).toBe(1);
+      expect(diagnostics[0].code).toBe(DiagnosticCode.EXPECTED_TOKEN);
+    });
+
+    it('handles import declaration error recovery - missing semicolon', () => {
+      const tokens = [
+        createToken(TokenType.IMPORT, 'import'),
+        createToken(TokenType.IDENTIFIER, 'function'),
+        createToken(TokenType.FROM, 'from'),
+        createToken(TokenType.IDENTIFIER, 'module'),
+        createToken(TokenType.EOF, ''), // Missing semicolon - should auto-insert
+      ];
+      parser = new TestModuleParser(tokens);
+
+      const importDecl = parser.testParseImportDecl() as ImportDecl;
+      expect(importDecl).toBeInstanceOf(ImportDecl);
+      expect(importDecl.getIdentifiers()).toEqual(['function']);
+      expect(importDecl.getModulePath()).toEqual(['module']);
+      // Should handle missing semicolon gracefully with auto-insertion
+    });
+  });
+
+  // ============================================
+  // PHASE 5: EXPORT DECLARATION PARSING TESTS
+  // ============================================
+
+  describe('Export Declaration Parsing (Phase 5.2)', () => {
+    it('handles export function declaration (requires full Parser)', () => {
+      const tokens = [
+        createToken(TokenType.EXPORT, 'export'),
+        createToken(TokenType.FUNCTION, 'function'),
+        createToken(TokenType.IDENTIFIER, 'clearScreen'),
+        createToken(TokenType.LEFT_PAREN, '('),
+        createToken(TokenType.RIGHT_PAREN, ')'),
+        createToken(TokenType.COLON, ':'),
+        createToken(TokenType.VOID, 'void'),
+        createToken(TokenType.END, 'end'),
+        createToken(TokenType.FUNCTION, 'function'),
+        createToken(TokenType.EOF, ''),
+      ];
+      parser = new TestModuleParser(tokens);
+
+      const declaration = parser.testParseExportDecl();
+
+      // At ModuleParser level, function parsing falls back to error handling
+      const diagnostics = parser.getDiagnostics();
+      expect(diagnostics.length).toBe(1);
+      expect(diagnostics[0].code).toBe(DiagnosticCode.EXPORT_REQUIRES_DECLARATION);
+      expect(diagnostics[0].message).toContain('Function declaration parsing not available');
+
+      // Returns dummy declaration since function parsing not available at this level
+      expect(declaration.constructor.name).toBe('VariableDecl'); // Dummy declaration
+    });
+
+    it('handles export callback function declaration (requires full Parser)', () => {
+      const tokens = [
+        createToken(TokenType.EXPORT, 'export'),
+        createToken(TokenType.CALLBACK, 'callback'),
+        createToken(TokenType.FUNCTION, 'function'),
+        createToken(TokenType.IDENTIFIER, 'rasterIRQ'),
+        createToken(TokenType.LEFT_PAREN, '('),
+        createToken(TokenType.RIGHT_PAREN, ')'),
+        createToken(TokenType.COLON, ':'),
+        createToken(TokenType.VOID, 'void'),
+        createToken(TokenType.END, 'end'),
+        createToken(TokenType.FUNCTION, 'function'),
+        createToken(TokenType.EOF, ''),
+      ];
+      parser = new TestModuleParser(tokens);
+
+      const declaration = parser.testParseExportDecl();
+
+      // At ModuleParser level, function parsing falls back to error handling
+      const diagnostics = parser.getDiagnostics();
+      expect(diagnostics.length).toBe(1);
+      expect(diagnostics[0].code).toBe(DiagnosticCode.EXPORT_REQUIRES_DECLARATION);
+      expect(diagnostics[0].message).toContain('Function declaration parsing not available');
+
+      // Returns dummy declaration since function parsing not available at this level
+      expect(declaration.constructor.name).toBe('VariableDecl'); // Dummy declaration
+    });
+
+    it('parses export variable declaration with export flag', () => {
+      const tokens = [
+        createToken(TokenType.EXPORT, 'export'),
+        createToken(TokenType.CONST, 'const'),
+        createToken(TokenType.IDENTIFIER, 'MAX_SPRITES'),
+        createToken(TokenType.COLON, ':'),
+        createToken(TokenType.BYTE, 'byte'),
+        createToken(TokenType.ASSIGN, '='),
+        createToken(TokenType.NUMBER, '8'),
+        createToken(TokenType.SEMICOLON, ';'),
+        createToken(TokenType.EOF, ''),
+      ];
+      parser = new TestModuleParser(tokens);
+
+      const varDecl = parser.testParseExportDecl() as VariableDecl;
+      expect(varDecl).toBeInstanceOf(VariableDecl);
+      expect(varDecl.getName()).toBe('MAX_SPRITES');
+      expect(varDecl.isExportedVariable()).toBe(true);
+      expect(varDecl.isConst()).toBe(true);
+    });
+
+    it('parses export storage class variable declaration with export flag', () => {
+      const tokens = [
+        createToken(TokenType.EXPORT, 'export'),
+        createToken(TokenType.ZP, '@zp'),
+        createToken(TokenType.LET, 'let'),
+        createToken(TokenType.IDENTIFIER, 'frameCounter'),
+        createToken(TokenType.COLON, ':'),
+        createToken(TokenType.BYTE, 'byte'),
+        createToken(TokenType.ASSIGN, '='),
+        createToken(TokenType.NUMBER, '0'),
+        createToken(TokenType.SEMICOLON, ';'),
+        createToken(TokenType.EOF, ''),
+      ];
+      parser = new TestModuleParser(tokens);
+
+      const varDecl = parser.testParseExportDecl() as VariableDecl;
+      expect(varDecl).toBeInstanceOf(VariableDecl);
+      expect(varDecl.getName()).toBe('frameCounter');
+      expect(varDecl.isExportedVariable()).toBe(true);
+      expect(varDecl.getStorageClass()).toBe(TokenType.ZP);
+    });
+
+    it('handles export type declaration (not yet implemented)', () => {
+      const tokens = [
+        createToken(TokenType.EXPORT, 'export'),
+        createToken(TokenType.TYPE, 'type'),
+        createToken(TokenType.IDENTIFIER, 'SpriteId'),
+        createToken(TokenType.ASSIGN, '='),
+        createToken(TokenType.BYTE, 'byte'),
+        createToken(TokenType.SEMICOLON, ';'),
+        createToken(TokenType.EOF, ''),
+      ];
+      parser = new TestModuleParser(tokens);
+
+      const declaration = parser.testParseExportDecl();
+
+      const diagnostics = parser.getDiagnostics();
+      expect(diagnostics.length).toBe(1);
+      expect(diagnostics[0].code).toBe(DiagnosticCode.EXPORT_REQUIRES_DECLARATION);
+      expect(diagnostics[0].message).toContain('Export type declarations not yet implemented');
+
+      // Returns dummy declaration for error recovery
+      expect(declaration.constructor.name).toBe('VariableDecl');
+    });
+
+    it('handles export enum declaration (not yet implemented)', () => {
+      const tokens = [
+        createToken(TokenType.EXPORT, 'export'),
+        createToken(TokenType.ENUM, 'enum'),
+        createToken(TokenType.IDENTIFIER, 'GameState'),
+        createToken(TokenType.LEFT_BRACE, '{'),
+        createToken(TokenType.IDENTIFIER, 'MENU'),
+        createToken(TokenType.RIGHT_BRACE, '}'),
+        createToken(TokenType.EOF, ''),
+      ];
+      parser = new TestModuleParser(tokens);
+
+      const declaration = parser.testParseExportDecl();
+
+      const diagnostics = parser.getDiagnostics();
+      expect(diagnostics.length).toBe(1);
+      expect(diagnostics[0].code).toBe(DiagnosticCode.EXPORT_REQUIRES_DECLARATION);
+      expect(diagnostics[0].message).toContain('Export enum declarations not yet implemented');
+
+      // Returns dummy declaration for error recovery
+      expect(declaration.constructor.name).toBe('VariableDecl');
+    });
+
+    it('handles invalid export declaration', () => {
+      const tokens = [
+        createToken(TokenType.EXPORT, 'export'),
+        createToken(TokenType.IF, 'if'), // Invalid token after export
+        createToken(TokenType.EOF, ''),
+      ];
+      parser = new TestModuleParser(tokens);
+
+      const declaration = parser.testParseExportDecl();
+
+      const diagnostics = parser.getDiagnostics();
+      expect(diagnostics.length).toBe(1);
+      expect(diagnostics[0].code).toBe(DiagnosticCode.UNEXPECTED_TOKEN);
+      expect(diagnostics[0].message).toContain(
+        'Expected function, variable, type, or enum declaration'
+      );
+
+      // Returns dummy declaration for error recovery
+      expect(declaration.constructor.name).toBe('VariableDecl');
+    });
+  });
+
+  describe('Import/Export Location Tracking', () => {
+    it('tracks import declaration source location', () => {
+      const tokens = [
+        createToken(TokenType.IMPORT, 'import', 1, 1),
+        createToken(TokenType.IDENTIFIER, 'func', 1, 8),
+        createToken(TokenType.FROM, 'from', 1, 13),
+        createToken(TokenType.IDENTIFIER, 'module', 1, 18),
+        createToken(TokenType.SEMICOLON, ';', 1, 24),
+        createToken(TokenType.EOF, '', 1, 25),
+      ];
+      parser = new TestModuleParser(tokens);
+
+      const importDecl = parser.testParseImportDecl() as ImportDecl;
+      const location = importDecl.getLocation();
+      expect(location.start.line).toBe(1);
+      expect(location.start.column).toBe(1);
+      expect(location.end.line).toBe(1);
+      expect(location.end.column).toBe(25);
+    });
+
+    it('tracks export declaration source location', () => {
+      const tokens = [
+        createToken(TokenType.EXPORT, 'export', 1, 1),
+        createToken(TokenType.CONST, 'const', 1, 8),
+        createToken(TokenType.IDENTIFIER, 'VALUE', 1, 14),
+        createToken(TokenType.COLON, ':', 1, 19),
+        createToken(TokenType.BYTE, 'byte', 1, 21),
+        createToken(TokenType.ASSIGN, '=', 1, 26),
+        createToken(TokenType.NUMBER, '42', 1, 28),
+        createToken(TokenType.SEMICOLON, ';', 1, 30),
+        createToken(TokenType.EOF, '', 1, 31),
+      ];
+      parser = new TestModuleParser(tokens);
+
+      const varDecl = parser.testParseExportDecl() as VariableDecl;
+      const location = varDecl.getLocation();
+      expect(location.start.line).toBe(1);
+      expect(location.start.column).toBe(8); // Should start at 'const', not 'export'
+      expect(location.end.line).toBe(1);
+      expect(location.end.column).toBe(31);
     });
   });
 });

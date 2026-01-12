@@ -102,16 +102,20 @@ export class Parser extends StatementParser {
       // Validate module scope
       this.validateModuleScopeItem(this.getCurrentToken());
 
+      // Parse import declaration
+      if (this.check(TokenType.IMPORT)) {
+        declarations.push(this.parseImportDecl());
+      }
+      // Parse export declaration (wraps other declarations)
+      else if (this.check(TokenType.EXPORT)) {
+        declarations.push(this.parseExportDecl());
+      }
       // Parse @map declaration
-      if (this.check(TokenType.MAP)) {
+      else if (this.check(TokenType.MAP)) {
         declarations.push(this.parseMapDeclaration());
       }
-      // Parse function declaration (callback or regular) OR exported function declaration
-      else if (
-        this.check(TokenType.CALLBACK, TokenType.FUNCTION) ||
-        (this.check(TokenType.EXPORT) && this.peek().type === TokenType.CALLBACK) ||
-        (this.check(TokenType.EXPORT) && this.peek().type === TokenType.FUNCTION)
-      ) {
+      // Parse function declaration (callback or regular)
+      else if (this.check(TokenType.CALLBACK, TokenType.FUNCTION)) {
         const functionDecl = this.parseFunctionDecl() as FunctionDecl;
 
         // Handle main function auto-export with warning (only for auto-exported main functions)
@@ -129,8 +133,8 @@ export class Parser extends StatementParser {
 
         declarations.push(functionDecl);
       }
-      // Parse variable declaration (with optional export prefix)
-      else if (this.isExportModifier() || this.isStorageClass() || this.isLetOrConst()) {
+      // Parse variable declaration
+      else if (this.isStorageClass() || this.isLetOrConst()) {
         declarations.push(this.parseVariableDecl());
       } else {
         // Unknown token - report error and synchronize

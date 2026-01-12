@@ -1,8 +1,114 @@
 # Specification Compliance Rules
 
-## **CRITICAL RULE: Language Specification is Source of Truth**
+## **🚨 ULTRA-CRITICAL RULE: Language Specification is Source of Truth 🚨**
 
 **The language specification in `docs/language-specification/` is the authoritative source of truth for ALL language features.**
+
+**⚠️ REFERENCE THE ULTRA-CRITICAL RULE:** See `.clinerules/agents.md` for the comprehensive "Never Assume" protocol that must be followed before implementing ANY compiler subcomponent.
+
+---
+
+## **Compiler Implementation Never Assume Checklist**
+
+**Before implementing ANY compiler feature, verify these are NOT assumptions:**
+
+### **🔤 Lexer/Tokenization - Never Assume:**
+
+- ✅ **Token Types**: Read specification for exact token definitions
+- ✅ **Keywords**: Verify reserved word list in language spec
+- ✅ **Operators**: Confirm operator symbols and their meanings
+- ✅ **Comments**: Check documented comment syntax (NOT `#` style!)
+- ✅ **String Literals**: Verify escape sequences and delimiters
+- ✅ **Numbers**: Confirm integer/float parsing rules
+- ✅ **Whitespace**: Check space/tab/newline handling rules
+
+### **🌳 Parser/AST - Never Assume:**
+
+- ✅ **Grammar Rules**: Read EBNF grammar definitions
+- ✅ **Precedence**: Verify operator precedence tables
+- ✅ **Associativity**: Confirm left/right associativity rules
+- ✅ **AST Structure**: Check documented node relationships
+- ✅ **Statements vs Expressions**: Verify classification rules
+- ✅ **Block Syntax**: Confirm scoping and delimiter rules
+
+### **📋 Type System - Never Assume:**
+
+- ✅ **Type Definitions**: Read type system specification
+- ✅ **Type Inference**: Verify inference rules and constraints
+- ✅ **Conversions**: Check type coercion behavior
+- ✅ **Generics**: Verify template/generic mechanisms
+- ✅ **Memory Layout**: Confirm size and alignment rules
+
+### **🔧 Code Generation - Never Assume:**
+
+- ✅ **Target Architecture**: Verify 6502-specific requirements
+- ✅ **Instruction Selection**: Check documented code patterns
+- ✅ **Memory Mapping**: Verify address space layout
+- ✅ **Optimization**: Confirm allowed optimization rules
+- ✅ **Runtime Conventions**: Check calling convention specs
+
+### **⚠️ Error Handling - Never Assume:**
+
+- ✅ **Error Messages**: Use specification-defined formats
+- ✅ **Recovery Strategies**: Follow documented recovery rules
+- ✅ **Diagnostic Levels**: Use specified severity classifications
+- ✅ **Error Propagation**: Follow documented error flow patterns
+
+---
+
+## **Common Dangerous Assumptions in Compiler Work**
+
+### **❌ DANGEROUS ASSUMPTION EXAMPLES:**
+
+**Lexer Assumptions:**
+
+- ❌ "Obviously `#` starts a comment" → ✅ Check specification first
+- ❌ "Numbers work like JavaScript" → ✅ Verify Blend number syntax
+- ❌ "String escapes are standard" → ✅ Read documented escape rules
+
+**Parser Assumptions:**
+
+- ❌ "Precedence follows C/JavaScript" → ✅ Check Blend precedence table
+- ❌ "Blocks use curly braces" → ✅ Verify Blend block syntax
+- ❌ "Semicolons are required" → ✅ Read statement termination rules
+
+**Type System Assumptions:**
+
+- ❌ "Types work like TypeScript" → ✅ Read Blend type system spec
+- ❌ "Inference follows ML rules" → ✅ Check Blend inference behavior
+- ❌ "Memory is auto-managed" → ✅ Verify 6502 memory requirements
+
+**Code Generation Assumptions:**
+
+- ❌ "Standard register allocation" → ✅ Check 6502 register constraints
+- ❌ "Modern calling conventions" → ✅ Verify Blend ABI requirements
+- ❌ "Optimization is always safe" → ✅ Check documented restrictions
+
+---
+
+## **Specification Query Protocol for Each Compiler Phase**
+
+### **Phase 1: Before Writing ANY Code**
+
+1. 🛑 **STOP** - Do not proceed with implementation
+2. 📖 **READ** - Open `docs/language-specification/README.md`
+3. 🎯 **IDENTIFY** - Find relevant specification section(s)
+4. 📋 **READ THOROUGHLY** - Understand exact requirements
+5. 🔍 **CROSS-CHECK** - Verify with EBNF grammar and examples
+
+### **Phase 2: During Implementation**
+
+1. ❓ **QUESTION** - Challenge every implementation decision
+2. 📖 **VERIFY** - Cross-reference with specification continuously
+3. 🧪 **TEST** - Use specification examples as test cases
+4. 🔄 **ITERATE** - Update implementation to match spec exactly
+
+### **Phase 3: After Implementation**
+
+1. ✅ **VALIDATE** - All behavior matches specification
+2. 🧪 **TEST COMPLIANCE** - Every test case follows documented syntax
+3. 📋 **DOCUMENT** - Note any specification gaps discovered
+4. 🔍 **AUDIT** - Review for undocumented features or assumptions
 
 ---
 
