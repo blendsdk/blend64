@@ -363,6 +363,7 @@ export abstract class BaseParser {
       TokenType.IMPORT,
       TokenType.EXPORT,
       TokenType.FUNCTION,
+      TokenType.CALLBACK, // Phase 4: callback functions
       TokenType.LET,
       TokenType.CONST,
       TokenType.TYPE,

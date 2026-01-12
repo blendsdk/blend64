@@ -150,25 +150,70 @@ protected parseIfStatement(): IfStatement {
 }
 ```
 
-### **Phase 3: Advanced Expression Parsing** ✅ **COMPLETED**
+### **Phase 3: Advanced Expression Parsing** ✅ **COMPLETED WITH SPECIFICATION COMPLIANCE FIXES**
 
-_✅ All advanced expression parsing features are fully implemented and integrated_
+_✅ Advanced expression parsing implemented with critical specification compliance corrections_
 
 | Task | Description                                                            | Files Changed                | Time Est. | Dependencies | Status |
 | ---- | ---------------------------------------------------------------------- | ---------------------------- | --------- | ------------ | ------ |
-| 3.1  | ✅ Implement parseCallExpression() for function calls with arguments   | expressions.ts               | 3 hours   | Phase 1      | [x]    |
-| 3.2  | ✅ Implement parseMemberExpression() for dot notation access           | expressions.ts               | 2 hours   | Phase 1      | [x]    |
+| 3.1  | ✅ Implement parseCallExpression() for standalone function calls only  | expressions.ts               | 3 hours   | Phase 1      | [x]    |
+| 3.2  | ✅ Implement parseMemberExpression() for @map declarations only        | expressions.ts               | 2 hours   | Phase 1      | [x]    |
 | 3.3  | ✅ Implement parseIndexExpression() for array/memory access            | expressions.ts               | 2 hours   | Phase 1      | [x]    |
 | 3.4  | ✅ Implement parseAssignmentExpression() with all assignment operators | expressions.ts               | 3 hours   | Phase 1      | [x]    |
 | 3.5  | ✅ Implement parseUnaryExpression() for prefix operators               | expressions.ts               | 2 hours   | Phase 1      | [x]    |
-| 3.6  | ✅ Update parseExpression() to handle postfix and unary expressions    | expressions.ts               | 3 hours   | 3.1-3.5      | [x]    |
+| 3.6  | ✅ Update parseExpression() to handle specification-compliant syntax   | expressions.ts               | 3 hours   | 3.1-3.5      | [x]    |
 | 3.7  | ✅ Add comprehensive expression parsing tests with precedence          | advanced-expressions.test.ts | 4 hours   | 3.1-3.6      | [x]    |
-| 3.8  | ✅ **BONUS**: Integration verification with realistic code examples    | phase3-integration.test.ts   | 2 hours   | 3.7          | [x]    |
+| 3.8  | ✅ Integration verification with specification-compliant examples      | phase3-integration.test.ts   | 2 hours   | 3.7          | [x]    |
+| 3.9  | ✅ **CRITICAL**: Fix specification compliance violations               | expressions.ts, test files   | 3 hours   | 3.8          | [x]    |
+
+**CRITICAL SPECIFICATION COMPLIANCE ISSUE RESOLVED:**
+
+During Phase 3 implementation, a major specification compliance violation was discovered and fixed:
+
+**❌ The Problem:**
+
+- Parser incorrectly accepted object-oriented syntax not in Blend65 specification
+- Allowed method calls: `obj.method()`, complex chaining: `player.inventory.items[slot].getValue()`
+- Implemented generic expression parsing without checking specification compliance
+- Violated `.clinerules/specification-compliance.md` Rule 2: "No Ad-Hoc Language Features"
+
+**✅ The Solution (Task 3.9):**
+
+- **Restricted function calls** to identifiers only (no method calls on expressions)
+- **Restricted member access** to @map declarations only (no general object properties)
+- **Prevented complex chaining** that's not documented in the specification
+- **Added error reporting** with clear diagnostics for non-compliant syntax
+- **Updated all tests** to use specification-compliant syntax only
+
+**✅ Specification-Compliant Syntax:**
+
+```typescript
+// ✅ VALID (in specification):
+let result: word = calculateScore(level, bonus); // Standalone function calls
+let color: byte = vic.borderColor; // @map member access
+let pixel: byte = screen[y * 40 + x]; // Array indexing
+
+// ❌ INVALID (not in specification):
+let result: word = player.inventory.items[slot].getValue(); // Object chaining
+let health: byte = getPlayer().health; // Method calls
+let value: byte = array[i].property; // Member access on expressions
+```
+
+**Lesson Learned:** Always check specification compliance BEFORE implementing features. The specification is the single source of truth for language features.
 
 **Code Example for Task 3.1:**
 
 ```typescript
 protected parseCallExpression(callee: Expression): CallExpression {
+  // SPECIFICATION COMPLIANCE: Only allow function calls on identifiers
+  if (!(callee instanceof IdentifierExpression)) {
+    this.reportError(
+      DiagnosticCode.UNEXPECTED_TOKEN,
+      'Function calls can only be made on standalone function names, not on expressions. Blend65 does not support object methods.'
+    );
+    return new CallExpression(callee, [], location);
+  }
+
   const startToken = this.expect(TokenType.LEFT_PAREN, "Expected '('");
 
   const args: Expression[] = [];
