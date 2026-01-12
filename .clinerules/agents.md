@@ -257,7 +257,62 @@ Before marking any task as complete or calling `attempt_completion`, perform a *
 - ✅ Fix the issue first
 - ✅ Re-run the verification checklist
 
-### **Rule 7: Act Mode VS Code Settings Automation**
+### **Rule 7: NEVER Overcomplicate - Use Existing Infrastructure**
+
+**CRITICAL:** Always use existing infrastructure and avoid unnecessary complexity.
+
+**Mandatory Approach:**
+
+1. **✅ Always use existing tools and infrastructure FIRST**
+   - ✅ Use the real Lexer, not custom tokenizers
+   - ✅ Use existing test patterns, not custom test frameworks
+   - ✅ Use existing utility functions, not reimplementations
+   - ✅ Use existing error handling patterns, not new approaches
+
+2. **❌ NEVER create custom solutions when standard ones exist**
+   - ❌ Don't write custom tokenizers when Lexer exists
+   - ❌ Don't create custom test utilities when existing patterns work
+   - ❌ Don't reinvent parsing patterns when Pratt parser exists
+   - ❌ Don't create custom error handling when recovery patterns exist
+
+3. **✅ Keep implementations simple and focused**
+   - ✅ Follow the principle of least complexity
+   - ✅ Use the most straightforward approach that works
+   - ✅ Leverage existing architecture and patterns
+   - ✅ Question any custom or complex solutions
+
+**Examples:**
+
+❌ **Overcomplicated (Bad):**
+
+```typescript
+// Creating custom tokenizer for tests
+function tokensFor(source: string): Token[] {
+  const tokens: Token[] = [];
+  let i = 0;
+  while (i < source.length) {
+    // ... 100+ lines of custom tokenization
+  }
+}
+```
+
+✅ **Simple (Good):**
+
+```typescript
+// Use existing Lexer
+function parseExpr(source: string): Expression {
+  const lexer = new Lexer(source);
+  const tokens = lexer.tokenize();
+  const parser = new TestParser(tokens);
+  return parser.parseExpression();
+}
+```
+
+**Purpose:** Prevents wasted AI resources, reduces complexity, improves maintainability, and leverages battle-tested existing code.
+
+---
+
+### **Rule 8: Act Mode VS Code Settings Automation**
 
 **CRITICAL:** In Act Mode ONLY, automatically manage VS Code settings for optimal development workflow:
 
@@ -308,7 +363,8 @@ clear && scripts/agent.sh finished
 4. ✅ Verify previous work is complete (Rule 4 - before new tasks)
 5. 📝 Update task progress (Rule 5 - during implementation)
 6. 🔍 Final verification before completion (Rule 6 - before finishing)
-7. ⚙️ **Act Mode ONLY:** Execute agent.sh commands (Rule 7 - start/finish settings)
+7. 🚫 **NEVER overcomplicate** - Use existing infrastructure (Rule 7 - simplicity first)
+8. ⚙️ **Act Mode ONLY:** Execute agent.sh commands (Rule 8 - start/finish settings)
 
 **Remember:** These rules exist to ensure high-quality, complete implementations. Following them prevents errors, rework, and wasted effort.
 

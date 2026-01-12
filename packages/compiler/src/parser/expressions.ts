@@ -11,10 +11,15 @@
  */
 
 import {
+  AssignmentExpression,
   BinaryExpression,
+  CallExpression,
   Expression,
   IdentifierExpression,
+  IndexExpression,
   LiteralExpression,
+  MemberExpression,
+  UnaryExpression,
   DiagnosticCode,
 } from '../ast/index.js';
 import { TokenType } from '../lexer/types.js';
@@ -183,8 +188,8 @@ export abstract class ExpressionParser extends BaseParser {
    * @returns Expression AST node representing the parsed expression
    */
   protected parseExpression(minPrecedence: number = OperatorPrecedence.NONE): Expression {
-    // Parse left side (primary expression)
-    let left = this.parsePrimaryExpression();
+    // Parse left side (unary expression, which handles postfix and atomic expressions)
+    let left = this.parseUnaryExpression();
 
     // Parse binary operators with precedence climbing
     while (this.isBinaryOp() && this.getCurrentPrecedence() >= minPrecedence) {
@@ -202,7 +207,21 @@ export abstract class ExpressionParser extends BaseParser {
       // Merge locations from left and right operands
       const location = this.mergeLocations(left.getLocation(), right.getLocation());
 
-      left = new BinaryExpression(left, operator, right, location);
+      // Handle assignment operators specially
+      if (this.isAssignmentOperator(operator)) {
+        // Validate left-hand side is a valid lvalue
+        if (!this.isValidLValue(left)) {
+          this.reportError(
+            DiagnosticCode.UNEXPECTED_TOKEN,
+            'Invalid left-hand side in assignment expression'
+          );
+        }
+
+        left = new AssignmentExpression(left, operator, right, location);
+      } else {
+        // Regular binary operators
+        left = new BinaryExpression(left, operator, right, location);
+      }
     }
 
     return left;
@@ -242,16 +261,336 @@ export abstract class ExpressionParser extends BaseParser {
   }
 
   // ============================================
-  // FUTURE EXPRESSION METHODS (PHASE 3)
+  // UNARY EXPRESSION PARSING (PHASE 3)
   // ============================================
 
-  // The following methods will be implemented in Phase 3:
-  //
-  // protected parseCallExpression(callee: Expression): CallExpression
-  // protected parseMemberExpression(): MemberExpression
-  // protected parseIndexExpression(): IndexExpression
-  // protected parseAssignmentExpression(): AssignmentExpression
-  // protected parseUnaryExpression(): UnaryExpression
-  //
-  // These are placeholders to show the planned architecture.
+  /**
+   * Parses unary expressions with prefix operators
+   *
+   * Unary expressions have right-to-left associativity and high precedence.
+   * They support nesting: --x, !!flag, ~-value
+   *
+   * Supported unary operators (from specification):
+   * - ! (logical NOT): !flag, !!value
+   * - ~ (bitwise NOT): ~mask, ~0xFF
+   * - + (unary plus): +value (explicit positive)
+   * - - (unary minus): -x, -42
+   * - @ (address-of): @variable, @counter
+   *
+   * Address-of operator restrictions:
+   * - Can only be applied to identifiers (variables)
+   * - Cannot be applied to literals: @5 (compile error)
+   * - Cannot be applied to expressions: @(x + y) (compile error)
+   *
+   * Grammar: unary_expr = [ unary_op ] , unary_expr | postfix_expr
+   *
+   * @returns Expression AST node representing unary or postfix expression
+   */
+  protected parseUnaryExpression(): Expression {
+    // Check for unary operators: ! ~ + - @
+    if (this.isUnaryOperator()) {
+      const operatorToken = this.advance(); // Consume unary operator
+
+      // Special validation for address-of operator
+      if (operatorToken.type === TokenType.AT) {
+        // Address-of can only be applied to identifiers
+        if (!this.check(TokenType.IDENTIFIER)) {
+          this.reportError(
+            DiagnosticCode.UNEXPECTED_TOKEN,
+            'Address-of operator (@) can only be applied to variables, not literals or expressions'
+          );
+
+          // Return dummy expression for recovery (don't parse further)
+          return new LiteralExpression(0, this.currentLocation());
+        }
+      }
+
+      // Parse operand recursively (right-associative: --x becomes -(-x))
+      const operand = this.parseUnaryExpression();
+
+      // Create location from operator to end of operand
+      const location = this.createLocation(operatorToken, this.getCurrentToken());
+
+      return new UnaryExpression(operatorToken.type, operand, location);
+    }
+
+    // No unary operator - delegate to postfix expression parsing
+    return this.parsePostfixExpression();
+  }
+
+  /**
+   * Parses postfix expressions (calls, member access, indexing)
+   *
+   * Postfix expressions have left-to-right associativity and highest precedence.
+   * They support chaining: obj.method()[index].property
+   *
+   * Supported postfix operators:
+   * - () (function call): func(), add(1, 2)
+   * - [] (indexing): array[0], buffer[i]
+   * - . (member access): player.health, Game.score
+   *
+   * Grammar: postfix_expr = primary_expr , { postfix_suffix }
+   *          postfix_suffix = call_suffix | index_suffix | member_suffix
+   *
+   * @returns Expression AST node representing postfix or primary expression
+   */
+  protected parsePostfixExpression(): Expression {
+    // Start with primary expression (atomic expressions)
+    let expr = this.parseAtomicExpression();
+
+    // Chain postfix operators left-to-right
+    while (this.isPostfixOperator()) {
+      if (this.check(TokenType.LEFT_PAREN)) {
+        expr = this.parseCallExpression(expr);
+      } else if (this.check(TokenType.LEFT_BRACKET)) {
+        expr = this.parseIndexExpression(expr);
+      } else if (this.check(TokenType.DOT)) {
+        expr = this.parseMemberExpression(expr);
+      } else {
+        break; // Should not happen if isPostfixOperator() is correct
+      }
+    }
+
+    return expr;
+  }
+
+  /**
+   * Parses atomic expressions (renamed from parsePrimaryExpression)
+   *
+   * These are the most basic expressions that cannot be decomposed further:
+   * - Literals: 42, "hello", true
+   * - Identifiers: counter, myVar
+   * - Parenthesized expressions: (2 + 3)
+   *
+   * @returns Expression AST node representing an atomic expression
+   */
+  protected parseAtomicExpression(): Expression {
+    // Number literals
+    if (this.check(TokenType.NUMBER)) {
+      const token = this.advance();
+      const value = this.parseNumberValue(token.value);
+      const location = this.createLocation(token, token);
+      return new LiteralExpression(value, location);
+    }
+
+    // String literals
+    if (this.check(TokenType.STRING_LITERAL)) {
+      const token = this.advance();
+      const location = this.createLocation(token, token);
+      return new LiteralExpression(token.value, location);
+    }
+
+    // Boolean literals
+    if (this.check(TokenType.BOOLEAN_LITERAL)) {
+      const token = this.advance();
+      const value = token.value === 'true';
+      const location = this.createLocation(token, token);
+      return new LiteralExpression(value, location);
+    }
+
+    // Identifiers
+    if (this.check(TokenType.IDENTIFIER)) {
+      const token = this.advance();
+      const location = this.createLocation(token, token);
+      return new IdentifierExpression(token.value, location);
+    }
+
+    // Parenthesized expressions
+    if (this.match(TokenType.LEFT_PAREN)) {
+      const expr = this.parseExpression();
+      this.expect(TokenType.RIGHT_PAREN, "Expected ')' after expression");
+      return expr;
+    }
+
+    // Error - unexpected token
+    this.reportError(
+      DiagnosticCode.UNEXPECTED_TOKEN,
+      `Expected expression, found '${this.getCurrentToken().value}'`
+    );
+
+    // Return dummy literal for recovery
+    return new LiteralExpression(0, this.currentLocation());
+  }
+
+  // ============================================
+  // UTILITY METHODS FOR EXPRESSION PARSING
+  // ============================================
+
+  /**
+   * Checks if the current token is a unary operator
+   *
+   * @returns True if current token is a unary operator (!, ~, +, -, @)
+   */
+  protected isUnaryOperator(): boolean {
+    const tokenType = this.getCurrentToken().type;
+    return (
+      tokenType === TokenType.NOT || // !
+      tokenType === TokenType.BITWISE_NOT || // ~
+      tokenType === TokenType.PLUS || // +
+      tokenType === TokenType.MINUS || // -
+      tokenType === TokenType.AT // @
+    );
+  }
+
+  /**
+   * Checks if the current token is a postfix operator
+   *
+   * @returns True if current token is a postfix operator ((), [], .)
+   */
+  protected isPostfixOperator(): boolean {
+    const tokenType = this.getCurrentToken().type;
+    return (
+      tokenType === TokenType.LEFT_PAREN || // (
+      tokenType === TokenType.LEFT_BRACKET || // [
+      tokenType === TokenType.DOT // .
+    );
+  }
+
+  /**
+   * Checks if a token is an assignment operator
+   *
+   * Assignment operators from specification:
+   * = += -= *= /= %= &= |= ^= <<= >>=
+   *
+   * @param tokenType - Token type to check
+   * @returns True if token is an assignment operator
+   */
+  protected isAssignmentOperator(tokenType: TokenType): boolean {
+    return (
+      tokenType === TokenType.ASSIGN || // =
+      tokenType === TokenType.PLUS_ASSIGN || // +=
+      tokenType === TokenType.MINUS_ASSIGN || // -=
+      tokenType === TokenType.MULTIPLY_ASSIGN || // *=
+      tokenType === TokenType.DIVIDE_ASSIGN || // /=
+      tokenType === TokenType.MODULO_ASSIGN || // %=
+      tokenType === TokenType.BITWISE_AND_ASSIGN || // &=
+      tokenType === TokenType.BITWISE_OR_ASSIGN || // |=
+      tokenType === TokenType.BITWISE_XOR_ASSIGN || // ^=
+      tokenType === TokenType.LEFT_SHIFT_ASSIGN || // <<=
+      tokenType === TokenType.RIGHT_SHIFT_ASSIGN // >>=
+    );
+  }
+
+  /**
+   * Checks if an expression is a valid left-hand side value (lvalue)
+   *
+   * Valid lvalues from specification:
+   * - Identifiers: counter, myVar
+   * - Member expressions: player.health, Game.score
+   * - Index expressions: array[0], buffer[i]
+   *
+   * Invalid lvalues (literals and function calls):
+   * - Literals: 42, "hello", true
+   * - Function calls: func(), getValue()
+   * - Complex expressions: (x + y), -value
+   *
+   * @param expr - Expression to validate
+   * @returns True if expression can be assigned to
+   */
+  protected isValidLValue(expr: Expression): boolean {
+    return (
+      expr instanceof IdentifierExpression || // counter, myVar
+      expr instanceof MemberExpression || // player.health, Game.score
+      expr instanceof IndexExpression // array[0], buffer[i]
+    );
+  }
+
+  // ============================================
+  // POSTFIX EXPRESSION METHODS (PHASE 3 - TO BE IMPLEMENTED)
+  // ============================================
+
+  /**
+   * Parses function call expressions
+   *
+   * Function calls have the form: expression()
+   * - Empty arguments: func()
+   * - Single argument: func(arg)
+   * - Multiple arguments: func(arg1, arg2, arg3)
+   * - Expression arguments: func(x + 1, getValue(), array[i])
+   *
+   * Grammar: call_suffix = "(" , [ argument_list ] , ")" ;
+   *          argument_list = expression , { "," , expression } ;
+   *
+   * @param callee - The expression being called (function name/expression)
+   * @returns CallExpression AST node
+   */
+  protected parseCallExpression(callee: Expression): CallExpression {
+    // Consume opening parenthesis
+    this.expect(TokenType.LEFT_PAREN, "Expected '(' for function call");
+
+    const args: Expression[] = [];
+
+    // Parse argument list (if any)
+    if (!this.check(TokenType.RIGHT_PAREN)) {
+      do {
+        // Parse each argument as a full expression
+        args.push(this.parseExpression());
+      } while (this.match(TokenType.COMMA));
+    }
+
+    // Consume closing parenthesis
+    this.expect(TokenType.RIGHT_PAREN, "Expected ')' after function arguments");
+
+    // Create location spanning from callee to closing parenthesis
+    const location = this.mergeLocations(callee.getLocation(), this.currentLocation());
+
+    return new CallExpression(callee, args, location);
+  }
+
+  /**
+   * Parses member access expressions
+   *
+   * Member access has the form: expression.identifier
+   * - Simple access: player.health
+   * - Chained access: player.position.x
+   * - On function calls: getPlayer().health
+   * - On arrays: enemies[0].health
+   *
+   * Grammar: member_suffix = "." , identifier ;
+   *
+   * @param object - The expression being accessed (left side of dot)
+   * @returns MemberExpression AST node
+   */
+  protected parseMemberExpression(object: Expression): MemberExpression {
+    // Consume dot operator
+    this.expect(TokenType.DOT, "Expected '.' for member access");
+
+    // Property name must be an identifier
+    const propertyToken = this.expect(TokenType.IDENTIFIER, "Expected property name after '.'");
+
+    // Create location spanning from object to property
+    const location = this.mergeLocations(object.getLocation(), this.currentLocation());
+
+    return new MemberExpression(object, propertyToken.value, location);
+  }
+
+  /**
+   * Parses index access expressions
+   *
+   * Index access has the form: expression[expression]
+   * - Simple indexing: array[0]
+   * - Expression indexing: buffer[i * 2 + 1]
+   * - Chained indexing: matrix[row][col]
+   * - On function calls: getData()[index]
+   *
+   * Grammar: index_suffix = "[" , expression , "]" ;
+   *
+   * @param array - The expression being indexed (left side of bracket)
+   * @returns IndexExpression AST node
+   */
+  protected parseIndexExpression(array: Expression): IndexExpression {
+    // Consume opening bracket
+    this.expect(TokenType.LEFT_BRACKET, "Expected '[' for index access");
+
+    // Parse index expression (can be any expression: literals, variables, complex expressions)
+    const indexExpr = this.parseExpression();
+
+    // Consume closing bracket
+    this.expect(TokenType.RIGHT_BRACKET, "Expected ']' after index expression");
+
+    // Create location spanning from array to closing bracket
+    const location = this.mergeLocations(array.getLocation(), this.currentLocation());
+
+    return new IndexExpression(array, indexExpr, location);
+  }
 }
