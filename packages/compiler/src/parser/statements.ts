@@ -73,18 +73,11 @@ export abstract class StatementParser extends ModuleParser {
    * based on the current token. It serves as the central hub for all
    * statement parsing in the language.
    *
-   * Current routing (Phase 1):
+   * Current routing (Phase 4):
    * - '{' → parseBlockStatement()
+   * - 'let'/'const' → parseLocalVariableDeclaration() (NEW - Function-local variables)
+   * - Control flow statements → parseIfStatement(), etc.
    * - Everything else → parseExpressionStatement()
-   *
-   * Future routing (Phase 2+):
-   * - 'if' → parseIfStatement()
-   * - 'while' → parseWhileStatement()
-   * - 'for' → parseForStatement()
-   * - 'match' → parseMatchStatement()
-   * - 'return' → parseReturnStatement()
-   * - 'break' → parseBreakStatement()
-   * - 'continue' → parseContinueStatement()
    *
    * @returns Statement AST node representing the parsed statement
    */
@@ -92,6 +85,11 @@ export abstract class StatementParser extends ModuleParser {
     // Block statements
     if (this.check(TokenType.LEFT_BRACE)) {
       return this.parseBlockStatement();
+    }
+
+    // Function-local variable declarations (NEW - Phase 4)
+    if (this.check(TokenType.LET, TokenType.CONST)) {
+      return this.parseLocalVariableDeclaration();
     }
 
     // Control flow statements (Phase 2)
@@ -724,5 +722,140 @@ export abstract class StatementParser extends ModuleParser {
 
     const location = this.createLocation(startToken, this.getCurrentToken());
     return new ContinueStatement(location);
+  }
+
+  // ============================================
+  // FUNCTION-LOCAL VARIABLE DECLARATIONS (PHASE 4)
+  // ============================================
+
+  /**
+   * Parses function-local variable declarations
+   *
+   * Grammar: ['const'] 'let' identifier [':' type] ['=' expression] ';'
+   *
+   * This enables variable declarations inside function bodies per language spec:
+   * - Function scope (not block scope)
+   * - Same syntax as module-level variables
+   * - No storage classes allowed inside functions
+   *
+   * Examples:
+   * - let temp: byte = 10;
+   * - const MAX: byte = 100;
+   * - let result: word;
+   *
+   * Error Recovery:
+   * - Missing type: Reports error, continues with 'unknown' type
+   * - Invalid initializer: Reports error, continues without initializer
+   * - Missing semicolon: Reports error, continues
+   *
+   * @returns ExpressionStatement wrapping a variable declaration expression
+   */
+  protected parseLocalVariableDeclaration(): Statement {
+    // Parse mutability (let or const)
+    const isConst = this.match(TokenType.CONST);
+    if (!isConst) {
+      this.expect(TokenType.LET, "Expected 'let' or 'const'");
+    }
+
+    // Parse variable name
+    const nameToken = this.expect(TokenType.IDENTIFIER, 'Expected variable name');
+    const varName = nameToken.value;
+
+    // Parse optional type annotation
+    let typeAnnotation: string | null = null;
+    if (this.match(TokenType.COLON)) {
+      if (
+        this.check(
+          TokenType.BYTE,
+          TokenType.WORD,
+          TokenType.BOOLEAN,
+          TokenType.STRING,
+          TokenType.IDENTIFIER
+        )
+      ) {
+        typeAnnotation = this.advance().value;
+      } else {
+        this.reportError(DiagnosticCode.EXPECTED_TOKEN, 'Expected type after colon');
+      }
+    }
+
+    // Parse optional initializer
+    let initializer = null;
+    if (this.match(TokenType.ASSIGN)) {
+      try {
+        initializer = this.parseExpression();
+      } catch (error) {
+        this.reportError(
+          DiagnosticCode.UNEXPECTED_TOKEN,
+          `Invalid variable initializer: ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
+      }
+    }
+
+    // Validate const requires initializer
+    if (isConst && initializer === null) {
+      this.reportError(
+        DiagnosticCode.MISSING_CONST_INITIALIZER,
+        'Const declarations must have an initializer'
+      );
+    }
+
+    this.expectSemicolon('Expected semicolon after variable declaration');
+
+    // Create a simple expression statement that represents the variable declaration
+    // For now, we'll represent it as an assignment expression or identifier
+    // TODO: In future, create proper VariableDeclarationStatement AST node
+    const location = this.createLocation(nameToken, this.getCurrentToken());
+
+    if (initializer) {
+      // Return assignment expression as statement
+      const assignExpr = this.createAssignmentExpression(
+        varName,
+        initializer,
+        location,
+        typeAnnotation
+      );
+      return new ExpressionStatement(assignExpr, location);
+    } else {
+      // Return identifier expression as statement (for uninitialized variables)
+      const identifierExpr = this.createIdentifierExpression(varName, location, typeAnnotation);
+      return new ExpressionStatement(identifierExpr, location);
+    }
+  }
+
+  /**
+   * Helper to create assignment expression for variable initialization
+   */
+  protected createAssignmentExpression(
+    name: string,
+    value: any,
+    location: any,
+    typeAnnotation: string | null
+  ): any {
+    // Create a simple identifier expression for assignment
+    return {
+      type: 'AssignmentExpression',
+      left: { type: 'Identifier', name, typeAnnotation },
+      right: value,
+      location,
+      getLocation: () => location,
+    };
+  }
+
+  /**
+   * Helper to create identifier expression for uninitialized variables
+   */
+  protected createIdentifierExpression(
+    name: string,
+    location: any,
+    typeAnnotation: string | null
+  ): any {
+    return {
+      type: 'Identifier',
+      name,
+      typeAnnotation,
+      location,
+      getLocation: () => location,
+    };
   }
 }

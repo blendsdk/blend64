@@ -219,6 +219,280 @@ describe('Function Declaration Parser', () => {
 
       expect(functionDecl.getBody()).toHaveLength(0);
     });
+
+    test('parses function with variable declarations', () => {
+      const source = `
+        function calculate(): word
+          let result: word = 0;
+          let multiplier: byte = 2;
+          return result;
+        end function
+      `;
+
+      const { ast, errors } = parseBlendProgram(source);
+
+      expect(errors).toHaveLength(0);
+
+      const program = ast as Program;
+      const functionDecl = program.getDeclarations()[0] as FunctionDecl;
+      const body = functionDecl.getBody();
+
+      expect(body).toHaveLength(3); // 2 variable declarations + 1 return statement
+    });
+
+    test('parses function with assignment statements', () => {
+      const source = `
+        function updatePlayer(x: byte, y: byte): void
+          playerX = x;
+          playerY = y;
+        end function
+      `;
+
+      const { ast, errors } = parseBlendProgram(source);
+
+      expect(errors).toHaveLength(0);
+
+      const program = ast as Program;
+      const functionDecl = program.getDeclarations()[0] as FunctionDecl;
+      const body = functionDecl.getBody();
+
+      expect(body).toHaveLength(2); // 2 assignment statements
+    });
+
+    test('parses function with expression statements', () => {
+      const source = `
+        function initialize(): void
+          clearScreen();
+          initSound();
+          setupSprites();
+        end function
+      `;
+
+      const { ast, errors } = parseBlendProgram(source);
+
+      expect(errors).toHaveLength(0);
+
+      const program = ast as Program;
+      const functionDecl = program.getDeclarations()[0] as FunctionDecl;
+      const body = functionDecl.getBody();
+
+      expect(body).toHaveLength(3); // 3 function call statements
+    });
+
+    test('parses function with control flow statements', () => {
+      const source = `
+        function processInput(key: byte): void
+          if (key == 32) then
+            fireWeapon();
+          end if
+
+          while (enemyCount > 0)
+            updateEnemies();
+          end while
+        end function
+      `;
+
+      const { ast, errors } = parseBlendProgram(source);
+
+      expect(errors).toHaveLength(0);
+
+      const program = ast as Program;
+      const functionDecl = program.getDeclarations()[0] as FunctionDecl;
+      const body = functionDecl.getBody();
+
+      expect(body).toHaveLength(2); // 1 if statement + 1 while statement
+    });
+
+    test('parses function with return statements', () => {
+      const source = `
+        function getValue(): byte
+          return 42;
+        end function
+      `;
+
+      const { ast, errors } = parseBlendProgram(source);
+
+      expect(errors).toHaveLength(0);
+
+      const program = ast as Program;
+      const functionDecl = program.getDeclarations()[0] as FunctionDecl;
+      const body = functionDecl.getBody();
+
+      expect(body).toHaveLength(1); // 1 return statement
+    });
+
+    test('parses complex function with mixed statements', () => {
+      const source = `
+        function gameUpdate(deltaTime: word): boolean
+          let playerMoved: boolean = false;
+          let inputKey: byte = getInput();
+
+          if (inputKey != 0) then
+            let newX: byte = playerX;
+            let newY: byte = playerY;
+
+            if (inputKey == KEY_LEFT) then
+              newX = newX - 1;
+            end if
+
+            if (inputKey == KEY_RIGHT) then
+              newX = newX + 1;
+            end if
+
+            if (newX != playerX) then
+              playerX = newX;
+              playerMoved = true;
+            end if
+          end if
+
+          updateAnimations(deltaTime);
+          return playerMoved;
+        end function
+      `;
+
+      const { ast, errors } = parseBlendProgram(source);
+
+      expect(errors).toHaveLength(0);
+
+      const program = ast as Program;
+      const functionDecl = program.getDeclarations()[0] as FunctionDecl;
+      const body = functionDecl.getBody();
+
+      expect(body.length).toBeGreaterThan(3); // Multiple complex statements
+    });
+  });
+
+  describe('Function Body Error Handling', () => {
+    test('parses void function with return value (no semantic validation in Phase 4)', () => {
+      const source = `
+        function doSomething(): void
+          return 42;
+        end function
+      `;
+
+      const { ast, errors } = parseBlendProgram(source);
+
+      // Phase 4: Parse structure correctly, semantic validation is future work
+      expect(errors).toHaveLength(0);
+
+      const program = ast as Program;
+      const functionDecl = program.getDeclarations()[0] as FunctionDecl;
+      expect(functionDecl.getBody()).toHaveLength(1); // Return statement parsed
+    });
+
+    test('parses typed function with empty return (no semantic validation in Phase 4)', () => {
+      const source = `
+        function getValue(): byte
+          return;
+        end function
+      `;
+
+      const { ast, errors } = parseBlendProgram(source);
+
+      // Phase 4: Parse structure correctly, semantic validation is future work
+      expect(errors).toHaveLength(0);
+
+      const program = ast as Program;
+      const functionDecl = program.getDeclarations()[0] as FunctionDecl;
+      expect(functionDecl.getBody()).toHaveLength(1); // Return statement parsed
+    });
+
+    test('parses duplicate local variable (no semantic validation in Phase 4)', () => {
+      const source = `
+        function test(): void
+          let x: byte = 1;
+          let x: byte = 2;
+        end function
+      `;
+
+      const { ast, errors } = parseBlendProgram(source);
+
+      // Phase 4: Parse structure correctly, semantic validation is future work
+      expect(errors).toHaveLength(0);
+
+      const program = ast as Program;
+      const functionDecl = program.getDeclarations()[0] as FunctionDecl;
+      expect(functionDecl.getBody()).toHaveLength(2); // Both variable declarations parsed
+    });
+
+    test('reports error for duplicate parameter names', () => {
+      const source = `
+        function test(x: byte, x: word): void
+        end function
+      `;
+
+      const { errors } = parseBlendProgram(source);
+
+      expect(errors.length).toBeGreaterThan(0);
+      const duplicateError = errors.find(e => e.message.includes('Duplicate parameter'));
+      expect(duplicateError).toBeDefined();
+    });
+
+    test('handles syntax errors gracefully with recovery', () => {
+      const source = `
+        function test(): void
+          let x: byte = ;
+          let y: byte = 42;
+        end function
+      `;
+
+      const { ast, errors } = parseBlendProgram(source);
+
+      expect(errors.length).toBeGreaterThan(0);
+
+      const program = ast as Program;
+      const functionDecl = program.getDeclarations()[0] as FunctionDecl;
+
+      // Parser should recover and continue parsing after error
+      expect(functionDecl.getName()).toBe('test');
+    });
+  });
+
+  describe('Function Scope Validation', () => {
+    test('parameters are available in function scope', () => {
+      const source = `
+        function add(a: byte, b: byte): byte
+          let result: byte = a + b;
+          return result;
+        end function
+      `;
+
+      const { errors } = parseBlendProgram(source);
+
+      // Should not report undefined variable errors for parameters
+      expect(errors).toHaveLength(0);
+    });
+
+    test('local variables are properly scoped', () => {
+      const source = `
+        function test(): void
+          let x: byte = 1;
+          if (x > 0) then
+            let y: byte = x + 1;
+          end if
+        end function
+      `;
+
+      const { errors } = parseBlendProgram(source);
+
+      expect(errors).toHaveLength(0);
+    });
+
+    test('function calls work in function bodies', () => {
+      const source = `
+        function helper(): byte
+          return 42;
+        end function
+
+        function main(): void
+          let value: byte = helper();
+        end function
+      `;
+
+      const { errors } = parseBlendProgram(source);
+
+      expect(errors).toHaveLength(0);
+    });
   });
 
   describe('Multiple Function Declarations', () => {
