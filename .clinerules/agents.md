@@ -1,8 +1,8 @@
 ### A.I Agent Instructions / Cline Instructions
 
-## **CRITICAL RULE: Task Granularity**
+## **CRITICAL RULE: Task Granularity & Architecture**
 
-**To prevent AI context window limitations, ALL tasks must be broken down into granular subtasks.**
+**To prevent AI context window limitations, ALL tasks must be broken down into granular subtasks with proper architecture.**
 
 ### Requirements:
 
@@ -17,7 +17,9 @@
 1. **Identify the main goal** - What is the overall objective?
 2. **Break into logical phases** - What are the major steps?
 3. **Further subdivide each phase** - Can this step be smaller?
-4. **Verify granularity** - Can this be completed in one focused session?
+4. **Consider architecture** - Will implementation exceed 500 lines?
+5. **Plan inheritance chain** - If large, design layer hierarchy
+6. **Verify granularity** - Can this be completed in one focused session?
 
 ### Examples:
 
@@ -34,6 +36,34 @@
 - "Build login endpoint handler"
 - "Add session token generation"
 - "Create authentication middleware"
+
+### **Architecture Strategy for Large Implementations:**
+
+**When Implementation Will Exceed 500 Lines:**
+
+✅ **Use Inheritance Chain Architecture:**
+
+- Design: `BaseClass → Layer1 → Layer2 → ConcreteClass`
+- Each layer: 200-500 lines maximum
+- Natural dependencies: each layer builds on previous
+- Perfect for AI context window limitations
+
+**Example: Parser Implementation**
+
+```
+Phase 1: BaseParser (core utilities)
+Phase 2: ExpressionParser extends BaseParser
+Phase 3: DeclarationParser extends ExpressionParser
+Phase 4: ModuleParser extends DeclarationParser
+Phase 5: Parser extends ModuleParser
+```
+
+**Benefits:**
+
+- Each phase fits in AI context window
+- Clean separation of concerns
+- Easy to test each layer independently
+- Future extensions just add to appropriate layer
 
 ---
 

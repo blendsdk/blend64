@@ -268,11 +268,7 @@ export class DiagnosticCollector {
    * @param message - Human-readable error message
    * @param location - Where the error occurred
    */
-  public error(
-    code: DiagnosticCode,
-    message: string,
-    location: SourceLocation,
-  ): void {
+  public error(code: DiagnosticCode, message: string, location: SourceLocation): void {
     this.add({
       code,
       severity: DiagnosticSeverity.ERROR,
@@ -288,11 +284,7 @@ export class DiagnosticCollector {
    * @param message - Human-readable warning message
    * @param location - Where the warning occurred
    */
-  public warning(
-    code: DiagnosticCode,
-    message: string,
-    location: SourceLocation,
-  ): void {
+  public warning(code: DiagnosticCode, message: string, location: SourceLocation): void {
     this.add({
       code,
       severity: DiagnosticSeverity.WARNING,
@@ -308,11 +300,7 @@ export class DiagnosticCollector {
    * @param message - Informational message
    * @param location - Related location
    */
-  public info(
-    code: DiagnosticCode,
-    message: string,
-    location: SourceLocation,
-  ): void {
+  public info(code: DiagnosticCode, message: string, location: SourceLocation): void {
     this.add({
       code,
       severity: DiagnosticSeverity.INFO,
@@ -328,11 +316,7 @@ export class DiagnosticCollector {
    * @param message - Suggestion message
    * @param location - Related location
    */
-  public hint(
-    code: DiagnosticCode,
-    message: string,
-    location: SourceLocation,
-  ): void {
+  public hint(code: DiagnosticCode, message: string, location: SourceLocation): void {
     this.add({
       code,
       severity: DiagnosticSeverity.HINT,
@@ -372,9 +356,7 @@ export class DiagnosticCollector {
    * @returns Array of error diagnostics
    */
   public getErrors(): Diagnostic[] {
-    return this.diagnostics.filter(
-      (d) => d.severity === DiagnosticSeverity.ERROR,
-    );
+    return this.diagnostics.filter(d => d.severity === DiagnosticSeverity.ERROR);
   }
 
   /**
@@ -401,18 +383,10 @@ export class DiagnosticCollector {
     hints: number;
   } {
     return {
-      errors: this.diagnostics.filter(
-        (d) => d.severity === DiagnosticSeverity.ERROR,
-      ).length,
-      warnings: this.diagnostics.filter(
-        (d) => d.severity === DiagnosticSeverity.WARNING,
-      ).length,
-      info: this.diagnostics.filter(
-        (d) => d.severity === DiagnosticSeverity.INFO,
-      ).length,
-      hints: this.diagnostics.filter(
-        (d) => d.severity === DiagnosticSeverity.HINT,
-      ).length,
+      errors: this.diagnostics.filter(d => d.severity === DiagnosticSeverity.ERROR).length,
+      warnings: this.diagnostics.filter(d => d.severity === DiagnosticSeverity.WARNING).length,
+      info: this.diagnostics.filter(d => d.severity === DiagnosticSeverity.INFO).length,
+      hints: this.diagnostics.filter(d => d.severity === DiagnosticSeverity.HINT).length,
     };
   }
 

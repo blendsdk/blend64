@@ -5,29 +5,14 @@
  * - Token stream management (current, peek, advance)
  * - Error reporting and recovery (diagnostics, synchronization)
  * - Module scope tracking (ordering rules enforcement)
- * - Pratt expression parsing utilities (precedence, binding power)
  * - Helper methods for common parsing patterns
  *
- * This is the foundation that all concrete parsers build upon.
+ * This is the foundation that all parser layers build upon.
  */
 
-import {
-  BinaryExpression,
-  Diagnostic,
-  DiagnosticCode,
-  DiagnosticCollector,
-  Expression,
-  SourceLocation,
-} from '../ast/index.js';
+import { Diagnostic, DiagnosticCode, DiagnosticCollector, SourceLocation } from '../ast/index.js';
 import { Token, TokenType } from '../lexer/types.js';
-import {
-  ParserConfig,
-  createParserConfig,
-  getPrecedence,
-  isBinaryOperator,
-  isRightAssociative,
-} from './index.js';
-import { OperatorPrecedence } from './precedence.js';
+import { ParserConfig, createParserConfig } from './config.js';
 
 /**
  * Parser error class
@@ -51,31 +36,17 @@ export class ParseError extends Error {
 }
 
 /**
- * Abstract base parser class
+ * Abstract base parser class providing core parsing infrastructure
  *
- * Manages token stream and provides utilities for parsing.
- * Concrete parsers extend this to implement specific grammar rules.
+ * All specialized parsers extend this class to get access to:
+ * - Token stream management
+ * - Error handling and recovery
+ * - Module scope validation
+ * - Utility helper methods
  *
- * Design patterns used:
- * - Template Method: Base class provides structure, subclasses fill in details
- * - Strategy: Different parsers can use different strategies
- * - Collector: Diagnostics accumulate rather than throwing
- *
- * Usage:
- * ```typescript
- * class Blend65Parser extends Parser {
- *   public parse(): Program {
- *     // Use base class utilities to parse tokens
- *     return this.parseProgram();
- *   }
- *
- *   protected parseProgram(): Program {
- *     // Implementation using this.expect(), this.match(), etc.
- *   }
- * }
- * ```
+ * This class cannot be instantiated directly - use a concrete parser implementation.
  */
-export abstract class Parser {
+export abstract class BaseParser {
   /** Token stream from lexer */
   protected tokens: Token[];
 
@@ -95,7 +66,7 @@ export abstract class Parser {
   protected isModuleScope: boolean = true;
 
   /**
-   * Creates a new parser
+   * Creates a new base parser
    *
    * @param tokens - Token stream from lexer
    * @param config - Parser configuration (optional)
@@ -433,135 +404,6 @@ export abstract class Parser {
   }
 
   // ============================================
-  // PRATT EXPRESSION PARSING INFRASTRUCTURE
-  // ============================================
-
-  /**
-   * Parses a primary expression (abstract method)
-   *
-   * Primary expressions are the "atoms" of the language - the simplest
-   * expressions that cannot be broken down further. These are the base
-   * case for recursive expression parsing.
-   *
-   * Subclasses MUST implement this to define what constitutes a
-   * "primary" expression in their specific grammar.
-   *
-   * Common primary expressions:
-   * - Literals: numbers, strings, booleans (42, "hello", true)
-   * - Identifiers: variable/function names (myVar, counter)
-   * - Parenthesized expressions: (2 + 3)
-   * - Array literals: [1, 2, 3] (in full parser)
-   * - Function calls: foo(x, y) (may be handled as postfix)
-   *
-   * @returns Expression AST node representing a primary expression
-   *
-   * @example
-   * ```typescript
-   * // In SimpleExampleParser:
-   * protected parsePrimaryExpression(): Expression {
-   *   if (this.check(TokenType.NUMBER)) {
-   *     return new LiteralExpression(parseNumberValue(...));
-   *   }
-   *   // ... handle other primary types
-   * }
-   * ```
-   */
-  protected abstract parsePrimaryExpression(): Expression;
-
-  /**
-   * Parses an expression using Pratt parser with precedence climbing
-   *
-   * This is a universal expression parsing algorithm that works for any grammar.
-   * It handles operator precedence and associativity by recursively parsing
-   * operands and building binary expression trees.
-   *
-   * The algorithm:
-   * 1. Parse left operand (primary expression)
-   * 2. While current token is a binary operator with sufficient precedence:
-   *    a. Save the operator and its precedence
-   *    b. Consume the operator
-   *    c. Calculate next minimum precedence (handles associativity)
-   *    d. Recursively parse right operand
-   *    e. Build binary expression node with merged locations
-   *    f. Continue with result as new left operand
-   * 3. Return final expression tree
-   *
-   * Examples of parsed expressions:
-   * - Simple: 42 → LiteralExpression(42)
-   * - Variable: counter → IdentifierExpression("counter")
-   * - Binary: 2 + 3 → BinaryExpression(2, PLUS, 3)
-   * - Precedence: x * y + z → BinaryExpression((x * y), PLUS, z)
-   * - Associativity: a = b = c → BinaryExpression(a, ASSIGN, (b = c))
-   *
-   * @param minPrecedence - Minimum precedence for operators (default: NONE)
-   *                        Used internally for precedence climbing
-   * @returns Expression AST node representing the parsed expression
-   *
-   * @remarks
-   * This method delegates to parsePrimaryExpression() for base cases,
-   * which must be implemented by subclasses to define grammar-specific
-   * primary expressions.
-   */
-  protected parseExpression(minPrecedence: number = OperatorPrecedence.NONE): Expression {
-    // Parse left side (primary expression)
-    let left = this.parsePrimaryExpression();
-
-    // Parse binary operators with precedence climbing
-    while (this.isBinaryOp() && this.getCurrentPrecedence() > minPrecedence) {
-      const operator = this.getCurrentToken().type;
-      const precedence = this.getCurrentPrecedence();
-
-      this.advance(); // Consume operator
-
-      // For right-associative operators (like =), use same precedence
-      // For left-associative operators, use precedence + 1 to force tighter binding on right
-      const nextMinPrecedence = this.isRightAssoc(operator) ? precedence : precedence + 1;
-
-      const right = this.parseExpression(nextMinPrecedence);
-
-      // Merge locations from left and right operands
-      const location = this.mergeLocations(left.getLocation(), right.getLocation());
-
-      left = new BinaryExpression(left, operator, right, location);
-    }
-
-    return left;
-  }
-
-  /**
-   * Gets the precedence of the current token
-   *
-   * Used by Pratt parser to decide how to group operators.
-   *
-   * @returns Precedence level (0 = not an operator)
-   */
-  protected getCurrentPrecedence(): number {
-    return getPrecedence(this.getCurrentToken().type);
-  }
-
-  /**
-   * Checks if current token is a binary operator
-   *
-   * @returns True if current token is a binary operator
-   */
-  protected isBinaryOp(): boolean {
-    return isBinaryOperator(this.getCurrentToken().type);
-  }
-
-  /**
-   * Checks if an operator is right-associative
-   *
-   * Right-associative: a = b = c → a = (b = c)
-   * Left-associative: a + b + c → (a + b) + c
-   *
-   * @param tokenType - Operator to check
-   * @returns True if right-associative
-   */
-  protected isRightAssoc(tokenType: TokenType): boolean {
-    return isRightAssociative(tokenType);
-  }
-
-  // ============================================
   // UTILITY HELPERS
   // ============================================
 
@@ -677,8 +519,7 @@ export abstract class Parser {
   /**
    * Checks if current token is 'let' or 'const'
    *
-   * @protected
-   * @return {*}  {boolean}
+   * @returns True if current token is let or const
    */
   protected isLetOrConst(): boolean {
     return this.check(TokenType.LET, TokenType.CONST);
@@ -714,7 +555,7 @@ export abstract class Parser {
    * Parses an optional export modifier
    *
    * Consumes 'export' token if present.
-   * @returns
+   * @returns True if export modifier was present
    */
   protected parseExportModifier(): boolean {
     return this.match(TokenType.EXPORT);

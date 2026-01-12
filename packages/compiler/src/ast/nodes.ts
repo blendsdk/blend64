@@ -42,7 +42,7 @@ export class Program extends ASTNode {
   constructor(
     protected readonly module: ModuleDecl,
     protected readonly declarations: Declaration[],
-    location: SourceLocation,
+    location: SourceLocation
   ) {
     super(ASTNodeType.PROGRAM, location);
   }
@@ -76,7 +76,7 @@ export class ModuleDecl extends Declaration {
   constructor(
     protected readonly namePath: string[],
     location: SourceLocation,
-    protected readonly isImplicit: boolean = false,
+    protected readonly isImplicit: boolean = false
   ) {
     super(ASTNodeType.MODULE, location);
   }
@@ -122,7 +122,7 @@ export class ImportDecl extends Declaration {
     protected readonly identifiers: string[],
     protected readonly modulePath: string[],
     location: SourceLocation,
-    protected readonly isWildcard: boolean = false,
+    protected readonly isWildcard: boolean = false
   ) {
     super(ASTNodeType.IMPORT_DECL, location);
   }
@@ -162,7 +162,7 @@ export class ExportDecl extends Declaration {
    */
   constructor(
     protected readonly declaration: Declaration,
-    location: SourceLocation,
+    location: SourceLocation
   ) {
     super(ASTNodeType.EXPORT_DECL, location);
   }
@@ -212,7 +212,7 @@ export class FunctionDecl extends Declaration {
     protected readonly body: Statement[],
     location: SourceLocation,
     protected readonly isExported: boolean = false,
-    protected readonly isCallback: boolean = false,
+    protected readonly isCallback: boolean = false
   ) {
     super(ASTNodeType.FUNCTION_DECL, location);
   }
@@ -269,7 +269,7 @@ export class VariableDecl extends Declaration {
     location: SourceLocation,
     protected readonly storageClass: TokenType | null = null,
     protected readonly isConstant: boolean = false,
-    protected readonly isExported: boolean = false,
+    protected readonly isExported: boolean = false
   ) {
     super(ASTNodeType.VARIABLE_DECL, location);
   }
@@ -320,7 +320,7 @@ export class TypeDecl extends Declaration {
     protected readonly name: string,
     protected readonly aliasedType: string,
     location: SourceLocation,
-    protected readonly isExported: boolean = false,
+    protected readonly isExported: boolean = false
   ) {
     super(ASTNodeType.TYPE_DECL, location);
   }
@@ -368,7 +368,7 @@ export class EnumDecl extends Declaration {
     protected readonly name: string,
     protected readonly members: EnumMember[],
     location: SourceLocation,
-    protected readonly isExported: boolean = false,
+    protected readonly isExported: boolean = false
   ) {
     super(ASTNodeType.ENUM_DECL, location);
   }
@@ -411,7 +411,7 @@ export class BinaryExpression extends Expression {
     protected readonly left: Expression,
     protected readonly operator: TokenType,
     protected readonly right: Expression,
-    location: SourceLocation,
+    location: SourceLocation
   ) {
     super(ASTNodeType.BINARY_EXPR, location);
   }
@@ -448,7 +448,7 @@ export class UnaryExpression extends Expression {
   constructor(
     protected readonly operator: TokenType,
     protected readonly operand: Expression,
-    location: SourceLocation,
+    location: SourceLocation
   ) {
     super(ASTNodeType.UNARY_EXPR, location);
   }
@@ -484,7 +484,7 @@ export class LiteralExpression extends Expression {
    */
   constructor(
     protected readonly value: LiteralValue,
-    location: SourceLocation,
+    location: SourceLocation
   ) {
     super(ASTNodeType.LITERAL_EXPR, location);
   }
@@ -511,7 +511,7 @@ export class IdentifierExpression extends Expression {
    */
   constructor(
     protected readonly name: string,
-    location: SourceLocation,
+    location: SourceLocation
   ) {
     super(ASTNodeType.IDENTIFIER_EXPR, location);
   }
@@ -540,7 +540,7 @@ export class CallExpression extends Expression {
   constructor(
     protected readonly callee: Expression,
     protected readonly args: Expression[],
-    location: SourceLocation,
+    location: SourceLocation
   ) {
     super(ASTNodeType.CALL_EXPR, location);
   }
@@ -573,7 +573,7 @@ export class IndexExpression extends Expression {
   constructor(
     protected readonly object: Expression,
     protected readonly index: Expression,
-    location: SourceLocation,
+    location: SourceLocation
   ) {
     super(ASTNodeType.INDEX_EXPR, location);
   }
@@ -606,7 +606,7 @@ export class MemberExpression extends Expression {
   constructor(
     protected readonly object: Expression,
     protected readonly property: string,
-    location: SourceLocation,
+    location: SourceLocation
   ) {
     super(ASTNodeType.MEMBER_EXPR, location);
   }
@@ -641,7 +641,7 @@ export class AssignmentExpression extends Expression {
     protected readonly target: Expression,
     protected readonly operator: TokenType,
     protected readonly value: Expression,
-    location: SourceLocation,
+    location: SourceLocation
   ) {
     super(ASTNodeType.ASSIGNMENT_EXPR, location);
   }
@@ -680,7 +680,7 @@ export class ReturnStatement extends Statement {
    */
   constructor(
     protected readonly value: Expression | null,
-    location: SourceLocation,
+    location: SourceLocation
   ) {
     super(ASTNodeType.RETURN_STMT, location);
   }
@@ -711,7 +711,7 @@ export class IfStatement extends Statement {
     protected readonly condition: Expression,
     protected readonly thenBranch: Statement[],
     protected readonly elseBranch: Statement[] | null,
-    location: SourceLocation,
+    location: SourceLocation
   ) {
     super(ASTNodeType.IF_STMT, location);
   }
@@ -748,7 +748,7 @@ export class WhileStatement extends Statement {
   constructor(
     protected readonly condition: Expression,
     protected readonly body: Statement[],
-    location: SourceLocation,
+    location: SourceLocation
   ) {
     super(ASTNodeType.WHILE_STMT, location);
   }
@@ -785,7 +785,7 @@ export class ForStatement extends Statement {
     protected readonly start: Expression,
     protected readonly end: Expression,
     protected readonly body: Statement[],
-    location: SourceLocation,
+    location: SourceLocation
   ) {
     super(ASTNodeType.FOR_STMT, location);
   }
@@ -837,7 +837,7 @@ export class MatchStatement extends Statement {
     protected readonly value: Expression,
     protected readonly cases: CaseClause[],
     protected readonly defaultCase: Statement[] | null,
-    location: SourceLocation,
+    location: SourceLocation
   ) {
     super(ASTNodeType.MATCH_STMT, location);
   }
@@ -910,7 +910,7 @@ export class ExpressionStatement extends Statement {
    */
   constructor(
     protected readonly expression: Expression,
-    location: SourceLocation,
+    location: SourceLocation
   ) {
     super(ASTNodeType.EXPR_STMT, location);
   }
@@ -937,7 +937,7 @@ export class BlockStatement extends Statement {
    */
   constructor(
     protected readonly statements: Statement[],
-    location: SourceLocation,
+    location: SourceLocation
   ) {
     super(ASTNodeType.BLOCK_STMT, location);
   }
@@ -973,7 +973,7 @@ export class SimpleMapDecl extends Declaration {
     protected readonly name: string,
     protected readonly address: Expression,
     protected readonly typeAnnotation: string,
-    location: SourceLocation,
+    location: SourceLocation
   ) {
     super(ASTNodeType.SIMPLE_MAP_DECL, location);
   }
@@ -1015,7 +1015,7 @@ export class RangeMapDecl extends Declaration {
     protected readonly startAddress: Expression,
     protected readonly endAddress: Expression,
     protected readonly typeAnnotation: string,
-    location: SourceLocation,
+    location: SourceLocation
   ) {
     super(ASTNodeType.RANGE_MAP_DECL, location);
   }
@@ -1073,7 +1073,7 @@ export class SequentialStructMapDecl extends Declaration {
     protected readonly name: string,
     protected readonly baseAddress: Expression,
     protected readonly fields: MapField[],
-    location: SourceLocation,
+    location: SourceLocation
   ) {
     super(ASTNodeType.SEQUENTIAL_STRUCT_MAP_DECL, location);
   }
@@ -1144,7 +1144,7 @@ export class ExplicitStructMapDecl extends Declaration {
     protected readonly name: string,
     protected readonly baseAddress: Expression,
     protected readonly fields: ExplicitMapField[],
-    location: SourceLocation,
+    location: SourceLocation
   ) {
     super(ASTNodeType.EXPLICIT_STRUCT_MAP_DECL, location);
   }

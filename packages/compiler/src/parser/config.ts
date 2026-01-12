@@ -147,9 +147,7 @@ export const DEV_PARSER_CONFIG: ParserConfig = {
  * });
  * ```
  */
-export function createParserConfig(
-  options: Partial<ParserConfig> = {},
-): ParserConfig {
+export function createParserConfig(options: Partial<ParserConfig> = {}): ParserConfig {
   return {
     ...DEFAULT_PARSER_CONFIG,
     ...options,

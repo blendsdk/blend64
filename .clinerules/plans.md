@@ -13,6 +13,7 @@ These rules are **mandatory** and must be applied **strictly and consistently** 
 When asked to create implementation plans, always split the plan into **logical phases** that can be implemented sequentially.
 
 **What Makes a Good Phase:**
+
 - ✅ Represents a complete, cohesive unit of work
 - ✅ Has clear start and end points
 - ✅ Can be implemented and tested independently
@@ -22,10 +23,12 @@ When asked to create implementation plans, always split the plan into **logical 
 **Examples:**
 
 ❌ **Bad Phase Breakdown:**
+
 - Phase 1: "Build everything"
 - Phase 2: "Test and deploy"
 
 ✅ **Good Phase Breakdown:**
+
 - Phase 1: Core Type System
 - Phase 2: Basic Parser Implementation
 - Phase 3: Advanced Parser Features
@@ -39,15 +42,18 @@ When asked to create implementation plans, always split the plan into **logical 
 For each phase, explicitly define dependencies from the previous phase.
 
 **How to Document Dependencies:**
+
 ```markdown
 ## Phase 2: Basic Parser Implementation
 
 **Dependencies:**
+
 - Phase 1 must be complete (type definitions available)
 - Token types from Phase 1.2 must be tested
 - AST base classes from Phase 1.3 must be documented
 
 **What This Phase Provides for Next Phase:**
+
 - Complete parser infrastructure
 - Expression parsing capabilities
 - Error recovery mechanisms
@@ -60,6 +66,7 @@ For each phase, explicitly define dependencies from the previous phase.
 Provide detailed context and reasoning for each phase.
 
 **What to Include:**
+
 - **Why this phase is needed** - Business/technical justification
 - **What problem it solves** - Specific issues being addressed
 - **Key decisions made** - Architecture choices and rationale
@@ -67,6 +74,7 @@ Provide detailed context and reasoning for each phase.
 - **Success criteria** - How to verify phase completion
 
 **Example:**
+
 ```markdown
 ## Phase 1: Core Type System
 
@@ -76,6 +84,7 @@ We need strong type definitions to ensure type safety throughout the compiler.
 
 **Reasoning:**
 Starting with types allows us to:
+
 1. Define clear contracts for all components
 2. Enable better IDE support during development
 3. Catch errors at compile-time rather than runtime
@@ -94,11 +103,13 @@ Each phase must have **clear, measurable deliverables**.
 **Examples:**
 
 ❌ **Vague Deliverables:**
+
 - "Parser improvements"
 - "Better error handling"
 - "Code cleanup"
 
 ✅ **Clear Deliverables:**
+
 - Complete TypeScript type definitions for all AST nodes
 - Parser that handles binary expressions with correct precedence
 - Error recovery that allows parsing to continue after syntax errors
@@ -111,6 +122,7 @@ Each phase must have **clear, measurable deliverables**.
 **IMPORTANT:** Create small, **granular**, and manageable tasks. More tasks are better than a few large tasks.
 
 **Task Granularity Guidelines:**
+
 - Each task should be completable within **2-4 hours** of work
 - Each task should touch **5-15 files maximum**
 - Each task should have **one clear objective**
@@ -119,11 +131,13 @@ Each phase must have **clear, measurable deliverables**.
 **Examples:**
 
 ❌ **Too Large (Bad):**
+
 - "Implement the parser" (too broad)
 - "Add error handling system" (too vague)
 - "Build type checker with inference" (too complex)
 
 ✅ **Properly Granular (Good):**
+
 - "Create AST node base class with position tracking"
 - "Implement binary expression parsing for arithmetic operators"
 - "Add error recovery for missing semicolons"
@@ -137,12 +151,14 @@ Each phase must have **clear, measurable deliverables**.
 Tasks **must** have a sequence number in the format: `Task [Phase].[Number]`
 
 **Format:**
+
 ```
 Task 1.1, Task 1.2, Task 1.3  (Phase 1, tasks 1-3)
 Task 2.1, Task 2.2, Task 2.3  (Phase 2, tasks 1-3)
 ```
 
 **Example:**
+
 ```markdown
 ### Phase 1: Core Type System
 
@@ -165,24 +181,27 @@ Task 2.1, Task 2.2, Task 2.3  (Phase 2, tasks 1-3)
 **IMPORTANT:** Place all tasks in a **table format** at the end of each plan with completion checkboxes.
 
 **Required Format:**
+
 ```markdown
 ## Task Implementation Checklist
 
-| Task | Description | Dependencies | Status |
-|------|-------------|--------------|--------|
-| 1.1  | Create base AST node types | None | [ ] |
-| 1.2  | Define expression node types | 1.1 | [ ] |
-| 1.3  | Define statement node types | 1.1 | [ ] |
-| 1.4  | Add position tracking | 1.1, 1.2, 1.3 | [ ] |
-| 2.1  | Implement token scanner | Phase 1 complete | [ ] |
-| 2.2  | Add keyword recognition | 2.1 | [ ] |
+| Task | Description                  | Dependencies     | Status |
+| ---- | ---------------------------- | ---------------- | ------ |
+| 1.1  | Create base AST node types   | None             | [ ]    |
+| 1.2  | Define expression node types | 1.1              | [ ]    |
+| 1.3  | Define statement node types  | 1.1              | [ ]    |
+| 1.4  | Add position tracking        | 1.1, 1.2, 1.3    | [ ]    |
+| 2.1  | Implement token scanner      | Phase 1 complete | [ ]    |
+| 2.2  | Add keyword recognition      | 2.1              | [ ]    |
 
 **Legend:**
+
 - [ ] Not started
 - [x] Complete
 ```
 
 **Why This Format:**
+
 - ✅ Clear visual overview of all tasks
 - ✅ Easy to track progress
 - ✅ Dependencies are explicit
@@ -197,6 +216,7 @@ Task 2.1, Task 2.2, Task 2.3  (Phase 2, tasks 1-3)
 **Testing Guidelines:**
 
 1. **Each task must specify its testing requirements**
+
    ```markdown
    Task 1.1: Create base AST node types
    Tests: Unit tests for node creation, property access, type guards
@@ -214,17 +234,20 @@ Task 2.1, Task 2.2, Task 2.3  (Phase 2, tasks 1-3)
    - Tests should be automated and reproducible
 
 **Example Task with Testing:**
+
 ```markdown
 Task 2.3: Implement binary expression parsing
 
 **Implementation:**
+
 - Parse left and right operands
 - Handle operator precedence
 - Build AST nodes correctly
 
 **Tests:**
+
 - Unit: Parse "1 + 2" creates correct AST
-- Unit: Parse "1 + 2 * 3" respects precedence
+- Unit: Parse "1 + 2 \* 3" respects precedence
 - Integration: Binary expressions in larger programs
 - Edge: Missing operands, invalid operators
 - Coverage target: 95%+
@@ -268,11 +291,72 @@ Task 2.3: Implement binary expression parsing
    - Are time estimates reasonable?
    - Are there any blocking technical issues?
 
+7. **✅ Architecture Assessment**
+   - Will any implementation exceed 500 lines?
+   - Is inheritance chain architecture planned?
+   - Are layer dependencies clearly defined?
+
 **When to Re-evaluate:**
+
 - ✅ Before starting Phase 1
 - ✅ After completing each phase (before starting next)
 - ✅ When requirements change
 - ✅ When discovering new technical constraints
+
+---
+
+### **Rule 10: Inheritance Chain Planning**
+
+**IMPORTANT:** When planning large implementations (>500 lines), design inheritance chain architecture.
+
+**Inheritance Chain Planning Process:**
+
+1. **Identify Logical Layers**
+   - What are the natural functional dependencies?
+   - Which components build on others?
+   - What's the core foundation vs specialized features?
+
+2. **Design Layer Hierarchy**
+   - Base class: Core utilities and infrastructure
+   - Layer classes: Specialized functionality that builds up
+   - Concrete class: Final implementation with orchestration
+
+3. **Plan Layer Implementation**
+   - Each layer = separate phase with dedicated tasks
+   - Layer size target: 200-500 lines each
+   - Test each layer independently
+
+4. **File Structure Planning**
+   - `base.ts` - Foundation class
+   - `[feature].ts` - Each logical layer
+   - `[main].ts` - Final concrete implementation
+   - `index.ts` - Public exports
+
+**Example: Compiler Implementation Plan**
+
+```markdown
+Phase 1: BaseCompiler (utilities, error handling)
+Phase 2: TypeChecker extends BaseCompiler
+Phase 3: CodeGenerator extends TypeChecker
+Phase 4: Optimizer extends CodeGenerator
+Phase 5: Compiler extends Optimizer
+
+Files:
+
+- base.ts (BaseCompiler)
+- type-checker.ts (TypeChecker)
+- code-generator.ts (CodeGenerator)
+- optimizer.ts (Optimizer)
+- compiler.ts (Compiler)
+- index.ts (exports)
+```
+
+**When to Apply:**
+
+- ✅ Any implementation approaching 500+ lines
+- ✅ Complex systems with multiple concerns
+- ✅ Systems that will grow over time
+- ✅ Components with natural layer dependencies
 
 ---
 
@@ -291,18 +375,19 @@ Task 2.3: Implement binary expression parsing
 **Dependencies:** None
 
 **Deliverables:**
+
 - Complete TypeScript types for tokens
 - Complete TypeScript types for AST nodes
 - 100% type coverage
 
 **Tasks:**
 
-| Task | Description | Dependencies | Status |
-|------|-------------|--------------|--------|
-| 1.1  | Create token type definitions | None | [ ] |
-| 1.2  | Create AST node base classes | None | [ ] |
-| 1.3  | Define expression node types | 1.2 | [ ] |
-| 1.4  | Add unit tests for types | 1.1, 1.2, 1.3 | [ ] |
+| Task | Description                   | Dependencies  | Status |
+| ---- | ----------------------------- | ------------- | ------ |
+| 1.1  | Create token type definitions | None          | [ ]    |
+| 1.2  | Create AST node base classes  | None          | [ ]    |
+| 1.3  | Define expression node types  | 1.2           | [ ]    |
+| 1.4  | Add unit tests for types      | 1.1, 1.2, 1.3 | [ ]    |
 
 ---
 
@@ -315,18 +400,19 @@ Task 2.3: Implement binary expression parsing
 **Dependencies:** Phase 1 complete (token types defined)
 
 **Deliverables:**
+
 - Working lexer that tokenizes source code
 - Handles all token types from Phase 1
 - 95%+ test coverage
 
 **Tasks:**
 
-| Task | Description | Dependencies | Status |
-|------|-------------|--------------|--------|
-| 2.1  | Implement basic scanner | Phase 1 | [ ] |
-| 2.2  | Add keyword recognition | 2.1 | [ ] |
-| 2.3  | Handle operators and punctuation | 2.1 | [ ] |
-| 2.4  | Add comprehensive lexer tests | 2.1, 2.2, 2.3 | [ ] |
+| Task | Description                      | Dependencies  | Status |
+| ---- | -------------------------------- | ------------- | ------ |
+| 2.1  | Implement basic scanner          | Phase 1       | [ ]    |
+| 2.2  | Add keyword recognition          | 2.1           | [ ]    |
+| 2.3  | Handle operators and punctuation | 2.1           | [ ]    |
+| 2.4  | Add comprehensive lexer tests    | 2.1, 2.2, 2.3 | [ ]    |
 
 ---
 
@@ -352,3 +438,5 @@ Task 2.3: Implement binary expression parsing
 
 - See **agents.md** for task granularity requirements and verification rules
 - See **code.md** for testing standards and quality guidelines that inform task planning
+- See **code.md Rules 17-20** for inheritance chain architecture requirements
+- Note: Inheritance chain planning in this file (Rule 10) works with architectural standards in code.md

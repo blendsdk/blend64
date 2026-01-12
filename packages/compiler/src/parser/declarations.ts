@@ -1,149 +1,50 @@
 /**
- * Simple Example Parser
+ * Declaration Parser for Blend65 Compiler
  *
- * Demonstrates how to use the Parser base class and AST infrastructure.
- * This is a minimal working parser that can parse:
- * - Variable declarations: @zp let x: byte = 5
- * - Simple expressions: literals, identifiers, binary operators
+ * Extends ExpressionParser to provide declaration parsing capabilities:
+ * - Variable declarations with storage classes and export modifiers
+ * - @map declarations (simple, range, sequential struct, explicit struct)
+ * - Type checking and annotation parsing
  *
- * This serves as:
- * - Learning example for building parsers
- * - Template for extending to full Blend65 grammar
- * - Validation that the foundation works correctly
+ * Future phases will add function declarations, type declarations, and enum declarations.
  */
 
 import {
   Declaration,
   DiagnosticCode,
-  ExplicitStructMapDecl,
   Expression,
-  IdentifierExpression,
+  ExplicitStructMapDecl,
   LiteralExpression,
-  ModuleDecl,
-  Program,
   RangeMapDecl,
   SequentialStructMapDecl,
   SimpleMapDecl,
   VariableDecl,
 } from '../ast/index.js';
-import { TokenType } from '../lexer/types.js';
-import { Parser } from './base.js';
+import { Token, TokenType } from '../lexer/types.js';
+import { ExpressionParser } from './expressions.js';
 
 /**
- * Simple parser example
+ * Declaration parser class - extends ExpressionParser with declaration parsing
  *
- * Parses a minimal subset of Blend65:
- * - Module declaration (or implicit global)
- * - Variable declarations with storage classes
- * - Simple expressions (literals, identifiers, binary ops)
+ * Handles all declaration parsing including variables, @map declarations,
+ * and provides foundation for future function, type, and enum declarations.
  *
- * Architecture:
- * - Extends Parser base class
- * - Inherits parseExpression() (universal Pratt parser)
- * - Implements parsePrimaryExpression() (grammar-specific atoms)
- * - Uses base class utilities for token management and error handling
+ * Current declaration support (Phase 0):
+ * - Variable declarations: let x: byte = 5, @zp const y: word
+ * - Simple @map: @map vic at $D020: byte;
+ * - Range @map: @map sprites from $D000 to $D02E: byte;
+ * - Sequential struct @map: @map sid at $D400 type freq: byte, vol: byte end @map
+ * - Explicit struct @map: @map vic at $D000 layout color: at $D020: byte end @map
  *
- * Usage:
- * ```typescript
- * const lexer = new Lexer(source);
- * const tokens = lexer.tokenize();
- * const parser = new SimpleExampleParser(tokens);
- * const ast = parser.parse();
- *
- * if (parser.hasErrors()) {
- *   console.error(parser.getDiagnostics());
- * } else {
- *   console.log('AST:', ast);
- * }
- * ```
+ * Future declaration support (Phase 4-6):
+ * - Function declarations: function name(params): returnType ... end function
+ * - Type declarations: type MyType = byte | word
+ * - Enum declarations: enum Color { RED, GREEN, BLUE }
  */
-export class SimpleExampleParser extends Parser {
-  /**
-   * Entry point - parses entire file
-   *
-   * Implements grammar:
-   * Program := [Module] VariableDecl*
-   *
-   * @returns Program AST node
-   */
-  public parse(): Program {
-    // Check for explicit module declaration
-    let moduleDecl: ModuleDecl;
-
-    if (this.check(TokenType.MODULE)) {
-      moduleDecl = this.parseModuleDecl();
-    } else {
-      // Create implicit "module global"
-      moduleDecl = this.createImplicitGlobalModule();
-    }
-
-    // Parse declarations (for now, just variables)
-    const declarations: Declaration[] = [];
-
-    while (!this.isAtEnd()) {
-      if (this.isAtEnd()) break;
-
-      // Validate module scope
-      this.validateModuleScopeItem(this.getCurrentToken());
-
-      // Parse @map declaration
-      if (this.check(TokenType.MAP)) {
-        declarations.push(this.parseMapDeclaration());
-      }
-      // Parse variable declaration (with optional export prefix)
-      else if (this.isExportModifier() || this.isStorageClass() || this.isLetOrConst()) {
-        declarations.push(this.parseVariableDecl());
-      } else {
-        // Unknown token - report error and synchronize
-        this.reportError(
-          DiagnosticCode.UNEXPECTED_TOKEN,
-          `Unexpected token '${this.getCurrentToken().value}'`
-        );
-        this.synchronize();
-      }
-    }
-
-    // Create program node
-    const location = this.createLocation(this.tokens[0], this.getCurrentToken());
-
-    return new Program(moduleDecl, declarations, location);
-  }
-
-  /**
-   * Parses a module declaration
-   *
-   * Grammar: module Identifier [ . Identifier ]*
-   *
-   * @returns ModuleDecl AST node
-   */
-  protected parseModuleDecl(): ModuleDecl {
-    this.validateModuleDeclaration(); // Check for duplicate
-
-    const startToken = this.expect(TokenType.MODULE, "Expected 'module' keyword");
-
-    // Parse module name path (e.g., Game.Main)
-    const namePath: string[] = [];
-    namePath.push(this.expect(TokenType.IDENTIFIER, 'Expected module name').value);
-
-    while (this.match(TokenType.DOT)) {
-      namePath.push(this.expect(TokenType.IDENTIFIER, 'Expected identifier after dot').value);
-    }
-
-    // Module declarations are self-terminating (no semicolon needed)
-    const location = this.createLocation(startToken, this.getCurrentToken());
-
-    return new ModuleDecl(namePath, location, false);
-  }
-
-  /**
-   * Creates implicit "module global" when no module declared
-   *
-   * @returns ModuleDecl for implicit global module
-   */
-  protected createImplicitGlobalModule(): ModuleDecl {
-    const location = this.createLocation(this.tokens[0], this.tokens[0]);
-    return new ModuleDecl(['global'], location, true);
-  }
+export abstract class DeclarationParser extends ExpressionParser {
+  // ============================================
+  // VARIABLE DECLARATION PARSING
+  // ============================================
 
   /**
    * Parses a variable declaration
@@ -151,9 +52,9 @@ export class SimpleExampleParser extends Parser {
    * Grammar: [ export ] [ StorageClass ] (let | const) Identifier : Type [ = Expression ]
    *
    * Examples:
-   * - @zp let counter: byte
-   * - let name: string = "Blend65"
-   * - const MAX: byte = 255
+   * - let counter: byte = 0;
+   * - @zp const MAX_SIZE: word = 256;
+   * - export @ram let buffer: byte;
    *
    * @returns VariableDecl AST node
    */
@@ -222,102 +123,6 @@ export class SimpleExampleParser extends Parser {
       isConst,
       isExport
     );
-  }
-
-  /**
-   * Parses a primary expression (implementation of abstract method)
-   *
-   * Implements the grammar-specific primary expressions for SimpleExampleParser.
-   * This defines the "atoms" that the universal parseExpression() method
-   * (inherited from Parser base class) will use to build complex expressions.
-   *
-   * Primary expressions supported:
-   * - Number literals: 42, $D000, 0xFF, 0b1010
-   * - String literals: "hello", 'world'
-   * - Boolean literals: true, false
-   * - Identifiers: counter, myVar
-   * - Parenthesized expressions: (2 + 3)
-   *
-   * @returns Expression AST node representing a primary expression
-   */
-  protected parsePrimaryExpression(): Expression {
-    // Number literals
-    if (this.check(TokenType.NUMBER)) {
-      const token = this.advance();
-      const value = this.parseNumberValue(token.value);
-      const location = this.createLocation(token, token);
-      return new LiteralExpression(value, location);
-    }
-
-    // String literals
-    if (this.check(TokenType.STRING_LITERAL)) {
-      const token = this.advance();
-      const location = this.createLocation(token, token);
-      return new LiteralExpression(token.value, location);
-    }
-
-    // Boolean literals
-    if (this.check(TokenType.BOOLEAN_LITERAL)) {
-      const token = this.advance();
-      const value = token.value === 'true';
-      const location = this.createLocation(token, token);
-      return new LiteralExpression(value, location);
-    }
-
-    // Identifiers
-    if (this.check(TokenType.IDENTIFIER)) {
-      const token = this.advance();
-      const location = this.createLocation(token, token);
-      return new IdentifierExpression(token.value, location);
-    }
-
-    // Parenthesized expressions
-    if (this.match(TokenType.LEFT_PAREN)) {
-      const expr = this.parseExpression();
-      this.expect(TokenType.RIGHT_PAREN, "Expected ')' after expression");
-      return expr;
-    }
-
-    // Error - unexpected token
-    this.reportError(
-      DiagnosticCode.UNEXPECTED_TOKEN,
-      `Expected expression, found '${this.getCurrentToken().value}'`
-    );
-
-    // Return dummy literal for recovery
-    return new LiteralExpression(0, this.currentLocation());
-  }
-
-  /**
-   * Parses a number value from string
-   *
-   * Handles different number formats:
-   * - Decimal: 42, 255
-   * - Hex ($ prefix): $D000, $FF
-   * - Hex (0x prefix): 0xD000, 0xFF
-   * - Binary (0b prefix): 0b1010, 0b11110000
-   *
-   * @param value - String representation of number
-   * @returns Numeric value
-   */
-  protected parseNumberValue(value: string): number {
-    // Hex with $ prefix
-    if (value.startsWith('$')) {
-      return parseInt(value.substring(1), 16);
-    }
-
-    // Hex with 0x prefix
-    if (value.startsWith('0x')) {
-      return parseInt(value, 16);
-    }
-
-    // Binary with 0b prefix
-    if (value.startsWith('0b')) {
-      return parseInt(value.substring(2), 2);
-    }
-
-    // Decimal
-    return parseInt(value, 10);
   }
 
   // ============================================
@@ -391,7 +196,7 @@ export class SimpleExampleParser extends Parser {
    * @param address - Address expression (already parsed)
    * @returns SimpleMapDecl AST node
    */
-  protected parseSimpleMapDecl(startToken: any, name: string, address: Expression): Declaration {
+  protected parseSimpleMapDecl(startToken: Token, name: string, address: Expression): Declaration {
     // Expect colon
     this.expect(TokenType.COLON, "Expected ':' after address");
 
@@ -428,7 +233,7 @@ export class SimpleExampleParser extends Parser {
    * @param name - Variable name
    * @returns RangeMapDecl AST node
    */
-  protected parseRangeMapDecl(startToken: any, name: string): Declaration {
+  protected parseRangeMapDecl(startToken: Token, name: string): Declaration {
     // Expect 'from'
     this.expect(TokenType.FROM, "Expected 'from'");
 
@@ -468,7 +273,7 @@ export class SimpleExampleParser extends Parser {
    * @returns SequentialStructMapDecl AST node
    */
   protected parseSequentialStructMapDecl(
-    startToken: any,
+    startToken: Token,
     name: string,
     baseAddress: Expression
   ): Declaration {
@@ -534,7 +339,7 @@ export class SimpleExampleParser extends Parser {
    * @returns ExplicitStructMapDecl AST node
    */
   protected parseExplicitStructMapDecl(
-    startToken: any,
+    startToken: Token,
     name: string,
     baseAddress: Expression
   ): Declaration {
@@ -613,4 +418,22 @@ export class SimpleExampleParser extends Parser {
 
     return new ExplicitStructMapDecl(name, baseAddress, fields, location);
   }
+
+  // ============================================
+  // FUTURE DECLARATION METHODS (PHASES 4-6)
+  // ============================================
+
+  // The following methods will be implemented in future phases:
+  //
+  // Phase 4: Function Declarations
+  // protected parseFunctionDecl(): FunctionDecl
+  // protected parseParameterList(): Parameter[]
+  // protected parseParameter(): Parameter
+  //
+  // Phase 6: Type System Declarations
+  // protected parseTypeDecl(): TypeDecl
+  // protected parseEnumDecl(): EnumDecl
+  // protected parseEnumMember(): EnumMember
+  //
+  // These are placeholders to show the planned architecture.
 }

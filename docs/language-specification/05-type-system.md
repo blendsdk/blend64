@@ -1,7 +1,7 @@
 # Type System
 
-> **Status**: Lexer-Derived Specification  
-> **Last Updated**: January 8, 2026  
+> **Status**: Lexer-Derived Specification
+> **Last Updated**: January 8, 2026
 > **Related Documents**: [Variables](10-variables.md), [Functions](11-functions.md), [Lexical Structure](01-lexical-structure.md)
 
 ## Overview
@@ -146,6 +146,56 @@ let sprite1: SpriteId = 1;
 function setSpritePosition(id: SpriteId, x: byte, y: byte): void
   // ...
 end function
+```
+
+### Built-in Type Aliases
+
+Blend65 provides several **built-in type aliases** that are automatically available:
+
+#### @address
+
+`@address` is a built-in type alias for `word`, used specifically for memory addresses.
+
+```js
+// Built-in type alias (no declaration needed):
+// type @address = word;
+```
+
+**Usage:**
+```js
+// Function parameters - clearly indicates memory addresses
+function copyMemory(src: @address, dst: @address, len: byte): void
+  for i = 0 to len - 1
+    poke(dst + i, peek(src + i));
+  next i
+end function
+
+// Variables
+let screenAddr: @address = 0x0400;         // Screen RAM base address
+let spriteAddr: @address = @spriteData;    // From address-of operator
+
+// Type compatibility with word
+let wordValue: word = screenAddr;          // ✅ Valid - same type
+let addrValue: @address = 0xD020;          // ✅ Valid - can assign word
+```
+
+**Properties:**
+- **Type equivalence**: `@address ≡ word` (completely interchangeable)
+- **Self-documenting**: Makes it clear when a parameter expects a memory address
+- **Zero cost**: Pure alias with no runtime overhead
+- **Built-in**: Available automatically, no declaration required
+
+**Used with Address-Of Operator:**
+```js
+@ram let buffer: byte[256];
+@map vicBorderColor at $D020: byte;
+
+// Address-of operator returns @address type
+let bufferAddr: @address = @buffer;
+let vicAddr: @address = @vicBorderColor;
+
+// Pass to functions expecting addresses
+copyMemory(@source, @buffer, 100);
 ```
 
 ### Type Alias Properties
@@ -436,6 +486,7 @@ add(5);  // Error: Expected 2 arguments, got 1
 |------|-------------|--------------|-------|
 | `byte` | 8 | 1 | 0-255 |
 | `word` | 16 | 2 | 0-65535 |
+| `@address` | 16 | 2 | 0-65535 |
 | `boolean` | 8* | 1 | true/false |
 | `void` | 0 | 0 | N/A |
 | `string` | Variable | Variable | Text |

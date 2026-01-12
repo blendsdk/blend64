@@ -1,7 +1,7 @@
 # Grammar Overview
 
-> **Status**: Lexer-Derived Specification  
-> **Last Updated**: January 8, 2026  
+> **Status**: Lexer-Derived Specification
+> **Last Updated**: January 8, 2026
 > **Related Documents**: [Lexical Structure](01-lexical-structure.md), [Program Structure](03-program-structure.md)
 
 ## Introduction
@@ -56,7 +56,7 @@ identifier = ? IDENTIFIER token ? ;
 name = identifier , { "." , identifier } ;
 
 (* Type references *)
-type_name = "byte" | "word" | "void" | "string" | "boolean" | "callback" | identifier ;
+type_name = "byte" | "word" | "@address" | "void" | "string" | "boolean" | "callback" | identifier ;
 
 type_expr = type_name
           | type_name , "[" , integer , "]" ;
@@ -129,7 +129,7 @@ multiplicative_expr   = unary_expr , { ( "*" | "/" | "%" ) , unary_expr } ;
 unary_expr = [ unary_op ] , unary_expr
            | postfix_expr ;
 
-unary_op = "!" | "~" | "+" | "-" ;
+unary_op = "!" | "~" | "+" | "-" | "@" ;
 
 postfix_expr = primary_expr , { postfix_suffix } ;
 

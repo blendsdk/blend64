@@ -1,6 +1,6 @@
 /**
  * Lexer tests for @map memory-mapped variable declarations
- * 
+ *
  * Tests tokenization of all four @map forms:
  * 1. Simple: @map x at $D020: byte;
  * 2. Range: @map x from $D000 to $D02E: byte;
@@ -20,7 +20,7 @@ describe('Lexer - @map Memory-Mapped Declarations', () => {
   function tokenize(source: string, skipNewlines = true) {
     const lexer = new Lexer(source);
     const tokens = lexer.tokenize();
-    
+
     if (skipNewlines) {
       return tokens.filter(t => t.type !== TokenType.NEWLINE && t.type !== TokenType.EOF);
     }
@@ -163,9 +163,8 @@ end @map`;
       const tokens = tokenize(source);
 
       // Verify key tokens (skip newlines for clarity)
-      const keyTokens = tokens.filter(t => 
-        t.type !== TokenType.NEWLINE && 
-        t.type !== TokenType.COMMA
+      const keyTokens = tokens.filter(
+        t => t.type !== TokenType.NEWLINE && t.type !== TokenType.COMMA
       );
 
       expect(keyTokens[0]).toMatchObject({ type: TokenType.MAP });
@@ -173,7 +172,7 @@ end @map`;
       expect(keyTokens[2]).toMatchObject({ type: TokenType.AT });
       expect(keyTokens[3]).toMatchObject({ type: TokenType.NUMBER, value: '$D000' });
       expect(keyTokens[4]).toMatchObject({ type: TokenType.TYPE });
-      
+
       // Field: sprites: byte[16]
       expect(keyTokens[5]).toMatchObject({ type: TokenType.IDENTIFIER, value: 'sprites' });
       expect(keyTokens[6]).toMatchObject({ type: TokenType.COLON });
@@ -181,12 +180,12 @@ end @map`;
       expect(keyTokens[8]).toMatchObject({ type: TokenType.LEFT_BRACKET });
       expect(keyTokens[9]).toMatchObject({ type: TokenType.NUMBER, value: '16' });
       expect(keyTokens[10]).toMatchObject({ type: TokenType.RIGHT_BRACKET });
-      
+
       // Field: spriteXMSB: byte
       expect(keyTokens[11]).toMatchObject({ type: TokenType.IDENTIFIER, value: 'spriteXMSB' });
       expect(keyTokens[12]).toMatchObject({ type: TokenType.COLON });
       expect(keyTokens[13]).toMatchObject({ type: TokenType.BYTE });
-      
+
       // Closing
       expect(keyTokens[keyTokens.length - 2]).toMatchObject({ type: TokenType.END });
       expect(keyTokens[keyTokens.length - 1]).toMatchObject({ type: TokenType.MAP });
@@ -204,7 +203,10 @@ end @map`;
       const spriteIndex = tokens.findIndex(t => t.value === 'sprite');
 
       // background: byte[4]
-      expect(tokens[backgroundIndex]).toMatchObject({ type: TokenType.IDENTIFIER, value: 'background' });
+      expect(tokens[backgroundIndex]).toMatchObject({
+        type: TokenType.IDENTIFIER,
+        value: 'background',
+      });
       expect(tokens[backgroundIndex + 1]).toMatchObject({ type: TokenType.COLON });
       expect(tokens[backgroundIndex + 2]).toMatchObject({ type: TokenType.BYTE });
       expect(tokens[backgroundIndex + 3]).toMatchObject({ type: TokenType.LEFT_BRACKET });
@@ -233,7 +235,7 @@ end @map`;
       expect(tokens[2]).toMatchObject({ type: TokenType.AT });
       expect(tokens[3]).toMatchObject({ type: TokenType.NUMBER, value: '$D000' });
       expect(tokens[4]).toMatchObject({ type: TokenType.LAYOUT, value: 'layout' });
-      
+
       // Field: borderColor: at $D020: byte
       expect(tokens[5]).toMatchObject({ type: TokenType.IDENTIFIER, value: 'borderColor' });
       expect(tokens[6]).toMatchObject({ type: TokenType.COLON });
@@ -241,7 +243,7 @@ end @map`;
       expect(tokens[8]).toMatchObject({ type: TokenType.NUMBER, value: '$D020' });
       expect(tokens[9]).toMatchObject({ type: TokenType.COLON });
       expect(tokens[10]).toMatchObject({ type: TokenType.BYTE });
-      
+
       expect(tokens[11]).toMatchObject({ type: TokenType.END });
       expect(tokens[12]).toMatchObject({ type: TokenType.MAP });
     });
@@ -253,14 +255,16 @@ end @map`;
 end @map`;
       const tokens = tokenize(source);
 
-      const keyTokens = tokens.filter(t => 
-        t.type !== TokenType.NEWLINE && 
-        t.type !== TokenType.COMMA
+      const keyTokens = tokens.filter(
+        t => t.type !== TokenType.NEWLINE && t.type !== TokenType.COMMA
       );
 
       // Field: sprites: from $D000 to $D00F: byte
       const spritesIndex = keyTokens.findIndex(t => t.value === 'sprites');
-      expect(keyTokens[spritesIndex]).toMatchObject({ type: TokenType.IDENTIFIER, value: 'sprites' });
+      expect(keyTokens[spritesIndex]).toMatchObject({
+        type: TokenType.IDENTIFIER,
+        value: 'sprites',
+      });
       expect(keyTokens[spritesIndex + 1]).toMatchObject({ type: TokenType.COLON });
       expect(keyTokens[spritesIndex + 2]).toMatchObject({ type: TokenType.FROM });
       expect(keyTokens[spritesIndex + 3]).toMatchObject({ type: TokenType.NUMBER, value: '$D000' });
@@ -324,7 +328,7 @@ end @map`;
 end @map`;
 
       const tokens = tokenize(source);
-      
+
       // Should have MAP, LAYOUT, multiple field declarations, and END MAP
       expect(tokens[0].type).toBe(TokenType.MAP);
       expect(tokens.find(t => t.type === TokenType.LAYOUT)).toBeDefined();
@@ -352,12 +356,13 @@ end @map`;
 
       expect(tokens[0].type).toBe(TokenType.MAP);
       expect(tokens.find(t => t.type === TokenType.TYPE)).toBeDefined();
-      
+
       // Verify array syntax
-      const arrays = tokens.filter((t, i) => 
-        t.type === TokenType.LEFT_BRACKET && 
-        tokens[i + 1]?.type === TokenType.NUMBER &&
-        tokens[i + 2]?.type === TokenType.RIGHT_BRACKET
+      const arrays = tokens.filter(
+        (t, i) =>
+          t.type === TokenType.LEFT_BRACKET &&
+          tokens[i + 1]?.type === TokenType.NUMBER &&
+          tokens[i + 2]?.type === TokenType.RIGHT_BRACKET
       );
       expect(arrays).toHaveLength(3); // Three voice arrays
     });
@@ -405,7 +410,7 @@ end @map`;
 @map vicBorderColor at $D020: byte; // $D020 = 53280`;
 
       const tokens = tokenize(source);
-      
+
       // Comments should be skipped by default
       expect(tokens.find(t => t.type === TokenType.LINE_COMMENT)).toBeUndefined();
       expect(tokens[0].type).toBe(TokenType.MAP);

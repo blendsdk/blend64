@@ -607,10 +607,11 @@ describe('Blend65Lexer', () => {
         expect(tokens[2].value).toBe('spriteData');
 
         // Find the address-of operation: @spriteData + 21
-        const atIndex = tokens.findIndex((token, i) =>
-          token.type === TokenType.AT &&
-          i + 1 < tokens.length &&
-          tokens[i + 1].value === 'spriteData'
+        const atIndex = tokens.findIndex(
+          (token, i) =>
+            token.type === TokenType.AT &&
+            i + 1 < tokens.length &&
+            tokens[i + 1].value === 'spriteData'
         );
 
         expect(atIndex).toBeGreaterThan(-1);

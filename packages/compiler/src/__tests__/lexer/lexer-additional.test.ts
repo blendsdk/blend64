@@ -60,7 +60,7 @@ describe('Blend65Lexer Additional Coverage', () => {
 
       // No NEWLINE tokens should be emitted
       expect(newlineTokens).toHaveLength(0);
-      
+
       // Tokens should be: let, a, let, b, let, c, EOF
       expect(tokens[0].type).toBe(TokenType.LET);
       expect(tokens[1].type).toBe(TokenType.IDENTIFIER);

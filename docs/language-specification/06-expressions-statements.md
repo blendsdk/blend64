@@ -1,7 +1,7 @@
 # Expressions and Statements
 
-> **Status**: Lexer-Derived Specification  
-> **Last Updated**: January 8, 2026  
+> **Status**: Lexer-Derived Specification
+> **Last Updated**: January 8, 2026
 > **Related Documents**: [Type System](05-type-system.md), [Variables](10-variables.md), [Functions](11-functions.md), [Grammar](02-grammar.md)
 
 ## Overview
@@ -169,6 +169,85 @@ let shifted = value << 1;
 let halved = value >> 1;
 ```
 
+### Address-Of Operator
+
+The address-of operator (`@`) returns the memory address of a variable as a 16-bit word.
+
+| Operator | Description | Example | Returns |
+|----------|-------------|---------|---------|
+| `@` | Address-of | `@myVariable` | `@address` |
+
+**Syntax:**
+```ebnf
+address_of_expr = "@" , identifier ;
+```
+
+**Type:** The address-of operator returns type `@address`, which is a built-in type alias for `word`.
+
+**Examples:**
+```js
+// Get address of variables
+@ram let buffer: byte[256];
+@zp let counter: byte = 0;
+@map vicBorderColor at $D020: byte;
+
+let bufferAddr: @address = @buffer;        // Address of array
+let counterAddr: @address = @counter;      // Address of scalar
+let vicAddr: @address = @vicBorderColor;   // Address of memory-mapped var
+
+// Type compatibility: @address and word are interchangeable
+let wordAddr: word = @buffer;              // ✅ Valid - same type
+let addrValue: @address = 0xD020;          // ✅ Valid - can assign word to @address
+```
+
+**Usage with Generic Functions:**
+```js
+// Generic memory manipulation using address-of
+function copyMemory(src: @address, dst: @address, len: byte): void
+  for i = 0 to len - 1
+    poke(dst + i, peek(src + i));
+  next i
+end function
+
+// Usage
+@data const spriteData: byte[63] = [...];
+@ram let activeSprite: byte[63];
+
+copyMemory(@spriteData, @activeSprite, 63);  // Pass addresses directly
+```
+
+**Restrictions:**
+- Can only be applied to **variables** (local, global, memory-mapped)
+- Cannot be applied to **literals**: `@5` ❌ (compile error)
+- Cannot be applied to **expressions**: `@(x + y)` ❌ (compile error)
+- Cannot be applied to **function names** (use callback syntax instead)
+
+### @address Type
+
+`@address` is a **built-in type alias** for `word`. It provides self-documenting code when working with memory addresses.
+
+**Type Equivalence:**
+```js
+@address ≡ word  // These types are identical
+```
+
+**Usage:**
+```js
+// Function parameters - clearly indicates intent
+function fillMemory(addr: @address, len: word, value: byte): void
+  for i = 0 to len - 1
+    poke(addr + i, value);
+  next i
+end function
+
+// Variables
+let screenAddr: @address = 0x0400;         // Screen RAM base address
+let spriteAddr: @address = @spriteData;    // Address from address-of operator
+
+// Arithmetic (addresses are 16-bit numbers)
+let nextAddr: @address = screenAddr + 40;  // Next screen line
+```
+
 ### Assignment Operators
 
 | Operator | Description | Equivalent To |
@@ -202,7 +281,7 @@ From **highest to lowest** precedence:
 | Level | Operators | Associativity | Description |
 |-------|-----------|---------------|-------------|
 | 1 | `()` `[]` `.` | Left-to-right | Grouping, indexing, member access |
-| 2 | `!` `~` unary `+` unary `-` | Right-to-left | Unary operators |
+| 2 | `!` `~` unary `+` unary `-` `@` | Right-to-left | Unary operators |
 | 3 | `*` `/` `%` | Left-to-right | Multiplicative |
 | 4 | `+` `-` | Left-to-right | Additive |
 | 5 | `<<` `>>` | Left-to-right | Shift |
@@ -504,13 +583,13 @@ function updatePlayer(): void
     gameOver();
     return;
   end if
-  
+
   // Update position
   playerX += 1;
   if playerX > 40 then
     playerX = 0;
   end if
-  
+
   // Update score
   score += 10;
 end function
@@ -518,7 +597,7 @@ end function
 function gameLoop(): void
   while true
     updatePlayer();
-    
+
     // Check for collisions
     for i = 0 to 9
       if checkCollision(i) then
@@ -526,7 +605,7 @@ function gameLoop(): void
         break;
       end if
     next i
-    
+
     // Handle state
     match gameState
       case GameState.PLAYING:
@@ -633,7 +712,7 @@ function process(value: byte): byte
   if value == 0 then
     return 0;
   end if
-  
+
   // Main logic here
   return compute(value);
 end function

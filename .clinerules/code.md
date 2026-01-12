@@ -73,10 +73,11 @@ These rules are **mandatory** and must be applied **strictly and consistently** 
 ## 4. Object-Oriented Rules
 
 12. **No Private Class Members**
-   - Do **not** use `private` methods or properties.
-   - Methods and properties must be either:
-     - `public`, or
-     - `protected` (used instead of `private`)
+
+- Do **not** use `private` methods or properties.
+- Methods and properties must be either:
+  - `public`, or
+  - `protected` (used instead of `private`)
 
 13. **Encapsulation Through Convention**
     - `protected` members are considered internal and must not be accessed outside subclasses.
@@ -92,9 +93,43 @@ These rules are **mandatory** and must be applied **strictly and consistently** 
     - Follow existing patterns, naming conventions, and architecture.
     - Do not introduce new styles or patterns without a strong reason.
 
-## 6. Final Rule
+16. **Imports**
+    - Never do dynamic imports like `var module = require('....)` or `{......} = require('.....')`
 
-16. **If in Doubt, Be Explicit**
+## 6. Inheritance Chain Architecture
+
+17. **SHOULD Use Inheritance Chains for Large Implementations**
+    - When any implementation would exceed **500 lines** OR has multiple logical concerns
+    - Break into inheritance chain: `Base → Layer1 → Layer2 → ... → Concrete`
+    - Each layer: **200-500 lines maximum**
+    - Natural dependency flow (each layer builds on previous)
+    - Perfect for AI context window limitations
+
+18. **Inheritance Chain Design Principles**
+    - **Foundation First**: Base class contains core utilities and infrastructure
+    - **Logical Layers**: Each layer adds one primary concern (expressions, statements, etc.)
+    - **Clean Dependencies**: Upper layers can use everything below them
+    - **Protected Methods**: Use `protected` for inheritance, not composition
+    - **Single Concrete**: Only the final class in chain should be concrete
+
+19. **File Naming Conventions for Inheritance Chains**
+    - `base.ts` - Foundation class with core utilities
+    - `[feature].ts` - Specialized layers (expressions.ts, declarations.ts, etc.)
+    - `[main].ts` - Final concrete class (parser.ts, compiler.ts, etc.)
+    - `index.ts` - Exports all layers for external use
+    - **Example**: `base.ts → expressions.ts → declarations.ts → modules.ts → parser.ts`
+
+20. **When to Use Inheritance Chains**
+    - ✅ Parsers, compilers, code generators, analyzers
+    - ✅ Complex systems with natural layer dependencies
+    - ✅ Any class approaching 500+ lines
+    - ✅ Systems that will grow significantly over time
+    - ❌ Simple utilities or data structures
+    - ❌ Classes with single, focused responsibilities
+
+## 7. Final Rule
+
+21. **If in Doubt, Be Explicit**
     - Prefer more readable code, more comments, and clearer structure over fewer lines of code.
 
 ---
@@ -103,4 +138,6 @@ These rules are **mandatory** and must be applied **strictly and consistently** 
 
 - See **plans.md** for task-level testing breakdowns and implementation planning
 - See **agents.md** for verification procedures and task completion criteria
+- See **plans.md Rule 10** for inheritance chain planning guidelines
 - Note: Testing rules in this file (Rules 4-8) are the single source of truth for all testing standards
+- Note: Inheritance chain rules in this file (Rules 17-20) are the single source of truth for architectural standards

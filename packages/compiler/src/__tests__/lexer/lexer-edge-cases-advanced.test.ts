@@ -34,7 +34,9 @@ let score: byte
       const tokens = tokenize(source);
 
       const leftBracketCount = tokens.filter(token => token.type === TokenType.LEFT_BRACKET).length;
-      const rightBracketCount = tokens.filter(token => token.type === TokenType.RIGHT_BRACKET).length;
+      const rightBracketCount = tokens.filter(
+        token => token.type === TokenType.RIGHT_BRACKET
+      ).length;
       const newlineCount = tokens.filter(token => token.type === TokenType.NEWLINE).length;
 
       // Type dimension + initializer opening bracket == 2 LEFT_BRACKET tokens
@@ -110,10 +112,18 @@ flags|=mask`;
 
       const tokens = tokenize(source);
 
-      const leftShiftAssignIndex = tokens.findIndex(token => token.type === TokenType.LEFT_SHIFT_ASSIGN);
-      const rightShiftAssignIndex = tokens.findIndex(token => token.type === TokenType.RIGHT_SHIFT_ASSIGN);
-      const bitwiseAndAssignIndex = tokens.findIndex(token => token.type === TokenType.BITWISE_AND_ASSIGN);
-      const bitwiseOrAssignIndex = tokens.findIndex(token => token.type === TokenType.BITWISE_OR_ASSIGN);
+      const leftShiftAssignIndex = tokens.findIndex(
+        token => token.type === TokenType.LEFT_SHIFT_ASSIGN
+      );
+      const rightShiftAssignIndex = tokens.findIndex(
+        token => token.type === TokenType.RIGHT_SHIFT_ASSIGN
+      );
+      const bitwiseAndAssignIndex = tokens.findIndex(
+        token => token.type === TokenType.BITWISE_AND_ASSIGN
+      );
+      const bitwiseOrAssignIndex = tokens.findIndex(
+        token => token.type === TokenType.BITWISE_OR_ASSIGN
+      );
 
       // Each compound operator should be tokenized exactly once without whitespace padding
       expect(leftShiftAssignIndex).toBeGreaterThan(-1);
