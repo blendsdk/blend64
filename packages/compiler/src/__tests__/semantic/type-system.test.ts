@@ -11,7 +11,6 @@
 import { describe, test, expect, beforeEach } from 'vitest';
 import { TypeSystem } from '../../semantic/type-system.js';
 import { TypeKind, TypeCompatibility } from '../../semantic/types.js';
-import type { TypeInfo } from '../../semantic/types.js';
 
 describe('TypeSystem', () => {
   let typeSystem: TypeSystem;

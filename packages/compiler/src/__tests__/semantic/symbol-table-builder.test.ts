@@ -5,7 +5,7 @@
  * and builds the symbol table with proper scoping.
  */
 
-import { describe, test, expect, beforeEach } from 'vitest';
+import { describe, test, expect } from 'vitest';
 import { Lexer } from '../../lexer/lexer.js';
 import { Parser } from '../../parser/parser.js';
 import { SymbolTableBuilder } from '../../semantic/visitors/symbol-table-builder.js';

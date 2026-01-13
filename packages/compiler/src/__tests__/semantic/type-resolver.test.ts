@@ -5,7 +5,7 @@
  * Verifies type annotation resolution and symbol type annotation
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { Lexer } from '../../lexer/lexer.js';
 import { Parser } from '../../parser/parser.js';
 import { SymbolTableBuilder } from '../../semantic/visitors/symbol-table-builder.js';

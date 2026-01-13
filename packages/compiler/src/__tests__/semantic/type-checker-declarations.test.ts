@@ -13,8 +13,6 @@ import { Parser } from '../../parser/parser.js';
 import { SymbolTableBuilder } from '../../semantic/visitors/symbol-table-builder.js';
 import { TypeResolver } from '../../semantic/visitors/type-resolver.js';
 import { TypeChecker } from '../../semantic/visitors/type-checker.js';
-import { SymbolTable } from '../../semantic/symbol-table.js';
-import { TypeSystem } from '../../semantic/type-system.js';
 import type { Diagnostic } from '../../ast/diagnostics.js';
 import { DiagnosticSeverity } from '../../ast/diagnostics.js';
 
