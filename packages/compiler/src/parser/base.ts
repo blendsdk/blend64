@@ -13,6 +13,7 @@
 import { Diagnostic, DiagnosticCode, DiagnosticCollector, SourceLocation } from '../ast/index.js';
 import { Token, TokenType } from '../lexer/types.js';
 import { ParserConfig, createParserConfig } from './config.js';
+import { ScopeManager } from './scope-manager.js';
 
 /**
  * Parser error class
@@ -66,6 +67,19 @@ export abstract class BaseParser {
   protected isModuleScope: boolean = true;
 
   /**
+   * Centralized scope manager for function and loop tracking (Task 2.2)
+   *
+   * Manages all scope-related operations:
+   * - Function scope lifecycle (enter/exit with parameters)
+   * - Loop scope lifecycle (enter/exit for break/continue validation)
+   * - Variable tracking within function scopes
+   * - Scope chain lookup
+   *
+   * Replaces fragmented scope tracking across multiple classes.
+   */
+  protected scopeManager: ScopeManager;
+
+  /**
    * Creates a new base parser
    *
    * @param tokens - Token stream from lexer
@@ -74,6 +88,11 @@ export abstract class BaseParser {
   constructor(tokens: Token[], config: Partial<ParserConfig> = {}) {
     this.tokens = tokens;
     this.config = createParserConfig(config);
+
+    // Initialize ScopeManager with error reporter callback (Task 2.2)
+    this.scopeManager = new ScopeManager((code, message, location) => {
+      this.reportError(code, message, location);
+    });
   }
 
   // ============================================
@@ -125,6 +144,9 @@ export abstract class BaseParser {
    * Consumes the current token and moves to the next one.
    * Safe to call at end of stream (stays at EOF).
    *
+   * **Performance Note:**
+   * Invalidates the currentLocation() cache since we've moved to a new position.
+   *
    * @returns The token that was current before advancing
    *
    * @example
@@ -136,6 +158,8 @@ export abstract class BaseParser {
     const token = this.getCurrentToken();
     if (!this.isAtEnd()) {
       this.current++;
+      // Invalidate location cache since we moved
+      this._currentLocationCache = null;
     }
     return token;
   }
@@ -154,9 +178,36 @@ export abstract class BaseParser {
   // ============================================
 
   /**
+   * Checks if current token matches a single type (optimized fast path)
+   *
+   * This is the most common case for token checking (single type).
+   * Optimized version avoids array allocation and includes() search.
+   *
+   * Does NOT consume the token - just checks.
+   *
+   * @param type - Token type to check
+   * @returns True if current token matches the type
+   *
+   * @example
+   * ```typescript
+   * if (this.checkSingle(TokenType.LET)) {
+   *   // It's a let declaration
+   * }
+   * ```
+   */
+  protected checkSingle(type: TokenType): boolean {
+    if (this.isAtEnd()) return false;
+    return this.getCurrentToken().type === type;
+  }
+
+  /**
    * Checks if current token matches any of the given types
    *
    * Does NOT consume the token - just checks.
+   *
+   * **Performance Note:**
+   * For single token checks, prefer `checkSingle(type)` for better performance.
+   * This method is optimized for multiple type checking (2+ types).
    *
    * @param types - Token types to check
    * @returns True if current token matches any type
@@ -170,6 +221,13 @@ export abstract class BaseParser {
    */
   protected check(...types: TokenType[]): boolean {
     if (this.isAtEnd()) return false;
+
+    // Fast path for single type (common case)
+    if (types.length === 1) {
+      return this.getCurrentToken().type === types[0];
+    }
+
+    // Multiple types - use includes
     return types.includes(this.getCurrentToken().type);
   }
 
@@ -199,16 +257,31 @@ export abstract class BaseParser {
   /**
    * Expects a specific token type and consumes it
    *
-   * If token doesn't match, reports error and may throw or recover.
+   * **Error Recovery Strategy:**
+   * If the expected token is not found, this method:
+   * 1. Reports an error diagnostic (does NOT throw)
+   * 2. Creates a dummy token of the expected type at the current position
+   * 3. Returns the dummy token to allow parsing to continue
+   *
+   * This approach enables reporting multiple errors in a single pass
+   * rather than stopping at the first error.
+   *
+   * **Why Dummy Tokens?**
+   * Returning a dummy token satisfies the type system and allows
+   * the parser to continue constructing a partial AST. This is better
+   * than throwing exceptions because:
+   * - Multiple errors can be reported to the developer
+   * - Partial AST can be used for IDE features (autocomplete, etc.)
+   * - Better developer experience (see all errors at once)
    *
    * @param type - Expected token type
    * @param message - Error message if not found
-   * @returns The consumed token
-   * @throws ParseError if continueOnError is false
+   * @returns The consumed token (or dummy token if error)
    *
    * @example
    * ```typescript
-   * this.expect(TokenType.LEFT_PAREN, "Expected '(' after function name");
+   * // Always succeeds - either returns real token or dummy for recovery
+   * const leftParen = this.expect(TokenType.LEFT_PAREN, "Expected '(' after function name");
    * ```
    */
   protected expect(type: TokenType, message: string): Token {
@@ -216,16 +289,15 @@ export abstract class BaseParser {
       return this.advance();
     }
 
-    // Report error
+    // Report error diagnostic
     this.reportError(DiagnosticCode.EXPECTED_TOKEN, message);
 
-    // If not continuing on errors, throw
-    if (!this.config.continueOnError) {
-      throw new ParseError(message, this.getCurrentToken());
-    }
+    // Check if we've hit max errors (throws if exceeded)
+    // This is the only case where we throw - when error limit reached
+    // (handled by reportError method)
 
-    // Return current token anyway (recovery)
-    return this.getCurrentToken();
+    // Return dummy token for error recovery
+    return this.createDummyToken(type);
   }
 
   // ============================================
@@ -410,6 +482,52 @@ export abstract class BaseParser {
   // ============================================
 
   /**
+   * Creates a dummy token for error recovery
+   *
+   * **Purpose:**
+   * When the parser encounters an error (e.g., expected '(' but found 'x'),
+   * we need to create a synthetic token to allow parsing to continue.
+   * This dummy token satisfies the type system while indicating an error occurred.
+   *
+   * **Usage:**
+   * Called by `expect()` when the expected token is not found.
+   * The dummy token is positioned at the current location so error messages
+   * point to the right place in the source code.
+   *
+   * **Why Not Just Return Current Token?**
+   * Returning the actual current token would cause confusion:
+   * - Type would be wrong (e.g., IDENTIFIER when we expected LEFT_PAREN)
+   * - Value would be wrong (e.g., "x" when we expected "(")
+   * - Parser logic might make incorrect decisions based on wrong type
+   *
+   * **Dummy Token Characteristics:**
+   * - Has the expected token type (what we wanted)
+   * - Has empty value (indicates it's synthetic)
+   * - Has current position (so errors point to right place)
+   * - Allows parser to continue with partial AST construction
+   *
+   * @param type - The expected token type that was missing
+   * @returns A synthetic token for error recovery
+   *
+   * @example
+   * ```typescript
+   * // Parser expected '(' but found 'x'
+   * // Creates dummy LEFT_PAREN token at current position
+   * // Parser continues as if '(' was there (with error reported)
+   * const leftParen = this.createDummyToken(TokenType.LEFT_PAREN);
+   * ```
+   */
+  protected createDummyToken(type: TokenType): Token {
+    const current = this.getCurrentToken();
+    return {
+      type,
+      value: '', // Empty value indicates dummy token
+      start: current.start,
+      end: current.start, // Zero-width token at current position
+    };
+  }
+
+  /**
    * Expects a semicolon token
    *
    * Used for statement separation (semicolons are now required).
@@ -460,15 +578,43 @@ export abstract class BaseParser {
   }
 
   /**
-   * Creates a SourceLocation from current token
+   * Cached current token location for performance
    *
-   * Shorthand for single-token nodes.
+   * Many parser operations need the current location multiple times.
+   * This cache avoids recreating the same location object repeatedly.
+   * Cache is invalidated on every token advance.
+   */
+  private _currentLocationCache: SourceLocation | null = null;
+  private _currentLocationCacheToken: number = -1;
+
+  /**
+   * Creates a SourceLocation from current token (with caching)
+   *
+   * Shorthand for single-token nodes. Caches the result to avoid
+   * recreating the same location object when called multiple times
+   * for the same token position.
+   *
+   * **Performance Note:**
+   * This method caches the location for the current token position.
+   * The cache is automatically invalidated when `advance()` is called.
    *
    * @returns SourceLocation for current token
    */
   protected currentLocation(): SourceLocation {
+    // Check if cache is valid for current position
+    if (this._currentLocationCache && this._currentLocationCacheToken === this.current) {
+      return this._currentLocationCache;
+    }
+
+    // Cache miss - create new location
     const token = this.getCurrentToken();
-    return this.createLocation(token, token);
+    const location = this.createLocation(token, token);
+
+    // Update cache
+    this._currentLocationCache = location;
+    this._currentLocationCacheToken = this.current;
+
+    return location;
   }
 
   /**
@@ -511,11 +657,14 @@ export abstract class BaseParser {
   }
 
   /**
-   * Checks if current token is an export modifier
+   * Checks if current token is an export modifier (optimized)
+   *
+   * Uses fast path for single token check.
+   *
    * @returns True if current token is 'export'
    */
   protected isExportModifier(): boolean {
-    return this.check(TokenType.EXPORT);
+    return this.checkSingle(TokenType.EXPORT);
   }
 
   /**

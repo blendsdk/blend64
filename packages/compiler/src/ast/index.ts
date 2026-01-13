@@ -13,3 +13,6 @@ export * from './diagnostics.js';
 
 // Concrete node implementations
 export * from './nodes.js';
+
+// Type guard utilities
+export * from './type-guards.js';

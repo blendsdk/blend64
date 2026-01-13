@@ -113,7 +113,7 @@ export abstract class ModuleParser extends DeclarationParser {
    *
    * @returns ModuleDecl for implicit global module
    */
-  protected createImplicitGlobalModule(): ModuleDecl {
+  protected createImplicitGlobalModuleDecl(): ModuleDecl {
     const location = this.createLocation(this.tokens[0], this.tokens[0]);
     return new ModuleDecl(['global'], location, true);
   }
@@ -213,21 +213,31 @@ export abstract class ModuleParser extends DeclarationParser {
         // Export variable declaration: parseVariableDecl will handle export context
         return this.parseVariableDecl();
       } else if (this.check(TokenType.TYPE)) {
-        // Export type declaration: export type ... (future implementation)
-        this.reportError(
-          DiagnosticCode.EXPORT_REQUIRES_DECLARATION,
-          'Export type declarations not yet implemented'
-        );
-        this.synchronize();
-        return this.createDummyDeclaration();
+        // Export type declaration: call parseTypeDecl which handles export context
+        if (typeof (this as any).parseTypeDecl === 'function') {
+          return (this as any).parseTypeDecl();
+        } else {
+          // Fallback for testing - type parsing not available at this level
+          this.reportError(
+            DiagnosticCode.EXPORT_REQUIRES_DECLARATION,
+            'Type declaration parsing not available at this parser level'
+          );
+          this.synchronize();
+          return this.createDummyDeclaration();
+        }
       } else if (this.check(TokenType.ENUM)) {
-        // Export enum declaration: export enum ... (future implementation)
-        this.reportError(
-          DiagnosticCode.EXPORT_REQUIRES_DECLARATION,
-          'Export enum declarations not yet implemented'
-        );
-        this.synchronize();
-        return this.createDummyDeclaration();
+        // Export enum declaration: call parseEnumDecl which handles export context
+        if (typeof (this as any).parseEnumDecl === 'function') {
+          return (this as any).parseEnumDecl();
+        } else {
+          // Fallback for testing - enum parsing not available at this level
+          this.reportError(
+            DiagnosticCode.EXPORT_REQUIRES_DECLARATION,
+            'Enum declaration parsing not available at this parser level'
+          );
+          this.synchronize();
+          return this.createDummyDeclaration();
+        }
       } else {
         // Unknown token after export
         this.reportError(

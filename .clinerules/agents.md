@@ -430,6 +430,43 @@ clear && scripts/agent.sh finished
 
 ---
 
+### **Rule 9: Compact Conversation After Task Completion**
+
+**CRITICAL:** After successfully completing any task in Act Mode, compact the conversation to optimize context management:
+
+**Post-Completion Requirement:**
+
+1. **✅ Run `/compact` after `attempt_completion` is successful**
+   - This MUST be done after the task is fully verified and completed
+   - Compacts the conversation history to optimize AI context
+   - Ensures efficient context management for future tasks
+
+**Workflow Pattern:**
+
+```bash
+# 1. Complete all task work
+# 2. Run final verification (Rule 6)
+# 3. Execute agent.sh finished (Rule 8)
+# 4. Call attempt_completion with results
+# 5. After successful completion, run /compact
+```
+
+**When to Compact:**
+
+- ✅ After any successfully completed Act Mode task
+- ✅ After calling attempt_completion
+- ✅ Before starting a new unrelated task
+
+**When NOT to Compact:**
+
+- ❌ In the middle of a multi-part task
+- ❌ Before task verification is complete
+- ❌ During Plan Mode (no implementation work to compact)
+
+**Purpose:** Optimizes conversation context, reduces token usage, and maintains clean context boundaries between completed tasks.
+
+---
+
 ## **Summary: Applying These Rules**
 
 **Every Single Time You Respond:**
@@ -442,6 +479,7 @@ clear && scripts/agent.sh finished
 6. 🔍 Final verification before completion (Rule 6 - before finishing)
 7. 🚫 **NEVER overcomplicate** - Use existing infrastructure (Rule 7 - simplicity first)
 8. ⚙️ **Act Mode ONLY:** Execute agent.sh commands (Rule 8 - start/finish settings)
+9. 🗜️ **After task completion:** Run `/compact` to optimize context (Rule 9 - conversation compaction)
 
 **Remember:** These rules exist to ensure high-quality, complete implementations. Following them prevents errors, rework, and wasted effort.
 

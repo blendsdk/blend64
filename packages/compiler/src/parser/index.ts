@@ -14,6 +14,12 @@ export * from './config.js';
 // Operator precedence
 export * from './precedence.js';
 
+// Error messages
+export * from './error-messages.js';
+
+// Scope management
+export { ScopeManager, ScopeType, ErrorReporter } from './scope-manager.js';
+
 // Export classes in dependency order to avoid circular import issues
 export { BaseParser, ParseError } from './base.js';
 export { ExpressionParser } from './expressions.js';

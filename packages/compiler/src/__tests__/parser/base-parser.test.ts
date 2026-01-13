@@ -203,11 +203,32 @@ describe('BaseParser', () => {
       expect(diagnostics[0].message).toBe('Expected const');
     });
 
-    it('expect throws ParseError when continueOnError is false', () => {
-      const strictParser = new TestBaseParser(tokens, { continueOnError: false });
-      expect(() => {
-        strictParser.testExpect(TokenType.CONST, 'Expected const');
-      }).toThrow(ParseError);
+    it('expect returns dummy token for error recovery', () => {
+      const dummyToken = parser.testExpect(TokenType.CONST, 'Expected const');
+
+      // Verify dummy token has correct type
+      expect(dummyToken.type).toBe(TokenType.CONST);
+
+      // Verify dummy token has empty value (indicates synthetic)
+      expect(dummyToken.value).toBe('');
+
+      // Verify dummy token positioned at current location
+      const currentToken = parser.testGetCurrentToken();
+      expect(dummyToken.start).toEqual(currentToken.start);
+
+      // Verify error was reported
+      const diagnostics = parser.getDiagnostics();
+      expect(diagnostics.length).toBe(1);
+      expect(diagnostics[0].code).toBe(DiagnosticCode.EXPECTED_TOKEN);
+    });
+
+    it('expect does not advance position when creating dummy token', () => {
+      const beforePosition = parser.testGetCurrentToken();
+      parser.testExpect(TokenType.CONST, 'Expected const');
+      const afterPosition = parser.testGetCurrentToken();
+
+      // Position should not change when error occurs
+      expect(afterPosition).toBe(beforePosition);
     });
   });
 

@@ -28,8 +28,8 @@ class TestDeclarationParser extends DeclarationParser {
     return this.parseVariableDecl();
   }
 
-  public testParseMapDeclaration() {
-    return this.parseMapDeclaration();
+  public testParseMapDecl() {
+    return this.parseMapDecl();
   }
 
   public testParseSimpleMapDecl(startToken: Token, name: string, address: any) {
@@ -195,7 +195,7 @@ describe('DeclarationParser', () => {
       ];
       parser = new TestDeclarationParser(tokens);
 
-      const decl = parser.testParseMapDeclaration();
+      const decl = parser.testParseMapDecl();
       expect(decl).toBeInstanceOf(SimpleMapDecl);
 
       const mapDecl = decl as SimpleMapDecl;
@@ -222,7 +222,7 @@ describe('DeclarationParser', () => {
       ];
       parser = new TestDeclarationParser(tokens);
 
-      const decl = parser.testParseMapDeclaration();
+      const decl = parser.testParseMapDecl();
       expect(decl).toBeInstanceOf(RangeMapDecl);
 
       const rangeDecl = decl as RangeMapDecl;
@@ -254,7 +254,7 @@ describe('DeclarationParser', () => {
       ];
       parser = new TestDeclarationParser(tokens);
 
-      const decl = parser.testParseMapDeclaration();
+      const decl = parser.testParseMapDecl();
       expect(decl).toBeInstanceOf(SequentialStructMapDecl);
 
       const structDecl = decl as SequentialStructMapDecl;
@@ -288,7 +288,7 @@ describe('DeclarationParser', () => {
       ];
       parser = new TestDeclarationParser(tokens);
 
-      const decl = parser.testParseMapDeclaration();
+      const decl = parser.testParseMapDecl();
       expect(decl).toBeInstanceOf(SequentialStructMapDecl);
 
       const structDecl = decl as SequentialStructMapDecl;
@@ -320,7 +320,7 @@ describe('DeclarationParser', () => {
       ];
       parser = new TestDeclarationParser(tokens);
 
-      const decl = parser.testParseMapDeclaration();
+      const decl = parser.testParseMapDecl();
       expect(decl).toBeInstanceOf(ExplicitStructMapDecl);
 
       const explicitDecl = decl as ExplicitStructMapDecl;
@@ -358,7 +358,7 @@ describe('DeclarationParser', () => {
       ];
       parser = new TestDeclarationParser(tokens);
 
-      const decl = parser.testParseMapDeclaration();
+      const decl = parser.testParseMapDecl();
       expect(decl).toBeInstanceOf(ExplicitStructMapDecl);
 
       const explicitDecl = decl as ExplicitStructMapDecl;
@@ -415,7 +415,7 @@ describe('DeclarationParser', () => {
       ];
       parser = new TestDeclarationParser(tokens);
 
-      parser.testParseMapDeclaration();
+      parser.testParseMapDecl();
       const diagnostics = parser.getDiagnostics();
       expect(diagnostics.length).toBeGreaterThan(0);
       expect(diagnostics.some(d => d.code === DiagnosticCode.UNEXPECTED_TOKEN)).toBe(true);
@@ -521,7 +521,7 @@ describe('DeclarationParser', () => {
       ];
       parser = new TestDeclarationParser(tokens);
 
-      const decl = parser.testParseMapDeclaration();
+      const decl = parser.testParseMapDecl();
       expect(decl).toBeInstanceOf(SequentialStructMapDecl);
 
       const structDecl = decl as SequentialStructMapDecl;

@@ -244,7 +244,7 @@ describe('Control Flow Statement Parser - Phase 2', () => {
       const { hasErrors, diagnostics } = parseControlFlow(source, 'testParseForStatement');
 
       expect(hasErrors).toBe(true);
-      expect(diagnostics.some((d: any) => d.message.includes('mismatch'))).toBe(true);
+      expect(diagnostics.some((d: any) => d.message.includes('Expected loop variable'))).toBe(true);
     });
   });
 
@@ -302,9 +302,11 @@ describe('Control Flow Statement Parser - Phase 2', () => {
     it('parses void return statement', () => {
       const source = `return;`;
 
-      const { stmt, hasErrors } = parseControlFlow(source, 'testParseReturnStatement');
+      const { stmt, hasErrors, diagnostics } = parseControlFlow(source, 'testParseReturnStatement');
 
-      expect(hasErrors).toBe(false);
+      // Return statement outside function now reports error (Task 3.3 validation)
+      expect(hasErrors).toBe(true);
+      expect(diagnostics.some((d: any) => d.message.includes('outside'))).toBe(true);
       expect(stmt).toBeInstanceOf(ReturnStatement);
       const returnStmt = stmt as ReturnStatement;
       expect(returnStmt.getValue()).toBeNull();
@@ -313,9 +315,11 @@ describe('Control Flow Statement Parser - Phase 2', () => {
     it('parses value return statement', () => {
       const source = `return 42;`;
 
-      const { stmt, hasErrors } = parseControlFlow(source, 'testParseReturnStatement');
+      const { stmt, hasErrors, diagnostics } = parseControlFlow(source, 'testParseReturnStatement');
 
-      expect(hasErrors).toBe(false);
+      // Return statement outside function now reports error (Task 3.3 validation)
+      expect(hasErrors).toBe(true);
+      expect(diagnostics.some((d: any) => d.message.includes('outside'))).toBe(true);
       expect(stmt).toBeInstanceOf(ReturnStatement);
       const returnStmt = stmt as ReturnStatement;
       expect(returnStmt.getValue()).not.toBeNull();
@@ -324,9 +328,11 @@ describe('Control Flow Statement Parser - Phase 2', () => {
     it('parses expression return statement', () => {
       const source = `return x + y;`;
 
-      const { stmt, hasErrors } = parseControlFlow(source, 'testParseReturnStatement');
+      const { stmt, hasErrors, diagnostics } = parseControlFlow(source, 'testParseReturnStatement');
 
-      expect(hasErrors).toBe(false);
+      // Return statement outside function now reports error (Task 3.3 validation)
+      expect(hasErrors).toBe(true);
+      expect(diagnostics.some((d: any) => d.message.includes('outside'))).toBe(true);
       expect(stmt).toBeInstanceOf(ReturnStatement);
       const returnStmt = stmt as ReturnStatement;
       expect(returnStmt.getValue()).toBeInstanceOf(BinaryExpression);

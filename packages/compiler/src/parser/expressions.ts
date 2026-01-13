@@ -118,8 +118,8 @@ export abstract class ExpressionParser extends BaseParser {
       `Expected expression, found '${this.getCurrentToken().value}'`
     );
 
-    // Return dummy literal for recovery
-    return new LiteralExpression(0, this.currentLocation());
+    // Return dummy expression for recovery
+    return this.createDummyExpression();
   }
 
   /**
@@ -301,7 +301,7 @@ export abstract class ExpressionParser extends BaseParser {
           );
 
           // Return dummy expression for recovery (don't parse further)
-          return new LiteralExpression(0, this.currentLocation());
+          return this.createDummyExpression();
         }
       }
 
@@ -439,13 +439,57 @@ export abstract class ExpressionParser extends BaseParser {
       `Expected expression, found '${this.getCurrentToken().value}'`
     );
 
-    // Return dummy literal for recovery
-    return new LiteralExpression(0, this.currentLocation());
+    // Return dummy expression for recovery
+    return this.createDummyExpression();
   }
 
   // ============================================
   // UTILITY METHODS FOR EXPRESSION PARSING
   // ============================================
+
+  /**
+   * Creates a dummy expression for error recovery
+   *
+   * **Purpose:**
+   * When the parser encounters an error while parsing an expression
+   * (e.g., unexpected token, missing operand, invalid syntax), we need
+   * to return a synthetic expression to allow parsing to continue.
+   *
+   * **Why a Literal with Value 0?**
+   * - Simple and predictable: won't cause secondary errors
+   * - Type-safe: LiteralExpression is a valid Expression subtype
+   * - Neutral value: 0 is safe for most contexts (arithmetic, boolean, etc.)
+   * - Easy to identify: developers can see "0" in error recovery paths
+   *
+   * **Usage Patterns:**
+   * This helper is called whenever:
+   * - Expected expression token not found (parsePrimaryExpression)
+   * - Invalid operand in unary expression
+   * - Malformed postfix expression
+   * - Error in function call arguments
+   * - Any other expression parsing error
+   *
+   * **Error Recovery Strategy:**
+   * By returning a dummy expression instead of throwing:
+   * - Parser can continue and report multiple errors
+   * - Partial AST can be constructed for IDE features
+   * - Better developer experience (see all errors at once)
+   * - Enables incremental parsing for editors
+   *
+   * @returns A dummy LiteralExpression(0) positioned at current location
+   *
+   * @example
+   * ```typescript
+   * // Parser expected expression but found '}'
+   * if (!this.isExpression()) {
+   *   this.reportError(...);
+   *   return this.createDummyExpression(); // Returns LiteralExpression(0)
+   * }
+   * ```
+   */
+  protected createDummyExpression(): Expression {
+    return new LiteralExpression(0, this.currentLocation());
+  }
 
   /**
    * Checks if the current token is a unary operator

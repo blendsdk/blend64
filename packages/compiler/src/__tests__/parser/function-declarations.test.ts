@@ -380,7 +380,7 @@ describe('Function Declaration Parser', () => {
       expect(functionDecl.getBody()).toHaveLength(1); // Return statement parsed
     });
 
-    test('parses typed function with empty return (no semantic validation in Phase 4)', () => {
+    test('parses typed function with empty return (validates return statement in Task 3.3)', () => {
       const source = `
         function getValue(): byte
           return;
@@ -389,12 +389,13 @@ describe('Function Declaration Parser', () => {
 
       const { ast, errors } = parseBlendProgram(source);
 
-      // Phase 4: Parse structure correctly, semantic validation is future work
-      expect(errors).toHaveLength(0);
+      // Task 3.3: Return statement validation now active
+      expect(errors).toHaveLength(1);
+      expect(errors[0].message).toContain('must return a value');
 
       const program = ast as Program;
       const functionDecl = program.getDeclarations()[0] as FunctionDecl;
-      expect(functionDecl.getBody()).toHaveLength(1); // Return statement parsed
+      expect(functionDecl.getBody()).toHaveLength(1); // Return statement still parsed
     });
 
     test('parses duplicate local variable (no semantic validation in Phase 4)', () => {
@@ -565,7 +566,9 @@ describe('Function Declaration Parser', () => {
       const { errors } = parseBlendProgram(source);
 
       expect(errors.length).toBeGreaterThan(0);
-      expect(errors[0].message).toContain("Expected 'end' after function body");
+      // Check that at least one error mentions the missing 'end' keyword
+      const endError = errors.find(e => e.message.includes("Expected 'end' after function body"));
+      expect(endError).toBeDefined();
     });
 
     test('handles parameter parsing errors gracefully', () => {

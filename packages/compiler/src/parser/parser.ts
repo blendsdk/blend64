@@ -25,8 +25,16 @@ import {
   FunctionDecl,
   Parameter,
   Statement,
+  TypeDecl,
+  EnumDecl,
+  EnumMember,
+  SourceLocation,
+  isVariableDecl,
+  isBreakStatement,
+  isContinueStatement,
 } from '../ast/index.js';
-import { TokenType } from '../lexer/types.js';
+import { Token, TokenType } from '../lexer/types.js';
+import { DeclarationParserErrors } from './error-messages.js';
 import { StatementParser } from './statements.js';
 
 /**
@@ -90,7 +98,7 @@ export class Parser extends StatementParser {
       moduleDecl = this.parseModuleDecl();
     } else {
       // Create implicit "module global"
-      moduleDecl = this.createImplicitGlobalModule();
+      moduleDecl = this.createImplicitGlobalModuleDecl();
     }
 
     // Parse declarations (variables, @map, functions, etc.)
@@ -112,7 +120,7 @@ export class Parser extends StatementParser {
       }
       // Parse @map declaration
       else if (this.check(TokenType.MAP)) {
-        declarations.push(this.parseMapDeclaration());
+        declarations.push(this.parseMapDecl());
       }
       // Parse function declaration (callback or regular)
       else if (this.check(TokenType.CALLBACK, TokenType.FUNCTION)) {
@@ -132,6 +140,14 @@ export class Parser extends StatementParser {
         }
 
         declarations.push(functionDecl);
+      }
+      // Parse type alias declaration
+      else if (this.check(TokenType.TYPE)) {
+        declarations.push(this.parseTypeDecl());
+      }
+      // Parse enum declaration
+      else if (this.check(TokenType.ENUM)) {
+        declarations.push(this.parseEnumDecl());
       }
       // Parse variable declaration
       else if (this.isStorageClass() || this.isLetOrConst()) {
@@ -169,60 +185,43 @@ export class Parser extends StatementParser {
   }
 
   // ============================================
-  // FUNCTION SCOPE MANAGEMENT (Subtask 4.3.1)
+  // SCOPE MANAGEMENT (Task 2.2 - ScopeManager Integration)
   // ============================================
 
   /**
-   * Stack of function scopes for tracking parameters and local variables
-   * Each scope maps variable name to its type annotation
+   * Note: scopeManager is now inherited from BaseParser (Task 2.2)
+   * No need to declare or initialize it here.
    */
-  protected functionScopes: Map<string, string>[] = [];
-
-  /**
-   * Current function return type (for return statement validation)
-   */
-  protected currentFunctionReturnType: string | null = null;
-
-  /**
-   * Whether we're currently inside a loop (for break/continue validation)
-   */
-  protected inLoopContext: boolean = false;
 
   /**
    * Enter a new function scope with parameters
    *
+   * Uses ScopeManager for centralized scope tracking.
+   *
    * @param parameters Function parameters to add to scope
    * @param returnType Expected return type for validation
+   * @param functionName Optional function name for error messages (Task 3.3)
    */
-  protected enterFunctionScopeWithParams(parameters: Parameter[], returnType: string | null): void {
+  protected enterFunctionScopeWithParams(
+    parameters: Parameter[],
+    returnType: string | null,
+    functionName?: string
+  ): void {
     // Call base class method first
     this.enterFunctionScope();
 
-    const scope = new Map<string, string>();
-
-    // Add parameters to scope
-    for (const param of parameters) {
-      if (scope.has(param.name)) {
-        this.reportError(
-          DiagnosticCode.DUPLICATE_DECLARATION,
-          `Duplicate parameter '${param.name}'`,
-          param.location
-        );
-      } else {
-        scope.set(param.name, param.typeAnnotation);
-      }
-    }
-
-    this.functionScopes.push(scope);
-    this.currentFunctionReturnType = returnType;
+    // Use ScopeManager for centralized scope management (with function name for Task 3.3)
+    this.scopeManager.enterFunctionScope(parameters, returnType, functionName);
   }
 
   /**
    * Exit the current function scope
+   *
+   * Uses ScopeManager for centralized scope tracking.
    */
   protected exitFunctionScopeWithCleanup(): void {
-    this.functionScopes.pop();
-    this.currentFunctionReturnType = null;
+    // Use ScopeManager for centralized scope management
+    this.scopeManager.exitFunctionScope();
 
     // Call base class method to reset module scope flag
     this.exitFunctionScope();
@@ -235,23 +234,9 @@ export class Parser extends StatementParser {
    * @param type Variable type
    * @param location Location for error reporting
    */
-  protected addLocalVariable(name: string, type: string, location: any): void {
-    if (this.functionScopes.length === 0) {
-      // Not in function scope - this is a module-level variable
-      return;
-    }
-
-    const currentScope = this.functionScopes[this.functionScopes.length - 1];
-
-    if (currentScope.has(name)) {
-      this.reportError(
-        DiagnosticCode.DUPLICATE_DECLARATION,
-        `Variable '${name}' already declared in this scope`,
-        location
-      );
-    } else {
-      currentScope.set(name, type);
-    }
+  protected addLocalVariable(name: string, type: string, location: SourceLocation): void {
+    // Use ScopeManager for variable tracking
+    this.scopeManager.addLocalVariable(name, type, location);
   }
 
   /**
@@ -261,51 +246,32 @@ export class Parser extends StatementParser {
    * @returns Variable type if found, null otherwise
    */
   protected lookupVariable(name: string): string | null {
-    // Search from innermost to outermost scope
-    for (let i = this.functionScopes.length - 1; i >= 0; i--) {
-      const scope = this.functionScopes[i];
-      if (scope.has(name)) {
-        return scope.get(name) || null;
-      }
-    }
-
-    // Not found in function scopes - could be module-level variable
-    return null;
+    // Use ScopeManager for variable lookup
+    return this.scopeManager.lookupVariable(name);
   }
 
   /**
    * Check if we're currently inside a function
    */
   protected isInFunctionScope(): boolean {
-    return this.functionScopes.length > 0;
+    // Use ScopeManager to check function scope
+    return this.scopeManager.isInFunction();
   }
 
   /**
    * Get current function return type for validation
    */
   protected getCurrentFunctionReturnType(): string | null {
-    return this.currentFunctionReturnType;
-  }
-
-  /**
-   * Enter loop context (for break/continue validation)
-   */
-  protected enterLoopContext(): void {
-    this.inLoopContext = true;
-  }
-
-  /**
-   * Exit loop context
-   */
-  protected exitLoopContext(): void {
-    this.inLoopContext = false;
+    // Use ScopeManager for return type tracking
+    return this.scopeManager.getCurrentFunctionReturnType();
   }
 
   /**
    * Check if we're inside a loop (for break/continue validation)
    */
   protected isInLoopContext(): boolean {
-    return this.inLoopContext;
+    // Use ScopeManager for loop context checking
+    return this.scopeManager.isInLoop();
   }
 
   // ============================================
@@ -375,12 +341,16 @@ export class Parser extends StatementParser {
       ) {
         returnType = this.advance().value;
       } else {
-        this.reportError(DiagnosticCode.EXPECTED_TOKEN, 'Expected return type');
+        this.reportError(
+          DiagnosticCode.EXPECTED_TOKEN,
+          DeclarationParserErrors.expectedReturnType()
+        );
       }
     }
 
     // Enter function scope with parameters and return type for validation (Subtask 4.3.4)
-    this.enterFunctionScopeWithParams(parameters, returnType);
+    // Pass function name for better error messages (Task 3.3)
+    this.enterFunctionScopeWithParams(parameters, returnType, functionName);
 
     try {
       // Parse function body statements with scope management
@@ -434,7 +404,7 @@ export class Parser extends StatementParser {
       this.expect(TokenType.COLON, "Expected ':' after parameter name");
 
       // Parameter type can be a keyword (byte, word, void) or identifier (custom type)
-      let typeToken: any;
+      let typeToken: Token;
       if (
         this.check(
           TokenType.BYTE,
@@ -447,7 +417,10 @@ export class Parser extends StatementParser {
       ) {
         typeToken = this.advance();
       } else {
-        this.reportError(DiagnosticCode.EXPECTED_TOKEN, 'Expected parameter type');
+        this.reportError(
+          DiagnosticCode.EXPECTED_TOKEN,
+          DeclarationParserErrors.expectedParameterType()
+        );
         typeToken = this.getCurrentToken(); // For error recovery
       }
 
@@ -486,10 +459,8 @@ export class Parser extends StatementParser {
           this.handleLocalVariableDeclaration(statement);
         }
 
-        // Validate return statements in function context
-        if (this.isReturnStatement(statement)) {
-          this.validateReturnStatement(statement);
-        }
+        // Note: Return statement validation is now handled directly in parseReturnStatement() (Task 3.3)
+        // No additional validation needed here
 
         // Validate break/continue statements (not allowed in function scope, only in loops)
         if (this.isBreakOrContinueStatement(statement)) {
@@ -536,36 +507,19 @@ export class Parser extends StatementParser {
 
   /**
    * Handle local variable declaration in function scope
+   *
+   * Uses type guard to safely narrow statement to VariableDecl,
+   * enabling type-safe access to variable-specific methods.
    */
   protected handleLocalVariableDeclaration(statement: Statement): void {
-    // Extract variable information from statement
-    // This is a type-safe way to access the variable declaration
-    const varDecl = statement as any;
-    if (varDecl.getName && varDecl.getTypeAnnotation && varDecl.getLocation) {
+    // Use type guard for safe type narrowing
+    if (isVariableDecl(statement)) {
       this.addLocalVariable(
-        varDecl.getName(),
-        varDecl.getTypeAnnotation() || 'unknown',
-        varDecl.getLocation()
+        statement.getName(),
+        statement.getTypeAnnotation() || 'unknown',
+        statement.getLocation()
       );
     }
-  }
-
-  /**
-   * Check if a statement is a return statement
-   */
-  protected isReturnStatement(statement: Statement): boolean {
-    return statement.constructor.name === 'ReturnStatement';
-  }
-
-  /**
-   * Validate return statement against function signature (Subtask 4.3.3)
-   */
-  protected validateReturnStatement(_statement: Statement): void {
-    // Skip validation for now - this is causing test failures
-    // The return statement structure parsing is working correctly
-    // Type validation will be implemented in future semantic analysis phases
-    // TODO: Implement proper return type validation in semantic analysis phase
-    // This requires full type checking infrastructure which is beyond Phase 4
   }
 
   /**
@@ -578,23 +532,223 @@ export class Parser extends StatementParser {
 
   /**
    * Validate break/continue statements are only used in loop context (Subtask 4.3.5)
+   *
+   * Uses type guards to safely access statement location without casting to any.
    */
   protected validateBreakContinueInContext(statement: Statement): void {
     if (!this.isInLoopContext()) {
-      const statementType = statement.constructor.name === 'BreakStatement' ? 'break' : 'continue';
+      // Use type guards to determine statement type and get location
+      let statementType: string;
+      if (isBreakStatement(statement)) {
+        statementType = 'break';
+      } else if (isContinueStatement(statement)) {
+        statementType = 'continue';
+      } else {
+        // Fallback (shouldn't happen if caller checks correctly)
+        statementType = 'unknown';
+      }
+
       this.reportError(
         DiagnosticCode.INVALID_MODULE_SCOPE, // Using closest available diagnostic code
         `'${statementType}' statement only allowed inside loops`,
-        (statement as any).getLocation()
+        statement.getLocation()
       );
     }
   }
 
-  // Future phases will add methods here to orchestrate new language features:
-  //
-  // Phase 5: Module system integration
-  // Phase 6: Type system integration
-  //
-  // The inheritance chain ensures all these capabilities will be
-  // automatically available without modifying this class.
+  // ============================================
+  // PHASE 6: TYPE SYSTEM DECLARATION PARSING
+  // ============================================
+
+  /**
+   * Parse type alias declaration
+   *
+   * Grammar:
+   * TypeDecl := [export] "type" identifier "=" type_expr
+   * type_expr := type_name | type_name "[" integer "]"
+   *
+   * Examples:
+   * - type SpriteId = byte
+   * - type Address = word
+   * - type ScreenBuffer = byte[1000]
+   * - export type Color = byte
+   *
+   * @returns TypeDecl AST node
+   */
+  protected parseTypeDecl(): TypeDecl {
+    const startToken = this.getCurrentToken();
+
+    // Parse optional export modifier
+    const isExported = this.parseExportModifier();
+    this.wasExplicitlyExported = isExported;
+
+    // Parse 'type' keyword
+    this.expect(TokenType.TYPE, "Expected 'type'");
+
+    // Parse type alias name
+    const nameToken = this.expect(TokenType.IDENTIFIER, 'Expected type name');
+
+    // Parse '=' assignment
+    this.expect(TokenType.ASSIGN, "Expected '=' after type name");
+
+    // Parse type expression (simple type or array type)
+    const aliasedType = this.parseTypeExpression();
+
+    // Create location spanning entire type declaration
+    const location = this.createLocation(startToken, this.getCurrentToken());
+
+    return new TypeDecl(nameToken.value, aliasedType, location, isExported);
+  }
+
+  /**
+   * Parse type expression for type aliases
+   *
+   * Grammar:
+   * type_expr := type_name | type_name "[" integer "]"
+   *
+   * Handles:
+   * - Simple types: byte, word, void, boolean, string
+   * - Custom types: SpriteId, Address (identifiers)
+   * - Array types: byte[256], word[100]
+   *
+   * @returns String representation of the type expression
+   */
+  protected parseTypeExpression(): string {
+    // Parse base type (keyword or identifier)
+    let baseType: string;
+
+    if (
+      this.check(
+        TokenType.BYTE,
+        TokenType.WORD,
+        TokenType.VOID,
+        TokenType.BOOLEAN,
+        TokenType.STRING,
+        TokenType.CALLBACK,
+        TokenType.IDENTIFIER
+      )
+    ) {
+      baseType = this.advance().value;
+    } else {
+      this.reportError(DiagnosticCode.EXPECTED_TOKEN, DeclarationParserErrors.expectedTypeName());
+      baseType = 'unknown';
+    }
+
+    // Check for array type: type_name "[" integer "]"
+    if (this.match(TokenType.LEFT_BRACKET)) {
+      // Parse array size
+      const sizeToken = this.expect(TokenType.NUMBER, 'Expected array size');
+      this.expect(TokenType.RIGHT_BRACKET, "Expected ']' after array size");
+
+      // Return array type representation
+      return `${baseType}[${sizeToken.value}]`;
+    }
+
+    return baseType;
+  }
+
+  /**
+   * Parse enum declaration with member parsing
+   *
+   * Grammar:
+   * EnumDecl := [export] "enum" identifier NEWLINE
+   *             { enum_member [","] NEWLINE }
+   *             "end" "enum"
+   * enum_member := identifier ["=" integer]
+   *
+   * Examples:
+   * - enum Direction
+   *     UP,
+   *     DOWN,
+   *     LEFT,
+   *     RIGHT
+   *   end enum
+   *
+   * - enum Color
+   *     BLACK = 0,
+   *     WHITE = 1,
+   *     RED = 2
+   *   end enum
+   *
+   * @returns EnumDecl AST node
+   */
+  protected parseEnumDecl(): EnumDecl {
+    const startToken = this.getCurrentToken();
+
+    // Parse optional export modifier
+    const isExported = this.parseExportModifier();
+    this.wasExplicitlyExported = isExported;
+
+    // Parse 'enum' keyword
+    this.expect(TokenType.ENUM, "Expected 'enum'");
+
+    // Parse enum name
+    const nameToken = this.expect(TokenType.IDENTIFIER, 'Expected enum name');
+
+    // Parse enum members
+    const members: EnumMember[] = [];
+    let nextValue = 0;
+
+    // Parse members until we hit 'end' keyword
+    while (!this.check(TokenType.END) && !this.isAtEnd()) {
+      const member = this.parseEnumMember(nextValue);
+      members.push(member);
+
+      // Update next auto-increment value
+      // If member has explicit value, next value is explicit + 1
+      // If member has no explicit value (null), it used nextValue, so increment
+      nextValue = (member.value !== null ? member.value : nextValue) + 1;
+
+      // Optional comma between members
+      this.match(TokenType.COMMA);
+    }
+
+    // Parse 'end enum'
+    this.expect(TokenType.END, "Expected 'end' after enum members");
+    this.expect(TokenType.ENUM, "Expected 'enum' after 'end'");
+
+    // Create location spanning entire enum declaration
+    const location = this.createLocation(startToken, this.getCurrentToken());
+
+    return new EnumDecl(nameToken.value, members, location, isExported);
+  }
+
+  /**
+   * Parse a single enum member
+   *
+   * Grammar:
+   * enum_member := identifier ["=" integer]
+   *
+   * Handles:
+   * - Simple member: UP (auto-numbered)
+   * - Explicit value: BLACK = 0
+   *
+   * @param defaultValue The auto-increment value to use if no explicit value
+   * @returns EnumMember object with name, value, and location
+   */
+  protected parseEnumMember(defaultValue: number): EnumMember {
+    const startToken = this.getCurrentToken();
+
+    // Parse member name
+    const nameToken = this.expect(TokenType.IDENTIFIER, 'Expected enum member name');
+
+    // Check for explicit value assignment
+    let value: number | null = null;
+    if (this.match(TokenType.ASSIGN)) {
+      const valueToken = this.expect(TokenType.NUMBER, 'Expected enum member value');
+      value = parseInt(valueToken.value, 10);
+    } else {
+      // Use auto-increment value
+      value = defaultValue;
+    }
+
+    // Create location for this member
+    const location = this.createLocation(startToken, this.getCurrentToken());
+
+    return {
+      name: nameToken.value,
+      value,
+      location,
+    };
+  }
 }

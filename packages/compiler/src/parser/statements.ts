@@ -3,65 +3,51 @@
  *
  * Extends ModuleParser to provide statement parsing capabilities:
  * - Statement dispatcher (parseStatement)
- * - Block statement parsing (sequences of statements)
  * - Expression statement parsing (expressions used as statements)
- * - Foundation for control flow statements (if, while, for, etc.)
+ * - Control flow statement parsing (if, while, for, match)
+ * - Break/continue statement parsing
+ * - Return statement parsing
  *
  * This layer provides the core statement parsing infrastructure that
  * control flow and function parsing will build upon.
  */
 
 import {
-  BlockStatement,
   BreakStatement,
   CaseClause,
   ContinueStatement,
   DiagnosticCode,
+  Expression,
   ExpressionStatement,
   ForStatement,
   IfStatement,
-  LiteralExpression,
   MatchStatement,
   ReturnStatement,
+  SourceLocation,
   Statement,
   WhileStatement,
 } from '../ast/index.js';
 import { TokenType } from '../lexer/types.js';
+import { StatementParserErrors } from './error-messages.js';
 import { ModuleParser } from './modules.js';
 
 /**
  * Statement parser class - extends ModuleParser with statement parsing capabilities
  *
  * Provides the foundation for parsing all statement types in Blend65.
- * This layer focuses on the core statement infrastructure while leaving
- * specific statement implementations for future phases.
+ * This layer focuses on the core statement infrastructure following the
+ * language specification (no C-style braces).
  *
- * Current statement support (Phase 1):
- * - Block statements: { stmt1; stmt2; }
+ * Current statement support:
  * - Expression statements: foo(); x = 5;
- * - Statement dispatcher routing (foundation for control flow)
- *
- * Future statement support (Phase 2+):
+ * - Function-local variable declarations: let x: byte = 10;
  * - If statements: if condition then ... end if
- * - While statements: while condition ... end while
- * - For statements: for i = 1 to 10 ... next i
+ * - While loops: while condition ... end while
+ * - For loops: for i = 1 to 10 ... next i
  * - Match statements: match value case 1: ... end match
  * - Return/break/continue statements
  */
 export abstract class StatementParser extends ModuleParser {
-  // ============================================
-  // LOOP CONTEXT TRACKING
-  // ============================================
-
-  /**
-   * Track loop nesting level for break/continue validation
-   *
-   * In 6502 development, early error detection is crucial for fast feedback.
-   * We validate break/continue statements at parse-time rather than during
-   * semantic analysis to catch errors immediately.
-   */
-  protected loopNestingLevel: number = 0;
-
   // ============================================
   // STATEMENT DISPATCHER
   // ============================================
@@ -73,26 +59,20 @@ export abstract class StatementParser extends ModuleParser {
    * based on the current token. It serves as the central hub for all
    * statement parsing in the language.
    *
-   * Current routing (Phase 4):
-   * - '{' → parseBlockStatement()
-   * - 'let'/'const' → parseLocalVariableDeclaration() (NEW - Function-local variables)
-   * - Control flow statements → parseIfStatement(), etc.
+   * Current routing:
+   * - 'let'/'const' → parseLocalVariableDeclaration() (Function-local variables)
+   * - Control flow statements → parseIfStatement(), parseWhileStatement(), etc.
    * - Everything else → parseExpressionStatement()
    *
    * @returns Statement AST node representing the parsed statement
    */
   protected parseStatement(): Statement {
-    // Block statements
-    if (this.check(TokenType.LEFT_BRACE)) {
-      return this.parseBlockStatement();
-    }
-
-    // Function-local variable declarations (NEW - Phase 4)
+    // Function-local variable declarations
     if (this.check(TokenType.LET, TokenType.CONST)) {
       return this.parseLocalVariableDeclaration();
     }
 
-    // Control flow statements (Phase 2)
+    // Control flow statements
     if (this.check(TokenType.IF)) return this.parseIfStatement();
     if (this.check(TokenType.WHILE)) return this.parseWhileStatement();
     if (this.check(TokenType.FOR)) return this.parseForStatement();
@@ -103,60 +83,6 @@ export abstract class StatementParser extends ModuleParser {
 
     // Default: expression statement
     return this.parseExpressionStatement();
-  }
-
-  // ============================================
-  // BLOCK STATEMENT PARSING
-  // ============================================
-
-  /**
-   * Parses a block statement (sequence of statements in braces)
-   *
-   * Grammar: '{' Statement* '}'
-   *
-   * Block statements are used in:
-   * - Function bodies: function foo() { stmt1; stmt2; }
-   * - If/else branches: if condition { stmt1; } else { stmt2; }
-   * - Loop bodies: while condition { stmt1; stmt2; }
-   * - Standalone blocks for scoping: { let temp: byte = x; ... }
-   *
-   * Examples:
-   * - Empty block: { }
-   * - Single statement: { x = 5; }
-   * - Multiple statements: { x = 5; y = 10; foo(); }
-   * - Nested blocks: { { inner(); } outer(); }
-   *
-   * Error Recovery:
-   * - Missing opening brace: Error reported, attempts to continue
-   * - Missing closing brace: Error reported, synchronizes to likely end
-   * - Invalid statements inside: Individual errors, continues parsing
-   *
-   * @returns BlockStatement AST node containing all parsed statements
-   */
-  protected parseBlockStatement(): BlockStatement {
-    const startToken = this.expect(TokenType.LEFT_BRACE, "Expected '{'");
-
-    const statements: Statement[] = [];
-
-    // Parse statements until we hit closing brace or EOF
-    while (!this.check(TokenType.RIGHT_BRACE) && !this.isAtEnd()) {
-      try {
-        const stmt = this.parseStatement();
-        statements.push(stmt);
-      } catch (error) {
-        // Error recovery: skip problematic token and try to continue
-        this.reportError(
-          DiagnosticCode.UNEXPECTED_TOKEN,
-          `Error parsing statement: ${error instanceof Error ? error.message : 'Unknown error'}`
-        );
-        this.synchronize();
-      }
-    }
-
-    this.expect(TokenType.RIGHT_BRACE, "Expected '}' to close block");
-
-    const location = this.createLocation(startToken, this.getCurrentToken());
-    return new BlockStatement(statements, location);
   }
 
   // ============================================
@@ -220,70 +146,28 @@ export abstract class StatementParser extends ModuleParser {
     const startToken = this.expect(TokenType.IF, "Expected 'if'");
 
     // Parse condition expression
-    let condition;
-    try {
-      condition = this.parseExpression();
-    } catch (error) {
-      this.reportError(
-        DiagnosticCode.UNEXPECTED_TOKEN,
-        `Invalid if condition: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
-      // Use a dummy literal for error recovery
-      const dummyLocation = this.getCurrentToken()
-        ? this.createLocation(this.getCurrentToken(), this.getCurrentToken())
-        : this.createLocation(startToken, startToken);
-      condition = new LiteralExpression(false, dummyLocation);
-    }
+    const condition = this.parseExpression();
 
     // Expect 'then' keyword
     if (!this.match(TokenType.THEN)) {
-      this.reportError(DiagnosticCode.EXPECTED_TOKEN, "Expected 'then' after if condition");
+      this.reportError(
+        DiagnosticCode.EXPECTED_TOKEN,
+        StatementParserErrors.expectedThenAfterIfCondition()
+      );
       // Try to recover by looking for statements anyway
     }
 
-    // Parse then branch statements
-    const thenBranch: Statement[] = [];
-    while (!this.check(TokenType.ELSE) && !this.check(TokenType.END) && !this.isAtEnd()) {
-      try {
-        const stmt = this.parseStatement();
-        thenBranch.push(stmt);
-      } catch (error) {
-        this.reportError(
-          DiagnosticCode.UNEXPECTED_TOKEN,
-          `Error parsing then branch: ${error instanceof Error ? error.message : 'Unknown error'}`
-        );
-        this.synchronize();
-        break;
-      }
-    }
+    // Parse then branch statements using helper
+    const thenBranch = this.parseStatementBlock([TokenType.ELSE, TokenType.END]);
 
     // Parse optional else branch
     let elseBranch: Statement[] | null = null;
     if (this.match(TokenType.ELSE)) {
-      elseBranch = [];
-      while (!this.check(TokenType.END) && !this.isAtEnd()) {
-        try {
-          const stmt = this.parseStatement();
-          elseBranch.push(stmt);
-        } catch (error) {
-          this.reportError(
-            DiagnosticCode.UNEXPECTED_TOKEN,
-            `Error parsing else branch: ${error instanceof Error ? error.message : 'Unknown error'}`
-          );
-          this.synchronize();
-          break;
-        }
-      }
+      elseBranch = this.parseStatementBlock([TokenType.END]);
     }
 
-    // Expect 'end if'
-    if (!this.match(TokenType.END)) {
-      this.reportError(DiagnosticCode.EXPECTED_TOKEN, "Expected 'end' to close if statement");
-    } else {
-      if (!this.match(TokenType.IF)) {
-        this.reportError(DiagnosticCode.EXPECTED_TOKEN, "Expected 'if' after 'end'");
-      }
-    }
+    // Expect 'end if' using helper
+    this.parseEndKeyword(TokenType.IF, 'if');
 
     const location = this.createLocation(startToken, this.getCurrentToken());
     return new IfStatement(condition, thenBranch, elseBranch, location);
@@ -308,52 +192,20 @@ export abstract class StatementParser extends ModuleParser {
   protected parseWhileStatement(): WhileStatement {
     const startToken = this.expect(TokenType.WHILE, "Expected 'while'");
 
-    // Increment loop nesting for break/continue validation
-    this.loopNestingLevel++;
+    // Use ScopeManager for loop scope tracking
+    this.scopeManager.enterLoopScope();
 
     // Parse condition expression
-    let condition;
-    try {
-      condition = this.parseExpression();
-    } catch (error) {
-      this.reportError(
-        DiagnosticCode.UNEXPECTED_TOKEN,
-        `Invalid while condition: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
-      // Use a dummy literal for error recovery
-      const dummyLocation = this.getCurrentToken()
-        ? this.createLocation(this.getCurrentToken(), this.getCurrentToken())
-        : this.createLocation(startToken, startToken);
-      condition = new LiteralExpression(false, dummyLocation);
-    }
+    const condition = this.parseExpression();
 
-    // Parse body statements
-    const body: Statement[] = [];
-    while (!this.check(TokenType.END) && !this.isAtEnd()) {
-      try {
-        const stmt = this.parseStatement();
-        body.push(stmt);
-      } catch (error) {
-        this.reportError(
-          DiagnosticCode.UNEXPECTED_TOKEN,
-          `Error parsing while body: ${error instanceof Error ? error.message : 'Unknown error'}`
-        );
-        this.synchronize();
-        break;
-      }
-    }
+    // Parse body statements using helper
+    const body = this.parseStatementBlock([TokenType.END]);
 
-    // Expect 'end while'
-    if (!this.match(TokenType.END)) {
-      this.reportError(DiagnosticCode.EXPECTED_TOKEN, "Expected 'end' to close while statement");
-    } else {
-      if (!this.match(TokenType.WHILE)) {
-        this.reportError(DiagnosticCode.EXPECTED_TOKEN, "Expected 'while' after 'end'");
-      }
-    }
+    // Expect 'end while' using helper
+    this.parseEndKeyword(TokenType.WHILE, 'while');
 
-    // Decrement loop nesting level
-    this.loopNestingLevel--;
+    // Exit loop scope
+    this.scopeManager.exitLoopScope();
 
     const location = this.createLocation(startToken, this.getCurrentToken());
     return new WhileStatement(condition, body, location);
@@ -380,8 +232,8 @@ export abstract class StatementParser extends ModuleParser {
   protected parseForStatement(): ForStatement {
     const startToken = this.expect(TokenType.FOR, "Expected 'for'");
 
-    // Increment loop nesting for break/continue validation
-    this.loopNestingLevel++;
+    // Use ScopeManager for loop scope tracking
+    this.scopeManager.enterLoopScope();
 
     // Parse loop variable
     const variableToken = this.expect(TokenType.IDENTIFIER, "Expected variable name after 'for'");
@@ -389,65 +241,35 @@ export abstract class StatementParser extends ModuleParser {
 
     // Expect '='
     if (!this.match(TokenType.ASSIGN)) {
-      this.reportError(DiagnosticCode.EXPECTED_TOKEN, "Expected '=' after for variable");
+      this.reportError(
+        DiagnosticCode.EXPECTED_TOKEN,
+        StatementParserErrors.expectedAssignAfterForVariable()
+      );
     }
 
     // Parse start expression
-    let start;
-    try {
-      start = this.parseExpression();
-    } catch (error) {
-      this.reportError(
-        DiagnosticCode.UNEXPECTED_TOKEN,
-        `Invalid for start expression: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
-      // Use dummy literal for error recovery
-      const dummyLocation = this.getCurrentToken()
-        ? this.createLocation(this.getCurrentToken(), this.getCurrentToken())
-        : this.createLocation(startToken, startToken);
-      start = new LiteralExpression(0, dummyLocation);
-    }
+    const start = this.parseExpression();
 
     // Expect 'to'
     if (!this.match(TokenType.TO)) {
-      this.reportError(DiagnosticCode.EXPECTED_TOKEN, "Expected 'to' after for start expression");
+      this.reportError(
+        DiagnosticCode.EXPECTED_TOKEN,
+        StatementParserErrors.expectedToAfterForStart()
+      );
     }
 
     // Parse end expression
-    let end;
-    try {
-      end = this.parseExpression();
-    } catch (error) {
-      this.reportError(
-        DiagnosticCode.UNEXPECTED_TOKEN,
-        `Invalid for end expression: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
-      // Use dummy literal for error recovery
-      const dummyLocation = this.getCurrentToken()
-        ? this.createLocation(this.getCurrentToken(), this.getCurrentToken())
-        : this.createLocation(startToken, startToken);
-      end = new LiteralExpression(10, dummyLocation);
-    }
+    const end = this.parseExpression();
 
-    // Parse body statements
-    const body: Statement[] = [];
-    while (!this.check(TokenType.NEXT) && !this.isAtEnd()) {
-      try {
-        const stmt = this.parseStatement();
-        body.push(stmt);
-      } catch (error) {
-        this.reportError(
-          DiagnosticCode.UNEXPECTED_TOKEN,
-          `Error parsing for body: ${error instanceof Error ? error.message : 'Unknown error'}`
-        );
-        this.synchronize();
-        break;
-      }
-    }
+    // Parse body statements using helper
+    const body = this.parseStatementBlock([TokenType.NEXT]);
 
     // Expect 'next'
     if (!this.match(TokenType.NEXT)) {
-      this.reportError(DiagnosticCode.EXPECTED_TOKEN, "Expected 'next' to close for loop");
+      this.reportError(
+        DiagnosticCode.EXPECTED_TOKEN,
+        StatementParserErrors.expectedNextToCloseFor()
+      );
     } else {
       // Expect matching variable name
       const nextVariableToken = this.expect(
@@ -457,13 +279,13 @@ export abstract class StatementParser extends ModuleParser {
       if (nextVariableToken.value !== variable) {
         this.reportError(
           DiagnosticCode.UNEXPECTED_TOKEN,
-          `Variable name mismatch: expected '${variable}' after 'next', got '${nextVariableToken.value}'`
+          StatementParserErrors.forVariableMismatch(variable, nextVariableToken.value)
         );
       }
     }
 
-    // Decrement loop nesting level
-    this.loopNestingLevel--;
+    // Exit loop scope
+    this.scopeManager.exitLoopScope();
 
     const location = this.createLocation(startToken, this.getCurrentToken());
     return new ForStatement(variable, start, end, body, location);
@@ -490,20 +312,7 @@ export abstract class StatementParser extends ModuleParser {
     const startToken = this.expect(TokenType.MATCH, "Expected 'match'");
 
     // Parse value expression
-    let value;
-    try {
-      value = this.parseExpression();
-    } catch (error) {
-      this.reportError(
-        DiagnosticCode.UNEXPECTED_TOKEN,
-        `Invalid match expression: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
-      // Use dummy literal for error recovery
-      const dummyLocation = this.getCurrentToken()
-        ? this.createLocation(this.getCurrentToken(), this.getCurrentToken())
-        : this.createLocation(startToken, startToken);
-      value = new LiteralExpression(0, dummyLocation);
-    }
+    const value = this.parseExpression();
 
     const cases: CaseClause[] = [];
     let defaultCase: Statement[] | null = null;
@@ -512,46 +321,22 @@ export abstract class StatementParser extends ModuleParser {
     while (!this.check(TokenType.END) && !this.isAtEnd()) {
       if (this.match(TokenType.CASE)) {
         // Parse case clause
-        let caseValue;
-        try {
-          caseValue = this.parseExpression();
-        } catch (error) {
-          this.reportError(
-            DiagnosticCode.UNEXPECTED_TOKEN,
-            `Invalid case expression: ${error instanceof Error ? error.message : 'Unknown error'}`
-          );
-          // Use dummy literal for error recovery
-          const dummyLocation = this.getCurrentToken()
-            ? this.createLocation(this.getCurrentToken(), this.getCurrentToken())
-            : this.createLocation(startToken, startToken);
-          caseValue = new LiteralExpression(0, dummyLocation);
-        }
+        const caseValue = this.parseExpression();
 
         // Expect ':'
         if (!this.match(TokenType.COLON)) {
-          this.reportError(DiagnosticCode.EXPECTED_TOKEN, "Expected ':' after case expression");
+          this.reportError(
+            DiagnosticCode.EXPECTED_TOKEN,
+            StatementParserErrors.expectedColonAfterCase()
+          );
         }
 
-        // Parse case body statements
-        const caseBody: Statement[] = [];
-        while (
-          !this.check(TokenType.CASE) &&
-          !this.check(TokenType.DEFAULT) &&
-          !this.check(TokenType.END) &&
-          !this.isAtEnd()
-        ) {
-          try {
-            const stmt = this.parseStatement();
-            caseBody.push(stmt);
-          } catch (error) {
-            this.reportError(
-              DiagnosticCode.UNEXPECTED_TOKEN,
-              `Error parsing case body: ${error instanceof Error ? error.message : 'Unknown error'}`
-            );
-            this.synchronize();
-            break;
-          }
-        }
+        // Parse case body statements using helper
+        const caseBody = this.parseStatementBlock([
+          TokenType.CASE,
+          TokenType.DEFAULT,
+          TokenType.END,
+        ]);
 
         const caseLocation = this.createLocation(startToken, this.getCurrentToken());
         cases.push({
@@ -570,24 +355,14 @@ export abstract class StatementParser extends ModuleParser {
 
         // Expect ':'
         if (!this.match(TokenType.COLON)) {
-          this.reportError(DiagnosticCode.EXPECTED_TOKEN, "Expected ':' after 'default'");
+          this.reportError(
+            DiagnosticCode.EXPECTED_TOKEN,
+            StatementParserErrors.expectedColonAfterDefault()
+          );
         }
 
-        // Parse default body statements
-        defaultCase = [];
-        while (!this.check(TokenType.CASE) && !this.check(TokenType.END) && !this.isAtEnd()) {
-          try {
-            const stmt = this.parseStatement();
-            defaultCase.push(stmt);
-          } catch (error) {
-            this.reportError(
-              DiagnosticCode.UNEXPECTED_TOKEN,
-              `Error parsing default case: ${error instanceof Error ? error.message : 'Unknown error'}`
-            );
-            this.synchronize();
-            break;
-          }
-        }
+        // Parse default body statements using helper
+        defaultCase = this.parseStatementBlock([TokenType.CASE, TokenType.END]);
       } else {
         this.reportError(
           DiagnosticCode.UNEXPECTED_TOKEN,
@@ -597,14 +372,8 @@ export abstract class StatementParser extends ModuleParser {
       }
     }
 
-    // Expect 'end match'
-    if (!this.match(TokenType.END)) {
-      this.reportError(DiagnosticCode.EXPECTED_TOKEN, "Expected 'end' to close match statement");
-    } else {
-      if (!this.match(TokenType.MATCH)) {
-        this.reportError(DiagnosticCode.EXPECTED_TOKEN, "Expected 'match' after 'end'");
-      }
-    }
+    // Expect 'end match' using helper
+    this.parseEndKeyword(TokenType.MATCH, 'match');
 
     const location = this.createLocation(startToken, this.getCurrentToken());
     return new MatchStatement(value, cases, defaultCase, location);
@@ -621,6 +390,12 @@ export abstract class StatementParser extends ModuleParser {
    * - Complex expressions: return getValue() + 10;
    * - Expression return: return x + y * z;
    *
+   * Validation (Task 3.3):
+   * - Must be inside a function
+   * - Void functions must not return a value
+   * - Non-void functions must return a value
+   * - Basic type compatibility check
+   *
    * Error Recovery:
    * - Invalid return expression: Reports error, uses null value
    * - Missing semicolon: Reports error, continues
@@ -630,26 +405,83 @@ export abstract class StatementParser extends ModuleParser {
   protected parseReturnStatement(): ReturnStatement {
     const startToken = this.expect(TokenType.RETURN, "Expected 'return'");
 
-    // Parse optional return value
+    // Validate: return must be inside a function
+    if (!this.scopeManager.isInFunction()) {
+      this.reportError(
+        DiagnosticCode.UNEXPECTED_TOKEN,
+        StatementParserErrors.returnOutsideFunction()
+      );
+    }
+
+    // Parse optional return value - no try-catch needed
     let value = null;
 
     // Check if there's an expression before the semicolon
     if (!this.check(TokenType.SEMICOLON) && !this.isAtEnd()) {
-      try {
-        value = this.parseExpression();
-      } catch (error) {
-        this.reportError(
-          DiagnosticCode.UNEXPECTED_TOKEN,
-          `Invalid return expression: ${error instanceof Error ? error.message : 'Unknown error'}`
-        );
-        // Continue with null value for error recovery
-      }
+      value = this.parseExpression();
     }
+
+    // Validate return value matches function return type
+    this.validateReturnStatement(value, this.createLocation(startToken, this.getCurrentToken()));
 
     this.expectSemicolon('Expected semicolon after return statement');
 
     const location = this.createLocation(startToken, this.getCurrentToken());
     return new ReturnStatement(value, location);
+  }
+
+  /**
+   * Validates return statement against function signature
+   *
+   * Checks (in order):
+   * 1. Must be inside a function (checked first with isInFunction())
+   * 2. Void functions must not return values
+   * 3. Non-void functions must return values
+   * 4. Basic type compatibility (presence check, not full type inference)
+   *
+   * Null Safety:
+   * - Uses isInFunction() first to check function context
+   * - Then safely calls getCurrentFunctionReturnType() which returns string | null
+   * - null means void function, string means typed return
+   *
+   * @param value - Return value expression (null for void returns)
+   * @param location - Source location for error reporting
+   */
+  protected validateReturnStatement(value: Expression | null, location: SourceLocation): void {
+    // Check if we're in a function first (null-safe approach)
+    if (!this.scopeManager.isInFunction()) {
+      // Not in function - already reported by parseReturnStatement
+      return;
+    }
+
+    // Get current function's return type (will be string or null, never undefined)
+    const returnType = this.scopeManager.getCurrentFunctionReturnType();
+
+    // Check void function returning value
+    if (returnType === null && value !== null) {
+      this.reportError(
+        DiagnosticCode.TYPE_MISMATCH,
+        StatementParserErrors.voidFunctionReturningValue(
+          this.scopeManager.getCurrentFunctionName()
+        ),
+        location
+      );
+    }
+
+    // Check non-void function returning void
+    if (returnType !== null && value === null) {
+      this.reportError(
+        DiagnosticCode.TYPE_MISMATCH,
+        StatementParserErrors.nonVoidFunctionReturningVoid(
+          this.scopeManager.getCurrentFunctionName(),
+          returnType
+        ),
+        location
+      );
+    }
+
+    // Note: Full type checking (e.g., returning word when byte expected)
+    // is deferred to semantic analysis phase. This is basic validation only.
   }
 
   /**
@@ -661,9 +493,10 @@ export abstract class StatementParser extends ModuleParser {
    * - Loop breaking: while condition ... break; ... end while
    * - For loop breaking: for i = 1 to 10 ... break; ... next i
    *
-   * Validation:
+   * Validation (Task 3.4):
    * - Must be inside a loop (while, for) - validated at parse time
-   * - Reports error if used outside loop context
+   * - Must not cross function boundary (function inside loop)
+   * - Reports error if used outside loop context or across function boundary
    *
    * Error Recovery:
    * - Missing semicolon: Reports error, continues
@@ -675,11 +508,9 @@ export abstract class StatementParser extends ModuleParser {
     const startToken = this.expect(TokenType.BREAK, "Expected 'break'");
 
     // Validate loop context for 6502 early error detection
-    if (this.loopNestingLevel === 0) {
-      this.reportError(
-        DiagnosticCode.UNEXPECTED_TOKEN,
-        "'break' statement must be inside a loop (while or for)"
-      );
+    // Use proper validation that checks for function boundary crossing
+    if (!this.scopeManager.isInLoopWithoutFunctionBoundary()) {
+      this.reportError(DiagnosticCode.UNEXPECTED_TOKEN, StatementParserErrors.breakOutsideLoop());
     }
 
     this.expectSemicolon('Expected semicolon after break statement');
@@ -697,9 +528,10 @@ export abstract class StatementParser extends ModuleParser {
    * - Loop continuation: while condition ... continue; ... end while
    * - For loop continuation: for i = 1 to 10 ... continue; ... next i
    *
-   * Validation:
+   * Validation (Task 3.4):
    * - Must be inside a loop (while, for) - validated at parse time
-   * - Reports error if used outside loop context
+   * - Must not cross function boundary (function inside loop)
+   * - Reports error if used outside loop context or across function boundary
    *
    * Error Recovery:
    * - Missing semicolon: Reports error, continues
@@ -711,10 +543,11 @@ export abstract class StatementParser extends ModuleParser {
     const startToken = this.expect(TokenType.CONTINUE, "Expected 'continue'");
 
     // Validate loop context for 6502 early error detection
-    if (this.loopNestingLevel === 0) {
+    // Use proper validation that checks for function boundary crossing
+    if (!this.scopeManager.isInLoopWithoutFunctionBoundary()) {
       this.reportError(
         DiagnosticCode.UNEXPECTED_TOKEN,
-        "'continue' statement must be inside a loop (while or for)"
+        StatementParserErrors.continueOutsideLoop()
       );
     }
 
@@ -779,17 +612,10 @@ export abstract class StatementParser extends ModuleParser {
       }
     }
 
-    // Parse optional initializer
+    // Parse optional initializer - no try-catch needed
     let initializer = null;
     if (this.match(TokenType.ASSIGN)) {
-      try {
-        initializer = this.parseExpression();
-      } catch (error) {
-        this.reportError(
-          DiagnosticCode.UNEXPECTED_TOKEN,
-          `Invalid variable initializer: ${error instanceof Error ? error.message : 'Unknown error'}`
-        );
-      }
+      initializer = this.parseExpression();
     }
 
     // Validate const requires initializer
@@ -825,37 +651,143 @@ export abstract class StatementParser extends ModuleParser {
 
   /**
    * Helper to create assignment expression for variable initialization
+   *
+   * Creates a pseudo-AST object for local variable initialization.
+   * This is used until proper LocalVariableDeclaration AST node is implemented.
+   *
+   * @param name Variable name
+   * @param value Initializer expression
+   * @param location Source location
+   * @param typeAnnotation Optional type annotation
+   * @returns Pseudo-assignment expression object
    */
   protected createAssignmentExpression(
     name: string,
-    value: any,
-    location: any,
+    value: Expression,
+    location: SourceLocation,
     typeAnnotation: string | null
-  ): any {
+  ): Expression {
     // Create a simple identifier expression for assignment
+    // TODO: Replace with proper LocalVariableDeclaration AST node in future phases
+    // Note: Using 'as unknown as Expression' because this is a temporary pseudo-object
     return {
       type: 'AssignmentExpression',
       left: { type: 'Identifier', name, typeAnnotation },
       right: value,
       location,
       getLocation: () => location,
-    };
+    } as unknown as Expression;
   }
 
   /**
    * Helper to create identifier expression for uninitialized variables
+   *
+   * Creates a pseudo-AST object for local variable without initializer.
+   * This is used until proper LocalVariableDeclaration AST node is implemented.
+   *
+   * @param name Variable name
+   * @param location Source location
+   * @param typeAnnotation Optional type annotation
+   * @returns Pseudo-identifier expression object
    */
   protected createIdentifierExpression(
     name: string,
-    location: any,
+    location: SourceLocation,
     typeAnnotation: string | null
-  ): any {
+  ): Expression {
+    // TODO: Replace with proper LocalVariableDeclaration AST node in future phases
+    // Note: Using 'as unknown as Expression' because this is a temporary pseudo-object
     return {
       type: 'Identifier',
       name,
       typeAnnotation,
       location,
       getLocation: () => location,
-    };
+    } as unknown as Expression;
+  }
+
+  // ============================================
+  // COMMON ERROR HANDLING HELPERS
+  // ============================================
+
+  /**
+   * Parses a block of statements until hitting one of the terminator tokens
+   *
+   * This helper extracts the common pattern of parsing statement sequences
+   * in control flow structures. It reduces code duplication and provides
+   * consistent behavior across all control flow statement types.
+   *
+   * Pattern extracted from:
+   * - If statement (then branch, else branch)
+   * - While statement (loop body)
+   * - For statement (loop body)
+   * - Match statement (case bodies, default body)
+   *
+   * @param terminators - Token types that signal end of statement block
+   * @returns Array of parsed statements
+   *
+   * @example
+   * // Parse if then branch (terminates on ELSE or END)
+   * const thenBranch = this.parseStatementBlock([TokenType.ELSE, TokenType.END]);
+   *
+   * @example
+   * // Parse while body (terminates on END)
+   * const body = this.parseStatementBlock([TokenType.END]);
+   *
+   * @example
+   * // Parse match case body (terminates on CASE, DEFAULT, or END)
+   * const caseBody = this.parseStatementBlock([TokenType.CASE, TokenType.DEFAULT, TokenType.END]);
+   */
+  protected parseStatementBlock(terminators: TokenType[]): Statement[] {
+    const statements: Statement[] = [];
+
+    // Parse statements until we hit a terminator or EOF
+    while (!this.check(...terminators) && !this.isAtEnd()) {
+      const stmt = this.parseStatement();
+      statements.push(stmt);
+    }
+
+    return statements;
+  }
+
+  /**
+   * Parses 'end KEYWORD' sequence with proper error handling
+   *
+   * This helper extracts the common pattern of parsing 'end' followed by
+   * a specific keyword (if, while, match, etc). It provides consistent
+   * error messages and recovery behavior.
+   *
+   * Pattern extracted from:
+   * - If statement: 'end if'
+   * - While statement: 'end while'
+   * - Match statement: 'end match'
+   *
+   * Note: For statement uses 'next' instead of 'end', so doesn't use this helper.
+   *
+   * @param keyword - Expected keyword after 'end' (IF, WHILE, MATCH, etc.)
+   * @param contextName - Human-readable name for error messages ('if', 'while', 'match')
+   *
+   * @example
+   * // Parse 'end if'
+   * this.parseEndKeyword(TokenType.IF, 'if');
+   *
+   * @example
+   * // Parse 'end while'
+   * this.parseEndKeyword(TokenType.WHILE, 'while');
+   */
+  protected parseEndKeyword(keyword: TokenType, contextName: string): void {
+    // Expect 'end' token
+    if (!this.match(TokenType.END)) {
+      this.reportError(
+        DiagnosticCode.EXPECTED_TOKEN,
+        `Expected 'end' to close ${contextName} statement`
+      );
+      return; // Early return on missing 'end'
+    }
+
+    // Expect specific keyword after 'end'
+    if (!this.match(keyword)) {
+      this.reportError(DiagnosticCode.EXPECTED_TOKEN, `Expected '${contextName}' after 'end'`);
+    }
   }
 }

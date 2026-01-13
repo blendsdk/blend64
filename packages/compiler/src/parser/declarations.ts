@@ -13,14 +13,19 @@ import {
   Declaration,
   DiagnosticCode,
   Expression,
+  ExplicitMapField,
   ExplicitStructMapDecl,
   LiteralExpression,
+  MapField,
   RangeMapDecl,
   SequentialStructMapDecl,
   SimpleMapDecl,
+  SingleAddress,
+  AddressRange,
   VariableDecl,
 } from '../ast/index.js';
 import { Token, TokenType } from '../lexer/types.js';
+import { DeclarationParserErrors } from './error-messages.js';
 import { ExpressionParser } from './expressions.js';
 
 /**
@@ -74,7 +79,7 @@ export abstract class DeclarationParser extends ExpressionParser {
     } else if (this.match(TokenType.LET)) {
       isConst = false;
     } else {
-      this.reportError(DiagnosticCode.EXPECTED_TOKEN, "Expected 'let' or 'const'");
+      this.reportError(DiagnosticCode.EXPECTED_TOKEN, DeclarationParserErrors.expectedLetOrConst());
       this.synchronize();
       // Return dummy node for recovery
       return new VariableDecl('error', null, null, this.currentLocation(), null, false, false);
@@ -100,7 +105,10 @@ export abstract class DeclarationParser extends ExpressionParser {
       ) {
         typeAnnotation = this.advance().value;
       } else {
-        this.reportError(DiagnosticCode.EXPECTED_TOKEN, 'Expected type name after colon');
+        this.reportError(
+          DiagnosticCode.EXPECTED_TOKEN,
+          DeclarationParserErrors.expectedTypeAfterColon()
+        );
       }
     }
 
@@ -142,7 +150,7 @@ export abstract class DeclarationParser extends ExpressionParser {
    *
    * @returns Declaration AST node
    */
-  protected parseMapDeclaration(): Declaration {
+  protected parseMapDecl(): Declaration {
     const startToken = this.expect(TokenType.MAP, "Expected '@map'");
 
     // Parse variable name
@@ -210,7 +218,10 @@ export abstract class DeclarationParser extends ExpressionParser {
         TokenType.IDENTIFIER
       )
     ) {
-      this.reportError(DiagnosticCode.EXPECTED_TOKEN, 'Expected type annotation');
+      this.reportError(
+        DiagnosticCode.EXPECTED_TOKEN,
+        DeclarationParserErrors.expectedTypeAnnotation()
+      );
     }
     const typeToken = this.advance();
     const typeAnnotation = typeToken.value;
@@ -281,7 +292,7 @@ export abstract class DeclarationParser extends ExpressionParser {
     this.expect(TokenType.TYPE, "Expected 'type'");
 
     // Parse fields
-    const fields: any[] = [];
+    const fields: MapField[] = [];
 
     while (!this.check(TokenType.END) && !this.isAtEnd()) {
       const fieldStart = this.getCurrentToken();
@@ -347,7 +358,7 @@ export abstract class DeclarationParser extends ExpressionParser {
     this.expect(TokenType.LAYOUT, "Expected 'layout'");
 
     // Parse fields
-    const fields: any[] = [];
+    const fields: ExplicitMapField[] = [];
 
     while (!this.check(TokenType.END) && !this.isAtEnd()) {
       const fieldStart = this.getCurrentToken();
@@ -360,7 +371,7 @@ export abstract class DeclarationParser extends ExpressionParser {
       this.expect(TokenType.COLON, "Expected ':' after field name");
 
       // Parse address specification (at addr OR from addr to addr)
-      let addressSpec: any;
+      let addressSpec: SingleAddress | AddressRange;
 
       if (this.match(TokenType.AT)) {
         // Single address

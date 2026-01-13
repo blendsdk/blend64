@@ -19,8 +19,8 @@ class TestModuleParser extends ModuleParser {
     return this.parseModuleDecl();
   }
 
-  public testCreateImplicitGlobalModule() {
-    return this.createImplicitGlobalModule();
+  public testCreateImplicitGlobalModuleDecl() {
+    return this.createImplicitGlobalModuleDecl();
   }
 
   public testValidateModuleDeclaration() {
@@ -110,7 +110,7 @@ describe('ModuleParser', () => {
       const tokens = [createToken(TokenType.EOF, '')];
       parser = new TestModuleParser(tokens);
 
-      const moduleDecl = parser.testCreateImplicitGlobalModule();
+      const moduleDecl = parser.testCreateImplicitGlobalModuleDecl();
       expect(moduleDecl).toBeInstanceOf(ModuleDecl);
       expect(moduleDecl.getNamePath()).toEqual(['global']);
       expect(moduleDecl.getFullName()).toBe('global');
@@ -517,7 +517,7 @@ describe('ModuleParser', () => {
       expect(varDecl.getStorageClass()).toBe(TokenType.ZP);
     });
 
-    it('handles export type declaration (not yet implemented)', () => {
+    it('handles export type declaration at ModuleParser level (requires full Parser)', () => {
       const tokens = [
         createToken(TokenType.EXPORT, 'export'),
         createToken(TokenType.TYPE, 'type'),
@@ -531,16 +531,18 @@ describe('ModuleParser', () => {
 
       const declaration = parser.testParseExportDecl();
 
+      // At ModuleParser level, type parsing falls back to error handling
+      // Type declarations are implemented in the full Parser class (Phase 6 complete)
       const diagnostics = parser.getDiagnostics();
       expect(diagnostics.length).toBe(1);
       expect(diagnostics[0].code).toBe(DiagnosticCode.EXPORT_REQUIRES_DECLARATION);
-      expect(diagnostics[0].message).toContain('Export type declarations not yet implemented');
+      expect(diagnostics[0].message).toContain('Type declaration parsing not available');
 
-      // Returns dummy declaration for error recovery
+      // Returns dummy declaration for error recovery at this parser level
       expect(declaration.constructor.name).toBe('VariableDecl');
     });
 
-    it('handles export enum declaration (not yet implemented)', () => {
+    it('handles export enum declaration at ModuleParser level (requires full Parser)', () => {
       const tokens = [
         createToken(TokenType.EXPORT, 'export'),
         createToken(TokenType.ENUM, 'enum'),
@@ -554,12 +556,14 @@ describe('ModuleParser', () => {
 
       const declaration = parser.testParseExportDecl();
 
+      // At ModuleParser level, enum parsing falls back to error handling
+      // Enum declarations are implemented in the full Parser class (Phase 6 complete)
       const diagnostics = parser.getDiagnostics();
       expect(diagnostics.length).toBe(1);
       expect(diagnostics[0].code).toBe(DiagnosticCode.EXPORT_REQUIRES_DECLARATION);
-      expect(diagnostics[0].message).toContain('Export enum declarations not yet implemented');
+      expect(diagnostics[0].message).toContain('Enum declaration parsing not available');
 
-      // Returns dummy declaration for error recovery
+      // Returns dummy declaration for error recovery at this parser level
       expect(declaration.constructor.name).toBe('VariableDecl');
     });
 
