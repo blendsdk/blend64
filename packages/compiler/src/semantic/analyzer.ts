@@ -445,8 +445,13 @@ export class SemanticAnalyzer {
    * **Implementation (Task 6.2.3):**
    * - Looks up imported symbols that were created during Pass 1
    * - Updates their type information from the analyzed source module
-   * - Validates that imported symbols exist and are exported (TODO)
-   * - Creates diagnostics for missing or non-exported symbols (TODO)
+   * - Validates that imported symbols exist and are exported
+   * - Creates diagnostics for missing or non-exported symbols
+   *
+   * **Validation Rules:**
+   * - Import of non-exported symbol → IMPORT_NOT_EXPORTED error (P107)
+   * - Import of non-existent symbol → IMPORT_SYMBOL_NOT_FOUND error (P108)
+   * - Import of symbol with no type info → IMPORT_SYMBOL_NOT_FOUND error (P108)
    *
    * @param ast - Program AST
    * @param globalSymbols - Global symbol table with analyzed modules
@@ -483,19 +488,34 @@ export class SemanticAnalyzer {
           // from the analyzed source module
           localImportedSymbol.type = globalSymbol.typeInfo;
 
-          // TODO (Task 6.2.3): Validate export status
-          // if (!globalSymbol.isExported) {
-          //   this.diagnostics.push({
-          //     code: DiagnosticCode.IMPORT_NOT_EXPORTED,
-          //     severity: DiagnosticSeverity.ERROR,
-          //     message: `Symbol '${identifier}' is not exported from module '${targetModule}'`,
-          //     location: importDecl.getLocation(),
-          //   });
-          // }
+          // Validate export status
+          if (!globalSymbol.isExported) {
+            this.diagnostics.push({
+              code: DiagnosticCode.IMPORT_NOT_EXPORTED,
+              severity: DiagnosticSeverity.ERROR,
+              message: `Cannot import '${identifier}' from module '${targetModule}': symbol is not exported`,
+              location: importDecl.getLocation(),
+            });
+          }
         } else {
-          // TODO (Task 6.2.3): Create diagnostic for missing symbol
-          // Symbol doesn't exist in target module or has no type info
-          // For now, leave type as undefined (will cause type checking errors)
+          // Create diagnostic for missing symbol
+          if (!globalSymbol) {
+            // Symbol doesn't exist in target module
+            this.diagnostics.push({
+              code: DiagnosticCode.IMPORT_SYMBOL_NOT_FOUND,
+              severity: DiagnosticSeverity.ERROR,
+              message: `Cannot import '${identifier}' from module '${targetModule}': symbol not found in module`,
+              location: importDecl.getLocation(),
+            });
+          } else if (!globalSymbol.typeInfo) {
+            // Symbol exists but has no type information
+            this.diagnostics.push({
+              code: DiagnosticCode.IMPORT_SYMBOL_NOT_FOUND,
+              severity: DiagnosticSeverity.ERROR,
+              message: `Cannot import '${identifier}' from module '${targetModule}': symbol has no type information`,
+              location: importDecl.getLocation(),
+            });
+          }
         }
       }
     }

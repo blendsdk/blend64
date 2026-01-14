@@ -115,6 +115,12 @@ export enum DiagnosticCode {
   /** Circular import detected (A → B → A) */
   CIRCULAR_IMPORT = 'P106',
 
+  /** Symbol exists but is not exported from module */
+  IMPORT_NOT_EXPORTED = 'P107',
+
+  /** Symbol does not exist in target module */
+  IMPORT_SYMBOL_NOT_FOUND = 'P108',
+
   // ============================================
   // ORDERING ERRORS (P200-P299)
   // ============================================
