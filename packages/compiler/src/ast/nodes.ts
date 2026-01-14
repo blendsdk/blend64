@@ -192,7 +192,9 @@ export interface Parameter {
 /**
  * Function declaration node
  *
- * Represents: function foo(x: byte): word ... end function
+ * Represents:
+ * - Regular function: function foo(x: byte): word ... end function
+ * - Stub function: function foo(x: byte): word;
  */
 export class FunctionDecl extends Declaration {
   /**
@@ -200,19 +202,21 @@ export class FunctionDecl extends Declaration {
    * @param name - Function name
    * @param parameters - Function parameters
    * @param returnType - Return type annotation
-   * @param body - Function body statements
+   * @param body - Function body statements (null for stub functions)
    * @param location - Source location
    * @param isExported - True if exported
    * @param isCallback - True if marked as callback
+   * @param isStub - True if stub function (no body)
    */
   constructor(
     protected readonly name: string,
     protected readonly parameters: Parameter[],
     protected readonly returnType: string | null,
-    protected readonly body: Statement[],
+    protected readonly body: Statement[] | null,
     location: SourceLocation,
     protected readonly isExported: boolean = false,
-    protected readonly isCallback: boolean = false
+    protected readonly isCallback: boolean = false,
+    protected readonly isStub: boolean = false
   ) {
     super(ASTNodeType.FUNCTION_DECL, location);
   }
@@ -229,7 +233,7 @@ export class FunctionDecl extends Declaration {
     return this.returnType;
   }
 
-  public getBody(): Statement[] {
+  public getBody(): Statement[] | null {
     return this.body;
   }
 
@@ -239,6 +243,10 @@ export class FunctionDecl extends Declaration {
 
   public isCallbackFunction(): boolean {
     return this.isCallback;
+  }
+
+  public isStubFunction(): boolean {
+    return this.isStub;
   }
 
   public accept<R>(visitor: ASTVisitor<R>): R {

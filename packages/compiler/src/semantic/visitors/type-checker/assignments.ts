@@ -171,8 +171,9 @@ export abstract class TypeCheckerAssignments extends TypeCheckerExpressions {
    * - Result type is function's return type
    */
   public visitCallExpression(node: CallExpression): void {
-    // Type check callee
     const calleeExpr = node.getCallee();
+
+    // Type check callee
     const calleeType = this.typeCheckExpression(calleeExpr);
 
     // Check if callee is callable (must be Callback type)

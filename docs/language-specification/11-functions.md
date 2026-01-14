@@ -1,7 +1,7 @@
 # Functions
 
-> **Status**: Lexer-Derived Specification  
-> **Last Updated**: January 8, 2026  
+> **Status**: Lexer-Derived Specification
+> **Last Updated**: January 8, 2026
 > **Related Documents**: [Type System](05-type-system.md), [Module System](04-module-system.md), [Expressions & Statements](06-expressions-statements.md)
 
 ## Overview
@@ -15,12 +15,38 @@ function_decl = [ "export" ] , [ "callback" ]
               , "function" , identifier
               , "(" , [ parameter_list ] , ")"
               , [ ":" , type_name ]
-              , { NEWLINE }
+              , ( ";" | function_body ) ;
+
+function_body = { NEWLINE }
               , { statement , { NEWLINE } }
               , "end" , "function" ;
 
 parameter_list = parameter , { "," , parameter } ;
 parameter = identifier , ":" , type_expr ;
+```
+
+### Stub Functions
+
+Functions can be declared **without a body** (stub functions) by terminating the signature with a semicolon:
+
+```js
+function peek(address: word): byte;
+function poke(address: word, value: byte): void;
+```
+
+**Stub functions**:
+
+- Have no implementation body
+- End with a semicolon (`;`) instead of `end function`
+- Declare an interface that must be implemented externally
+- Are used for built-in functions, external functions, or forward declarations
+
+**Regular functions** have a body:
+
+```js
+function add(a: byte, b: byte): byte
+  return a + b;
+end function
 ```
 
 ## Basic Function Declaration
@@ -112,11 +138,11 @@ function validate(value: byte): boolean
   if value > 100 then
     return false;
   end if
-  
+
   if value < 0 then
     return false;
   end if
-  
+
   return true;
 end function
 ```
@@ -163,7 +189,7 @@ let sum = add(5, 10);
 setPosition(100, 50);
 
 // Call function and discard result
-calculate();  // Result not used
+calculate(); // Result not used
 ```
 
 ### Nested Calls
@@ -404,7 +430,7 @@ module Hardware.IRQ
 callback function vblankIRQ(): void
   // Called every vertical blank
   frameCount += 1;
-  
+
   if frameCount >= 60 then
     frameCount = 0;
   end if
@@ -460,7 +486,7 @@ function process(value: byte): byte
   if value == 0 then
     return 0;  // Early return
   end if
-  
+
   // Main logic here
   return compute(value);
 end function
@@ -531,6 +557,7 @@ Current limitations:
 ## Implementation Notes
 
 Function parsing and calling is implemented in:
+
 - `packages/compiler/src/parser/` - Parser implementation
 - `packages/compiler/src/ast/nodes.ts` - Function AST nodes
 - `packages/compiler/src/__tests__/parser/` - Function tests

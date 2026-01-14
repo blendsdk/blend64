@@ -169,6 +169,19 @@ export enum DiagnosticCode {
 
   /** Multiple exported main functions */
   DUPLICATE_EXPORTED_MAIN = 'S005',
+
+  // ============================================
+  // MEMORY LAYOUT ERRORS (S100-S199)
+  // ============================================
+
+  /** Zero page overflow - exceeded 112 byte limit */
+  ZERO_PAGE_OVERFLOW = 'S100',
+
+  /** Memory-mapped regions overlap */
+  MEMORY_MAP_OVERLAP = 'S101',
+
+  /** Zero page allocation overlaps with @map declaration */
+  ZERO_PAGE_MAP_OVERLAP = 'S102',
 }
 
 /**

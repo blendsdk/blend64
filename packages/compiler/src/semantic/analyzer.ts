@@ -24,6 +24,7 @@ import { ModuleRegistry } from './module-registry.js';
 import { DependencyGraph } from './dependency-graph.js';
 import { ImportResolver } from './import-resolver.js';
 import { GlobalSymbolTable } from './global-symbol-table.js';
+import { MemoryLayoutBuilder, type GlobalMemoryLayout } from './memory-layout.js';
 import type { Program, ImportDecl } from '../ast/nodes.js';
 
 /**
@@ -90,8 +91,8 @@ export interface MultiModuleAnalysisResult {
   /** Module dependency graph (Phase 6.1.3) */
   dependencyGraph: DependencyGraph;
 
-  /** Global memory layout (Phase 6.3+, not yet implemented) */
-  memoryLayout?: unknown;
+  /** Global memory layout (Phase 6.3) */
+  memoryLayout?: GlobalMemoryLayout;
 }
 
 /**
@@ -216,6 +217,24 @@ export class SemanticAnalyzer {
       allDiagnostics.push(...result.diagnostics);
     }
 
+    // ============================================
+    // PHASE D: Global Resource Management (Phase 6.3)
+    // ============================================
+
+    // Pass 6: Build global memory layout
+    const memoryLayoutBuilder = new MemoryLayoutBuilder();
+    const memoryLayout = memoryLayoutBuilder.buildLayout(moduleResults);
+
+    // Add memory layout conflicts to diagnostics
+    for (const conflict of memoryLayout.conflicts) {
+      allDiagnostics.push({
+        code: this.getConflictDiagnosticCode(conflict.type),
+        severity: DiagnosticSeverity.ERROR,
+        message: conflict.message,
+        location: conflict.locations[0], // Use first location
+      });
+    }
+
     // Return aggregated results
     return {
       modules: moduleResults,
@@ -223,7 +242,7 @@ export class SemanticAnalyzer {
       success: !allDiagnostics.some(d => d.severity === 'error'),
       globalSymbolTable: globalSymbols,
       dependencyGraph: depGraph,
-      memoryLayout: undefined, // Phase 6.3+
+      memoryLayout,
     };
   }
 
@@ -600,8 +619,27 @@ export class SemanticAnalyzer {
       success: false,
       globalSymbolTable: new GlobalSymbolTable(),
       dependencyGraph: depGraph,
-      memoryLayout: undefined,
+      memoryLayout: undefined, // No memory layout on early failure
     };
+  }
+
+  /**
+   * Get diagnostic code for memory conflict type
+   *
+   * @param conflictType - Type of memory conflict
+   * @returns Appropriate diagnostic code
+   */
+  protected getConflictDiagnosticCode(
+    conflictType: 'zp_overflow' | 'map_overlap' | 'zp_map_overlap'
+  ): DiagnosticCode {
+    switch (conflictType) {
+      case 'zp_overflow':
+        return DiagnosticCode.ZERO_PAGE_OVERFLOW;
+      case 'map_overlap':
+        return DiagnosticCode.MEMORY_MAP_OVERLAP;
+      case 'zp_map_overlap':
+        return DiagnosticCode.ZERO_PAGE_MAP_OVERLAP;
+    }
   }
 
   /**

@@ -47,3 +47,13 @@ export { ImportResolver } from './import-resolver.js';
 export type { ResolvedImport } from './import-resolver.js';
 export { GlobalSymbolTable } from './global-symbol-table.js';
 export type { GlobalSymbol } from './global-symbol-table.js';
+
+// Memory layout infrastructure (Phase 6.3)
+export { MemoryLayoutBuilder } from './memory-layout.js';
+export type {
+  GlobalMemoryLayout,
+  ZeroPageEntry,
+  MapEntry,
+  MemoryConflict,
+  MemoryStatistics,
+} from './memory-layout.js';

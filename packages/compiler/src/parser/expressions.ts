@@ -99,6 +99,20 @@ export abstract class ExpressionParser extends BaseParser {
       return new LiteralExpression(value, location);
     }
 
+    // Type keywords (for sizeof() and other compile-time operations)
+    // These are parsed as literals containing the type name string
+    if (
+      this.check(TokenType.BYTE) ||
+      this.check(TokenType.WORD) ||
+      this.check(TokenType.BOOLEAN) ||
+      this.check(TokenType.VOID)
+    ) {
+      const token = this.advance();
+      const location = this.createLocation(token, token);
+      // Store the type name as a string literal
+      return new LiteralExpression(token.value, location);
+    }
+
     // Identifiers
     if (this.check(TokenType.IDENTIFIER)) {
       const token = this.advance();
@@ -394,6 +408,7 @@ export abstract class ExpressionParser extends BaseParser {
    * - Identifiers: counter, myVar
    * - Parenthesized expressions: (2 + 3)
    * - Array literals: [1, 2, 3], [[1, 2], [3, 4]]
+   * - Type keywords: byte, word, boolean, void (for sizeof() and compile-time operations)
    *
    * @returns Expression AST node representing an atomic expression
    */
@@ -419,6 +434,20 @@ export abstract class ExpressionParser extends BaseParser {
       const value = token.value === 'true';
       const location = this.createLocation(token, token);
       return new LiteralExpression(value, location);
+    }
+
+    // Type keywords (for sizeof() and other compile-time operations)
+    // These are parsed as literals containing the type name string
+    if (
+      this.check(TokenType.BYTE) ||
+      this.check(TokenType.WORD) ||
+      this.check(TokenType.BOOLEAN) ||
+      this.check(TokenType.VOID)
+    ) {
+      const token = this.advance();
+      const location = this.createLocation(token, token);
+      // Store the type name as a string literal
+      return new LiteralExpression(token.value, location);
     }
 
     // Identifiers
