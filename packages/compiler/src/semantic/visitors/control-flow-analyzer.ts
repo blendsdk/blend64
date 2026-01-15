@@ -184,6 +184,9 @@ export class ControlFlowAnalyzer extends ContextWalker {
     if (this.shouldStop) return;
 
     // Skip stub functions entirely - they have no body to analyze
+    // TODO(IL-GEN): Stub functions are skipped (no CFG created).
+    // This is correct behavior - intrinsics have no control flow to analyze.
+    // See: plans/il-generator-requirements.md
     const body = node.getBody();
     if (!body) {
       return;

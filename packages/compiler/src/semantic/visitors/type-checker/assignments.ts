@@ -171,6 +171,13 @@ export abstract class TypeCheckerAssignments extends TypeCheckerExpressions {
    * - Result type is function's return type
    */
   public visitCallExpression(node: CallExpression): void {
+    // TODO(IL-GEN): Add intrinsic metadata to call sites here.
+    // Future enhancement: Detect if callee is a stub function (intrinsic) and annotate:
+    //   - (node as any).isIntrinsicCall = true
+    //   - (node as any).intrinsicId = 'intrinsic_peek' | 'intrinsic_poke' | etc.
+    //   - (node as any).isCompileTime = true (for sizeof)
+    // This will enable IL generator to emit specialized code for built-in functions.
+    // See: plans/il-generator-requirements.md - AST Annotation Strategy
     const calleeExpr = node.getCallee();
 
     // Type check callee

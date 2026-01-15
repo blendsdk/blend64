@@ -354,6 +354,9 @@ export class SymbolTableBuilder extends ContextWalker {
     }
 
     // Visit function body statements (if present - stub functions have no body)
+    // TODO(IL-GEN): Stub functions are currently handled passively.
+    // Future enhancement: Add metadata to symbol for faster intrinsic detection.
+    // See: plans/il-generator-requirements.md - AST Annotation Strategy
     const body = node.getBody();
     if (body) {
       for (const stmt of body) {
