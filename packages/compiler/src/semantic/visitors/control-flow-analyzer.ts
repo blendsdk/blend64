@@ -177,9 +177,17 @@ export class ControlFlowAnalyzer extends ContextWalker {
    * 4. Compute reachability
    * 5. Report unreachable code
    * 6. Store CFG
+   *
+   * Note: Stub functions (functions without bodies) are skipped entirely.
    */
   public visitFunctionDecl(node: FunctionDecl): void {
     if (this.shouldStop) return;
+
+    // Skip stub functions entirely - they have no body to analyze
+    const body = node.getBody();
+    if (!body) {
+      return;
+    }
 
     // Create new CFG for this function
     this.currentCFG = new ControlFlowGraph();
@@ -189,9 +197,8 @@ export class ControlFlowAnalyzer extends ContextWalker {
     this.context.enterContext(0 as any, node);
     this.enterNode(node);
 
-    // Build CFG from function body (if present - stub functions have no body)
+    // Build CFG from function body
     if (!this.shouldSkip && !this.shouldStop) {
-      const body = node.getBody();
       if (body) {
         for (const stmt of body) {
           if (this.shouldStop) break;
