@@ -129,17 +129,25 @@ export abstract class StatementParser extends ModuleParser {
   /**
    * Parses if statement
    *
-   * Grammar: 'if' Expression 'then' Statement* ['else' Statement*] 'end' 'if'
+   * Grammar: 'if' Expression 'then' Statement* ['elseif' Expression 'then' Statement*]* ['else' Statement*] 'end' 'if'
    *
    * Examples:
    * - Simple if: if x > 0 then return; end if
    * - If-else: if flag then doThis(); else doThat(); end if
+   * - If-elseif-else: if x > 10 then big(); elseif x > 5 then medium(); else small(); end if
+   * - Multiple elseif: if x == 1 then one(); elseif x == 2 then two(); elseif x == 3 then three(); end if
    * - Nested if: if x > 0 then if y > 0 then doSomething(); end if end if
+   *
+   * Implementation Note:
+   * The elseif keyword is syntactic sugar that desugars to nested if-else during parsing.
+   * This means semantic analysis sees a standard nested if structure, requiring no changes
+   * to type checking, control flow analysis, or any other compiler phases.
    *
    * Error Recovery:
    * - Missing 'then': Reports error, continues parsing
    * - Missing 'end if': Reports error, synchronizes to likely end
    * - Invalid condition: Reports error, uses dummy condition
+   * - elseif after else: Parse error (else must be last)
    *
    * @returns IfStatement AST node
    */
@@ -159,12 +167,73 @@ export abstract class StatementParser extends ModuleParser {
     }
 
     // Parse then branch statements using helper
-    const thenBranch = this.parseStatementBlock([TokenType.ELSE, TokenType.END]);
+    // Stop on ELSEIF, ELSE, or END tokens
+    const thenBranch = this.parseStatementBlock([TokenType.ELSEIF, TokenType.ELSE, TokenType.END]);
 
-    // Parse optional else branch
+    // Parse optional elseif/else chain
+    // Collect all elseif branches first, then build nested structure
     let elseBranch: Statement[] | null = null;
+
+    // Collect elseif clauses
+    interface ElseifClause {
+      condition: Expression;
+      thenBranch: Statement[];
+      location: SourceLocation;
+    }
+    const elseifClauses: ElseifClause[] = [];
+
+    while (this.check(TokenType.ELSEIF)) {
+      const elseifStart = this.getCurrentToken();
+      this.advance(); // Consume ELSEIF
+      
+      const elseifCondition = this.parseExpression();
+      
+      // Expect 'then' keyword
+      if (!this.match(TokenType.THEN)) {
+        this.reportError(
+          DiagnosticCode.EXPECTED_TOKEN,
+          StatementParserErrors.expectedThenAfterIfCondition()
+        );
+      }
+      
+      // Parse then branch for this elseif
+      const elseifThenBranch = this.parseStatementBlock([TokenType.ELSEIF, TokenType.ELSE, TokenType.END]);
+      
+      elseifClauses.push({
+        condition: elseifCondition,
+        thenBranch: elseifThenBranch,
+        location: this.createLocation(elseifStart, this.getCurrentToken())
+      });
+    }
+    
+    // Handle final else (if present)
+    let finalElse: Statement[] | null = null;
     if (this.match(TokenType.ELSE)) {
-      elseBranch = this.parseStatementBlock([TokenType.END]);
+      finalElse = this.parseStatementBlock([TokenType.END]);
+    }
+
+    // Build nested if structure from bottom up
+    // Start with final else, then wrap each elseif around it
+    if (elseifClauses.length > 0) {
+      // Start with the final else (or null)
+      let currentElseBranch: Statement[] | null = finalElse;
+      
+      // Process elseif clauses in reverse order (bottom-up)
+      for (let i = elseifClauses.length - 1; i >= 0; i--) {
+        const clause = elseifClauses[i];
+        const nestedIf = new IfStatement(
+          clause.condition,
+          clause.thenBranch,
+          currentElseBranch,
+          clause.location
+        );
+        currentElseBranch = [nestedIf];
+      }
+      
+      elseBranch = currentElseBranch;
+    } else if (finalElse !== null) {
+      // No elseifs, just a final else
+      elseBranch = finalElse;
     }
 
     // Expect 'end if' using helper

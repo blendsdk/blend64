@@ -459,6 +459,8 @@ export class Lexer {
         return TokenType.THEN;
       case eControlFlowKeyword.ELSE:
         return TokenType.ELSE;
+      case eControlFlowKeyword.ELSEIF:
+        return TokenType.ELSEIF;
       case eControlFlowKeyword.WHILE:
         return TokenType.WHILE;
       case eControlFlowKeyword.FOR:

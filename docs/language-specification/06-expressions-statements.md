@@ -531,6 +531,7 @@ Conditional execution based on a boolean expression.
 ```ebnf
 if_stmt = "if" , expression , "then"
         , { statement }
+        , { "elseif" , expression , "then" , { statement } }
         , [ "else" , { statement } ]
         , "end" , "if" ;
 ```
@@ -553,7 +554,35 @@ else
 end if
 ```
 
-**If-else chain:**
+**If-elseif-else:**
+
+```js
+if score > 1000 then
+  showGold();
+elseif score > 500 then
+  showSilver();
+elseif score > 100 then
+  showBronze();
+else
+  showNothing();
+end if
+```
+
+**Multiple elseif branches:**
+
+```js
+if gameState == 0 then
+  showMenu();
+elseif gameState == 1 then
+  playGame();
+elseif gameState == 2 then
+  showPause();
+else
+  reset();
+end if
+```
+
+**Traditional nested if-else (also valid):**
 
 ```js
 if score > 1000 then
@@ -566,6 +595,10 @@ else
   end if
 end if
 ```
+
+**Implementation Note:**
+
+The `elseif` keyword is syntactic sugar that desugars to nested if-else during parsing. This means the AST structure is identical whether you use `elseif` or nested `if-else` statements, and all compiler phases (semantic analysis, type checking, code generation) work without modification.
 
 ### While Loop
 
