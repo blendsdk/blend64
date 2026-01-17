@@ -10,11 +10,9 @@ When the user types "cap65", execute this comprehensive analysis to create a det
 
 **SPLIT AND BREAKDOWN THIS TASK INTO MANY SMALL AND GRANULAR STEPS TO PREVENT A.I. CONTEXT LIMITATIONS**
 
-**Before implementing ANY analysis component, ALWAYS query the actual source code FIRST.**
+**📖 See `specification-compliance.md` for the complete "Never Assume" protocol.**
 
-### **MANDATORY Pre-Analysis Protocol:**
-
-**Before writing ANY analysis content:**
+**Before implementing ANY analysis component, ALWAYS query the actual source code FIRST:**
 
 1. ⚠️ **STOP** - Do not proceed with assumptions
 2. 📖 **READ** - Query actual lexer/parser source code

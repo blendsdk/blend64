@@ -561,7 +561,7 @@ clear && scripts/agent.sh finished
 
 **Post-Completion Requirement:**
 
-1. **✅ Run `/compact` after `attempt_completion` is successful**
+1. **MUST run `/compact` after `attempt_completion` is successful**
    - This MUST be done after the task is fully verified and completed
    - Compacts the conversation history to optimize AI context
    - Ensures efficient context management for future tasks
@@ -576,17 +576,19 @@ clear && scripts/agent.sh finished
 # 5. After successful completion, run /compact
 ```
 
-**When to Compact:**
+**WHEN to Compact (MUST apply):**
 
 - ✅ After any successfully completed Act Mode task
 - ✅ After calling attempt_completion
-- ✅ Before starting a new unrelated task
+- ✅ Task is self-contained and complete
 
-**When NOT to Compact:**
+**WHEN NOT to Compact (MUST NOT apply):**
 
-- ❌ In the middle of a multi-part task
+- ❌ In the middle of a multi-phase implementation
 - ❌ Before task verification is complete
 - ❌ During Plan Mode (no implementation work to compact)
+- ❌ User explicitly requests follow-up questions
+- ❌ Task is part of ongoing work in current session
 
 **Purpose:** Optimizes conversation context, reduces token usage, and maintains clean context boundaries between completed tasks.
 
