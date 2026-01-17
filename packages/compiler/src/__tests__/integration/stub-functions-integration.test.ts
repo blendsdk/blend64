@@ -223,7 +223,7 @@ describe('Stub Functions - Full Pipeline Integration', () => {
       const source = `
         function peek(address: word): byte;
 
-        function test(): void
+        function main(): void
           let value: byte = peek(0xD020);
         end function
       `;
@@ -255,7 +255,7 @@ describe('Stub Functions - Full Pipeline Integration', () => {
       const source = `
         function getValue(): byte;
 
-        function test(): void
+        function main(): void
           let wrong: boolean = getValue();
         end function
       `;
@@ -311,7 +311,7 @@ describe('Stub Functions - Full Pipeline Integration', () => {
       const source = `
         function builtinAdd(a: byte, b: byte): byte;
 
-        function calculate(): byte
+        function main(): byte
           return builtinAdd(10, 20);
         end function
       `;
@@ -327,7 +327,7 @@ describe('Stub Functions - Full Pipeline Integration', () => {
       const source = `
         function stub1(): void;
 
-        function regular(): void
+        function main(): void
           stub1();
           stub2();
         end function
@@ -345,7 +345,7 @@ describe('Stub Functions - Full Pipeline Integration', () => {
       const symbolTable = analyzer.getSymbolTable()!;
       expect(symbolTable.lookup('stub1')).not.toBeNull();
       expect(symbolTable.lookup('stub2')).not.toBeNull();
-      expect(symbolTable.lookup('regular')).not.toBeNull();
+      expect(symbolTable.lookup('main')).not.toBeNull();
     });
   });
 
@@ -726,7 +726,7 @@ describe('Stub Functions - Full Pipeline Integration', () => {
     test('stub function immediately followed by regular function', () => {
       const source = `
         function stub(): void;
-        function regular(): void
+        function main(): void
           stub();
         end function
       `;

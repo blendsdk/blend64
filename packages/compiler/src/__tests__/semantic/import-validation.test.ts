@@ -34,6 +34,10 @@ describe('Import Validation - Export Status', () => {
         code: `
           module moduleA
           export let counter: byte = 0;
+          
+          export function incrementCounter(): void
+            counter = counter + 1;
+          end function
         `,
       },
       {
@@ -41,7 +45,10 @@ describe('Import Validation - Export Status', () => {
         code: `
           module moduleB
           import counter from moduleA
-          let value: byte = counter;
+          
+          export function useCounter(): byte
+            return counter;
+          end function
         `,
       },
     ]);
@@ -125,7 +132,10 @@ describe('Import Validation - Export Status', () => {
         code: `
           module moduleB
           import helper from moduleA
-          let value: byte = helper();
+          
+          export function useHelper(): byte
+            return helper();
+          end function
         `,
       },
     ]);
@@ -245,6 +255,12 @@ describe('Import Validation - Missing Symbols', () => {
           export let foo: byte = 1;
           export let bar: byte = 2;
           export let baz: byte = 3;
+          
+          export function initialize(): void
+            foo = foo + 10;
+            bar = bar + 20;
+            baz = baz + 30;
+          end function
         `,
       },
       {
@@ -252,7 +268,10 @@ describe('Import Validation - Missing Symbols', () => {
         code: `
           module moduleB
           import foo, bar, baz from moduleA
-          let sum: byte = foo + bar + baz;
+          
+          export function getSum(): byte
+            return foo + bar + baz;
+          end function
         `,
       },
     ]);
@@ -501,7 +520,10 @@ describe('Import Validation - Regression Tests', () => {
         code: `
           module moduleB
           import helper from moduleA
-          let result: byte = helper();
+          
+          export function useHelper(): byte
+            return helper();
+          end function
         `,
       },
     ]);

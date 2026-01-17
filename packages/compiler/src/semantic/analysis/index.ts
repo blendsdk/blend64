@@ -28,11 +28,11 @@ export { AdvancedAnalyzer } from './advanced-analyzer.js';
 
 // Individual analysis passes
 export { DefiniteAssignmentAnalyzer } from './definite-assignment.js';
+export { VariableUsageAnalyzer } from './variable-usage.js';
+export { UnusedFunctionAnalyzer } from './unused-functions.js';
+export { DeadCodeAnalyzer } from './dead-code.js';
+export { ReachingDefinitionsAnalyzer } from './reaching-definitions.js';
 // TODO: Export remaining analysis passes as they are implemented
-// export { VariableUsageAnalyzer } from './variable-usage.js';
-// export { UnusedFunctionAnalyzer } from './unused-functions.js';
-// export { DeadCodeAnalyzer } from './dead-code.js';
-// export { ReachingDefinitionsAnalyzer } from './reaching-definitions.js';
 // export { LivenessAnalyzer } from './liveness.js';
 // export { ConstantPropagationAnalyzer } from './constant-propagation.js';
 // export { AliasAnalyzer } from './alias-analysis.js';

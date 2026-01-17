@@ -42,6 +42,9 @@ describe('Semantic Analyzer Integration', () => {
 
         function main(): void
           increment();
+          if counter < MAX then
+            increment();
+          end if
         end function
       `;
 
@@ -232,7 +235,7 @@ describe('Semantic Analyzer Integration', () => {
         let a: byte = 10;
         let b: byte = 20;
 
-        function test(): void
+        function main(): void
           let result: byte = a + b;
         end function
       `;
@@ -295,7 +298,7 @@ describe('Semantic Analyzer Integration', () => {
 
     test('allows break/continue inside loops', () => {
       const source = `
-        function test(): void
+        function main(): void
           while true
             break;
           end while

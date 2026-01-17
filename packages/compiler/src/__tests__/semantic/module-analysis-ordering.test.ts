@@ -422,7 +422,10 @@ describe('Task 6.2.2: Module Analysis Ordering', () => {
     it('should collect diagnostics per module', () => {
       const goodModule = parseModule(`
         module Good
-        let valid: byte = 42;
+        export function use(): void
+          let valid: byte = 42;
+          let result: byte = valid + 1;
+        end function
       `);
 
       const badModule = parseModule(`
@@ -452,7 +455,9 @@ describe('Task 6.2.2: Module Analysis Ordering', () => {
     it('should maintain single-module analyze() method', () => {
       const source = `
         module Legacy
-        export let data: byte = 123;
+        export function getData(): byte
+          return 123;
+        end function
       `;
 
       const program = parseModule(source);

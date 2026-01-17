@@ -1,4 +1,5 @@
 ### Build, Test, and Terminal
 
-1. Always prefix shell commands with `clear &&` to clear the terminal
-2. For building and testing all packages run from package root `yarn clean && yarn build && yarn test`
+**Shell Commands:** See `agents.md Rule 1` for all shell command requirements (clear prefix, yarn usage).
+
+**Standard Test Command:** From project root: `clear && yarn clean && yarn build && yarn test`

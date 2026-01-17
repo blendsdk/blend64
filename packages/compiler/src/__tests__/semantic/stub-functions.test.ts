@@ -317,6 +317,11 @@ describe('Stub Functions - Semantic Analysis', () => {
           return peek($D020);
         end function
 
+        function main(): void
+          setBorder(5);
+          let border: byte = getBorder();
+        end function
+
         end module
       `;
 

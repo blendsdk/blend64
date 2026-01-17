@@ -15,6 +15,10 @@ import type { ControlFlowGraph } from '../control-flow.js';
 import type { Diagnostic } from '../../ast/diagnostics.js';
 import { DiagnosticSeverity, DiagnosticCode } from '../../ast/diagnostics.js';
 import { DefiniteAssignmentAnalyzer } from './definite-assignment.js';
+import { VariableUsageAnalyzer } from './variable-usage.js';
+import { UnusedFunctionAnalyzer } from './unused-functions.js';
+import { DeadCodeAnalyzer } from './dead-code.js';
+import { SourceLocation } from '../../ast/index.js';
 
 /**
  * Advanced analyzer orchestrator (Phase 8)
@@ -111,17 +115,26 @@ export class AdvancedAnalyzer {
     definiteAssignment.analyze(ast);
     this.diagnostics.push(...definiteAssignment.getDiagnostics());
 
-    // TODO: Task 8.2 - Variable usage analysis
+    // Task 8.2: Variable usage analysis
     // Analyzes: read/write counts, hot path accesses, loop depth
     // Metadata: UsageReadCount, UsageWriteCount, UsageIsUsed, etc.
+    const usageAnalyzer = new VariableUsageAnalyzer(this.symbolTable);
+    usageAnalyzer.analyze(ast);
+    this.diagnostics.push(...usageAnalyzer.getDiagnostics());
 
-    // TODO: Task 8.3 - Unused function detection
+    // Task 8.3: Unused function detection
     // Analyzes: functions that are never called
     // Metadata: CallGraphUnused, CallGraphCallCount
+    const functionAnalyzer = new UnusedFunctionAnalyzer(this.symbolTable);
+    functionAnalyzer.analyze(ast);
+    this.diagnostics.push(...functionAnalyzer.getDiagnostics());
 
-    // TODO: Task 8.4 - Dead code detection
-    // Analyzes: unreachable statements, unused results
-    // Metadata: DeadCodeUnreachable, DeadCodeKind, DeadCodeReason
+    // Task 8.4: Dead code detection
+    // Analyzes: unreachable statements, dead stores, unreachable branches
+    // Metadata: DeadCodeUnreachable, DeadCodeKind, DeadCodeReason, DeadCodeRemovable
+    const deadCodeAnalyzer = new DeadCodeAnalyzer(this.symbolTable, this.cfgs, this.typeSystem);
+    deadCodeAnalyzer.analyze(ast);
+    this.diagnostics.push(...deadCodeAnalyzer.getDiagnostics());
   }
 
   /**
@@ -232,7 +245,7 @@ export class AdvancedAnalyzer {
    * @param message - Error message
    * @param location - Source location
    */
-  protected addError(message: string, location: import('../../ast/base.js').SourceLocation): void {
+  protected addError(message: string, location: SourceLocation): void {
     this.diagnostics.push({
       code: DiagnosticCode.TYPE_MISMATCH, // Generic semantic error
       severity: DiagnosticSeverity.ERROR,
@@ -247,10 +260,7 @@ export class AdvancedAnalyzer {
    * @param message - Warning message
    * @param location - Source location
    */
-  protected addWarning(
-    message: string,
-    location: import('../../ast/base.js').SourceLocation
-  ): void {
+  protected addWarning(message: string, location: SourceLocation): void {
     this.diagnostics.push({
       code: DiagnosticCode.UNUSED_IMPORT, // Generic warning code
       severity: DiagnosticSeverity.WARNING,
@@ -265,7 +275,7 @@ export class AdvancedAnalyzer {
    * @param message - Info message
    * @param location - Source location
    */
-  protected addInfo(message: string, location: import('../../ast/base.js').SourceLocation): void {
+  protected addInfo(message: string, location: SourceLocation): void {
     this.diagnostics.push({
       code: DiagnosticCode.UNUSED_IMPORT, // Generic info code (will be refined later)
       severity: DiagnosticSeverity.INFO,
