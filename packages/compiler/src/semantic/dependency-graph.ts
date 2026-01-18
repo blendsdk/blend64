@@ -49,12 +49,12 @@ export class DependencyGraph {
   /**
    * All dependency edges in the graph
    */
-  private edges: DependencyEdge[] = [];
+  protected edges: DependencyEdge[] = [];
 
   /**
    * Adjacency list representation: module -> list of modules it imports
    */
-  private adjacencyList: Map<string, string[]> = new Map();
+  protected adjacencyList: Map<string, string[]> = new Map();
 
   /**
    * Register a module in the graph without adding dependencies
@@ -144,7 +144,7 @@ export class DependencyGraph {
    * @param path - Current path from root to node
    * @param cycles - Accumulator for detected cycles
    */
-  private detectCyclesHelper(
+  protected detectCyclesHelper(
     node: string,
     visited: Set<string>,
     recursionStack: Set<string>,
@@ -248,7 +248,7 @@ export class DependencyGraph {
    * @param visited - Set of visited nodes
    * @param stack - Stack for post-order traversal
    */
-  private topologicalSortHelper(node: string, visited: Set<string>, stack: string[]): void {
+  protected topologicalSortHelper(node: string, visited: Set<string>, stack: string[]): void {
     visited.add(node);
 
     // Visit all neighbors first (post-order)

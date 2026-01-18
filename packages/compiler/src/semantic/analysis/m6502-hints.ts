@@ -17,7 +17,7 @@
  * ```typescript
  * const analyzer = new M6502HintAnalyzer(symbolTable, cfgs);
  * analyzer.analyze(ast);
- * 
+ *
  * // Check zero-page priority
  * const zpPriority = variable.metadata?.get(OptimizationMetadataKey.M6502ZeroPagePriority);
  * ```
@@ -37,13 +37,13 @@ import { ASTWalker } from '../../ast/walker/base.js';
 export enum M6502Register {
   /** Accumulator - best for arithmetic */
   A = 'A',
-  
+
   /** X register - best for indexing, loop counters */
   X = 'X',
-  
+
   /** Y register - best for indexing, loop counters */
   Y = 'Y',
-  
+
   /** No preference */
   Any = 'Any',
 }
@@ -54,13 +54,13 @@ export enum M6502Register {
 export enum MemoryAccessPattern {
   /** Single access */
   Single = 'Single',
-  
+
   /** Sequential access (array iteration) */
   Sequential = 'Sequential',
-  
+
   /** Random access */
   Random = 'Random',
-  
+
   /** Hot path (in loops) */
   HotPath = 'HotPath',
 }
@@ -70,8 +70,8 @@ export enum MemoryAccessPattern {
  */
 const SAFE_ZERO_PAGE = {
   start: 0x02,
-  end: 0x8F,
-  size: 0x8F - 0x02 + 1, // 142 bytes
+  end: 0x8f,
+  size: 0x8f - 0x02 + 1, // 142 bytes
 };
 
 /**
@@ -80,28 +80,28 @@ const SAFE_ZERO_PAGE = {
 interface VariableHints {
   /** Variable symbol */
   symbol: Symbol;
-  
+
   /** Read count */
   readCount: number;
-  
+
   /** Write count */
   writeCount: number;
-  
+
   /** Hot path accesses (in loops) */
   hotPathAccesses: number;
-  
+
   /** Maximum loop depth */
   maxLoopDepth: number;
-  
+
   /** Is this a loop counter? */
   isLoopCounter: boolean;
-  
+
   /** Zero-page priority (0-100) */
   zpPriority: number;
-  
+
   /** Register preference */
   registerPreference: M6502Register;
-  
+
   /** Memory access pattern */
   accessPattern: MemoryAccessPattern;
 }
@@ -120,11 +120,10 @@ interface VariableHints {
  */
 export class M6502HintAnalyzer extends ASTWalker {
   /** Diagnostics collected during analysis */
-  private diagnostics: Diagnostic[] = [];
-  
+  protected diagnostics: Diagnostic[] = [];
+
   /** Variable hints map */
-  private variableHints = new Map<string, VariableHints>();
-  
+  protected variableHints = new Map<string, VariableHints>();
 
   /**
    * Creates a 6502 hint analyzer
@@ -133,7 +132,7 @@ export class M6502HintAnalyzer extends ASTWalker {
    * @param cfgs - Control flow graphs from Pass 5
    */
   constructor(
-    private readonly symbolTable: SymbolTable,
+    protected readonly symbolTable: SymbolTable,
     _cfgs: Map<string, ControlFlowGraph>
   ) {
     super();
@@ -147,19 +146,19 @@ export class M6502HintAnalyzer extends ASTWalker {
   public analyze(ast: Program): void {
     // Phase 1: Collect variable usage (reuse from variable-usage.ts data if available)
     this.collectVariableUsage(ast);
-    
+
     // Phase 2: Calculate zero-page priorities
     this.calculateZeroPagePriorities();
-    
+
     // Phase 3: Determine register preferences
     this.determineRegisterPreferences();
-    
+
     // Phase 4: Detect memory access patterns
     this.detectAccessPatterns();
-    
+
     // Phase 5: Check for reserved zero-page violations
     this.checkReservedZeroPage(ast);
-    
+
     // Phase 6: Set metadata on AST nodes
     this.setM6502Metadata();
   }
@@ -167,22 +166,24 @@ export class M6502HintAnalyzer extends ASTWalker {
   /**
    * Collect variable usage information
    */
-  private collectVariableUsage(ast: Program): void {
+  protected collectVariableUsage(ast: Program): void {
     const declarations = ast.getDeclarations();
-    
+
     for (const decl of declarations) {
       if (decl.constructor.name === 'VariableDecl') {
         const varDecl = decl as VariableDecl;
         const varName = varDecl.getName();
         const symbol = this.symbolTable.lookup(varName);
-        
+
         if (symbol) {
           // Get usage data from metadata (set by Task 8.2)
           const readCount = varDecl.metadata?.get(OptimizationMetadataKey.UsageReadCount) || 0;
           const writeCount = varDecl.metadata?.get(OptimizationMetadataKey.UsageWriteCount) || 0;
-          const hotPathAccesses = varDecl.metadata?.get(OptimizationMetadataKey.UsageHotPathAccesses) || 0;
-          const maxLoopDepth = varDecl.metadata?.get(OptimizationMetadataKey.UsageMaxLoopDepth) || 0;
-          
+          const hotPathAccesses =
+            varDecl.metadata?.get(OptimizationMetadataKey.UsageHotPathAccesses) || 0;
+          const maxLoopDepth =
+            varDecl.metadata?.get(OptimizationMetadataKey.UsageMaxLoopDepth) || 0;
+
           this.variableHints.set(varName, {
             symbol,
             readCount: typeof readCount === 'number' ? readCount : 0,
@@ -210,20 +211,20 @@ export class M6502HintAnalyzer extends ASTWalker {
    *
    * Score: 0-100 (100 = highest priority)
    */
-  private calculateZeroPagePriorities(): void {
+  protected calculateZeroPagePriorities(): void {
     for (const [_varName, hints] of this.variableHints) {
       let priority = 0;
-      
+
       // Factor 1: Total access count (0-40 points)
       const totalAccesses = hints.readCount + hints.writeCount;
       priority += Math.min(40, totalAccesses * 2);
-      
+
       // Factor 2: Loop depth (0-30 points)
       priority += Math.min(30, hints.maxLoopDepth * 10);
-      
+
       // Factor 3: Hot path accesses (0-20 points)
       priority += Math.min(20, hints.hotPathAccesses);
-      
+
       // Factor 4: Variable size (0-10 points)
       const type = hints.symbol.type;
       if (type?.name === 'byte') {
@@ -231,7 +232,7 @@ export class M6502HintAnalyzer extends ASTWalker {
       } else if (type?.name === 'word') {
         priority += 5; // Words benefit but take 2 bytes
       }
-      
+
       // Clamp to 0-100
       hints.zpPriority = Math.min(100, Math.max(0, priority));
     }
@@ -246,19 +247,19 @@ export class M6502HintAnalyzer extends ASTWalker {
    * - Arithmetic → A
    * - High frequency → A
    */
-  private determineRegisterPreferences(): void {
+  protected determineRegisterPreferences(): void {
     for (const [_varName, hints] of this.variableHints) {
       // Check if loop counter (high write count in loops)
       if (hints.maxLoopDepth > 0 && hints.writeCount > 0) {
         hints.isLoopCounter = true;
         hints.registerPreference = M6502Register.X; // Default to X
       }
-      
+
       // High frequency variables prefer accumulator
       else if (hints.readCount + hints.writeCount > 10) {
         hints.registerPreference = M6502Register.A;
       }
-      
+
       // Otherwise, no preference
       else {
         hints.registerPreference = M6502Register.Any;
@@ -269,18 +270,18 @@ export class M6502HintAnalyzer extends ASTWalker {
   /**
    * Detect memory access patterns
    */
-  private detectAccessPatterns(): void {
+  protected detectAccessPatterns(): void {
     for (const [_varName, hints] of this.variableHints) {
       // Hot path pattern (in loops)
       if (hints.hotPathAccesses > 0) {
         hints.accessPattern = MemoryAccessPattern.HotPath;
       }
-      
+
       // Single access pattern
       else if (hints.readCount + hints.writeCount <= 1) {
         hints.accessPattern = MemoryAccessPattern.Single;
       }
-      
+
       // Multiple accesses (default to random)
       else {
         hints.accessPattern = MemoryAccessPattern.Random;
@@ -293,25 +294,27 @@ export class M6502HintAnalyzer extends ASTWalker {
    *
    * Warns if @zp or @map declarations use reserved addresses.
    */
-  private checkReservedZeroPage(_ast: Program): void {
+  protected checkReservedZeroPage(_ast: Program): void {
     // TODO: Implement @map/@zp address validation
     // Skip for now - requires proper AST traversal
   }
 
-
   /**
    * Set 6502 metadata on AST nodes
    */
-  private setM6502Metadata(): void {
+  protected setM6502Metadata(): void {
     for (const [_varName, hints] of this.variableHints) {
       const symbol = hints.symbol;
       const decl = symbol.declaration as VariableDecl;
-      
+
       if (decl && decl.metadata) {
         // Set metadata
         decl.metadata.set(OptimizationMetadataKey.M6502ZeroPagePriority, hints.zpPriority);
-        decl.metadata.set(OptimizationMetadataKey.M6502RegisterPreference, hints.registerPreference);
-        
+        decl.metadata.set(
+          OptimizationMetadataKey.M6502RegisterPreference,
+          hints.registerPreference
+        );
+
         // Estimate cycle count (simple heuristic)
         const cycleEstimate = this.estimateCycles(hints);
         decl.metadata.set(OptimizationMetadataKey.M6502CycleEstimate, cycleEstimate);
@@ -330,7 +333,7 @@ export class M6502HintAnalyzer extends ASTWalker {
    * @param hints - Variable hints
    * @returns Estimated cycles per access
    */
-  private estimateCycles(_hints: VariableHints): number {
+  protected estimateCycles(_hints: VariableHints): number {
     // TODO: Implement proper cycle estimation based on storage class
     // For now, return default estimate
     return 4; // Default to absolute addressing

@@ -171,7 +171,10 @@ export class DeadCodeAnalyzer {
               foundUnreachable = true;
             }
             // Break/continue also make subsequent code unreachable (in loop context)
-            else if (stmt.getNodeType() === 'BreakStatement' || stmt.getNodeType() === 'ContinueStatement') {
+            else if (
+              stmt.getNodeType() === 'BreakStatement' ||
+              stmt.getNodeType() === 'ContinueStatement'
+            ) {
               foundUnreachable = true;
             }
           }
@@ -339,7 +342,7 @@ class UnreachableBranchDetector extends ASTWalker {
    *
    * @param deadCode - Array to populate with dead code entries
    */
-  constructor(private readonly deadCode: DeadCodeInfo[]) {
+  constructor(protected readonly deadCode: DeadCodeInfo[]) {
     super();
   }
 

@@ -71,24 +71,23 @@ interface CallGraphNode {
  */
 export class CallGraphAnalyzer extends ASTWalker {
   /** Diagnostics collected during analysis */
-  private diagnostics: Diagnostic[] = [];
+  protected diagnostics: Diagnostic[] = [];
 
   /** Call graph nodes (function name → node) */
-  private nodes = new Map<string, CallGraphNode>();
+  protected nodes = new Map<string, CallGraphNode>();
 
   /** Current function being analyzed */
-  private currentFunction: string | null = null;
+  protected currentFunction: string | null = null;
 
   /** Exported function names (cannot be dead) */
-  private exportedFunctions = new Set<string>();
-  
+  protected exportedFunctions = new Set<string>();
+
   /** Functions with indirect calls (conservative analysis) */
-  private hasIndirectCalls = new Set<string>();
+  protected hasIndirectCalls = new Set<string>();
 
   constructor() {
     super();
   }
-
 
   /**
    * Analyze program to build call graph
@@ -115,7 +114,7 @@ export class CallGraphAnalyzer extends ASTWalker {
    * Builds initial call graph nodes and tracks exported functions.
    * Exported functions are excluded from dead code elimination and inlining.
    */
-  private collectFunctions(ast: Program): void {
+  protected collectFunctions(ast: Program): void {
     const declarations = ast.getDeclarations();
 
     for (const decl of declarations) {
@@ -140,16 +139,15 @@ export class CallGraphAnalyzer extends ASTWalker {
         if (funcDecl.isExportedFunction()) {
           this.exportedFunctions.add(funcName);
         }
-      }
-      else if (decl.constructor.name === 'ExportDecl') {
+      } else if (decl.constructor.name === 'ExportDecl') {
         // Handle export declarations that wrap functions
         const exportDecl = decl as any;
         const innerDecl = exportDecl.getDeclaration();
-        
+
         if (innerDecl && innerDecl.constructor.name === 'FunctionDecl') {
           const funcDecl = innerDecl as FunctionDecl;
           const funcName = funcDecl.getName();
-          
+
           // Create call graph node
           this.nodes.set(funcName, {
             name: funcName,
@@ -162,7 +160,7 @@ export class CallGraphAnalyzer extends ASTWalker {
             size: this.calculateFunctionSize(funcDecl),
             inlineCandidate: false,
           });
-          
+
           // Mark as exported
           this.exportedFunctions.add(funcName);
         }
@@ -170,11 +168,10 @@ export class CallGraphAnalyzer extends ASTWalker {
     }
   }
 
-
   /**
    * Build call graph by analyzing function calls
    */
-  private buildCallGraph(ast: Program): void {
+  protected buildCallGraph(ast: Program): void {
     // Visit all functions to find call expressions
     const declarations = ast.getDeclarations();
 
@@ -223,7 +220,7 @@ export class CallGraphAnalyzer extends ASTWalker {
       // Indirect call: ptr(), obj.method(), array[i](), etc.
       // Mark current function as having indirect calls
       this.hasIndirectCalls.add(this.currentFunction);
-      
+
       // Cannot determine call target statically, so no edge added
       // Conservative analysis: assume it could call anything
     }
@@ -242,11 +239,10 @@ export class CallGraphAnalyzer extends ASTWalker {
     super.visitCallExpression(node);
   }
 
-
   /**
    * Analyze call graph for optimization opportunities
    */
-  private analyzeCallGraph(): void {
+  protected analyzeCallGraph(): void {
     // 1. Detect recursion
     this.detectRecursion();
 
@@ -262,7 +258,7 @@ export class CallGraphAnalyzer extends ASTWalker {
    *
    * Uses DFS to find cycles in call graph.
    */
-  private detectRecursion(): void {
+  protected detectRecursion(): void {
     const visited = new Set<string>();
     const recursionStack = new Set<string>();
 
@@ -276,7 +272,7 @@ export class CallGraphAnalyzer extends ASTWalker {
   /**
    * DFS helper for recursion detection
    */
-  private dfsRecursion(
+  protected dfsRecursion(
     funcName: string,
     visited: Set<string>,
     recursionStack: Set<string>,
@@ -306,7 +302,7 @@ export class CallGraphAnalyzer extends ASTWalker {
   /**
    * Mark all functions in recursive cycle
    */
-  private markRecursiveCycle(_start: string, stack: Set<string>): void {
+  protected markRecursiveCycle(_start: string, stack: Set<string>): void {
     for (const funcName of stack) {
       const node = this.nodes.get(funcName);
       if (node) {
@@ -330,7 +326,7 @@ export class CallGraphAnalyzer extends ASTWalker {
    * Conservative analysis ensures inlining is always safe and beneficial.
    * The IL optimizer will make the final inlining decisions.
    */
-  private identifyInlineCandidates(): void {
+  protected identifyInlineCandidates(): void {
     for (const [_funcName, node] of this.nodes) {
       // Criteria for inlining
       const isSmall = node.size < 10;
@@ -340,7 +336,14 @@ export class CallGraphAnalyzer extends ASTWalker {
       const noIndirectCalls = !this.hasIndirectCalls.has(node.name);
       const simpleControlFlow = this.hasSimpleControlFlow(node.declaration);
 
-      if (isSmall && notRecursive && fewCallSites && notExported && noIndirectCalls && simpleControlFlow) {
+      if (
+        isSmall &&
+        notRecursive &&
+        fewCallSites &&
+        notExported &&
+        noIndirectCalls &&
+        simpleControlFlow
+      ) {
         node.inlineCandidate = true;
       }
     }
@@ -357,14 +360,14 @@ export class CallGraphAnalyzer extends ASTWalker {
    * @param func - Function to analyze
    * @returns True if control flow is simple
    */
-  private hasSimpleControlFlow(func: FunctionDecl): boolean {
+  protected hasSimpleControlFlow(func: FunctionDecl): boolean {
     const body = func.getBody();
-    
+
     if (!body) {
       // Stub function - considered simple
       return true;
     }
-    
+
     return this.checkStatementsForComplexity(body);
   }
 
@@ -374,46 +377,45 @@ export class CallGraphAnalyzer extends ASTWalker {
    * @param statements - Statements to check
    * @returns True if all statements are simple
    */
-  private checkStatementsForComplexity(statements: any[]): boolean {
+  protected checkStatementsForComplexity(statements: any[]): boolean {
     for (const stmt of statements) {
       const stmtType = stmt.constructor.name;
-      
+
       // Loops are complex (prevent inlining)
       if (stmtType === 'WhileStatement' || stmtType === 'ForStatement') {
         return false;
       }
-      
+
       // Match statements are complex (many branches)
       if (stmtType === 'MatchStatement') {
         return false;
       }
-      
+
       // Recursively check nested statements
       if (stmtType === 'IfStatement') {
         const thenOk = this.checkStatementsForComplexity(stmt.getThenBranch());
         const elseBranch = stmt.getElseBranch();
         const elseOk = elseBranch ? this.checkStatementsForComplexity(elseBranch) : true;
-        
+
         if (!thenOk || !elseOk) {
           return false;
         }
       }
-      
+
       if (stmtType === 'BlockStatement') {
         if (!this.checkStatementsForComplexity(stmt.getStatements())) {
           return false;
         }
       }
     }
-    
+
     return true;
   }
-
 
   /**
    * Detect functions that are never called (dead code)
    */
-  private detectDeadFunctions(): void {
+  protected detectDeadFunctions(): void {
     // TODO: Implement dead function detection
     // Currently disabled to avoid conflicting with existing unused function analysis
     // This stub implementation just marks metadata without emitting diagnostics
@@ -438,7 +440,7 @@ export class CallGraphAnalyzer extends ASTWalker {
   /**
    * Set call graph metadata on function declarations
    */
-  private setCallGraphMetadata(): void {
+  protected setCallGraphMetadata(): void {
     for (const [_funcName, node] of this.nodes) {
       const metadata = node.declaration.metadata || new Map();
       node.declaration.metadata = metadata;
@@ -475,7 +477,7 @@ export class CallGraphAnalyzer extends ASTWalker {
    * // Returns: 3
    * ```
    */
-  private calculateFunctionSize(func: FunctionDecl): number {
+  protected calculateFunctionSize(func: FunctionDecl): number {
     const body = func.getBody();
 
     // Stub functions have no body
@@ -499,7 +501,7 @@ export class CallGraphAnalyzer extends ASTWalker {
    * @param statements - List of statements to count
    * @returns Total statement count
    */
-  private countStatements(statements: any[]): number {
+  protected countStatements(statements: any[]): number {
     let count = 0;
 
     for (const stmt of statements) {

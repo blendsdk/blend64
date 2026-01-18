@@ -584,8 +584,8 @@ export abstract class BaseParser {
    * This cache avoids recreating the same location object repeatedly.
    * Cache is invalidated on every token advance.
    */
-  private _currentLocationCache: SourceLocation | null = null;
-  private _currentLocationCacheToken: number = -1;
+  protected _currentLocationCache: SourceLocation | null = null;
+  protected _currentLocationCacheToken: number = -1;
 
   /**
    * Creates a SourceLocation from current token (with caching)

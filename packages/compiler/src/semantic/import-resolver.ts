@@ -83,7 +83,7 @@ export class ImportResolver {
    *
    * @param registry - Module registry containing all available modules
    */
-  constructor(private readonly registry: ModuleRegistry) {}
+  constructor(protected readonly registry: ModuleRegistry) {}
 
   /**
    * Validate all imports across all modules

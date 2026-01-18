@@ -179,10 +179,10 @@ export class DefiniteAssignmentAnalyzer {
     // Collect module-level variables with initializers
     // These are always initialized before any function runs
     const moduleInitialized = this.getModuleLevelInitializedVariables();
-    
+
     // Combine parameters with module-level initialized variables
     const initiallyAssigned = [...parameters, ...moduleInitialized];
-    
+
     // Phase 1: Compute assignment sets using worklist algorithm
     const assignmentSets = this.computeAssignmentSets(cfg, initiallyAssigned);
 
@@ -338,7 +338,7 @@ export class DefiniteAssignmentAnalyzer {
         if (symbol && symbol.kind === SymbolKind.Variable) {
           outputSet.add(symbol.name);
         }
-        
+
         // Also check for nested assignments in the initializer
         // e.g., let z: byte = (x = 10);
         this.collectAssignments(varDecl.getInitializer()!, outputSet);
@@ -349,7 +349,7 @@ export class DefiniteAssignmentAnalyzer {
     if (isExpressionStatement(statement)) {
       const exprStmt = statement as any;
       const expr = exprStmt.getExpression();
-      
+
       // Collect ALL assignments in the expression tree (handles nested assignments)
       this.collectAssignments(expr, outputSet);
     }
@@ -370,7 +370,7 @@ export class DefiniteAssignmentAnalyzer {
     if (isAssignmentExpression(expr)) {
       const assignExpr = expr as any;
       const target = assignExpr.getTarget();
-      
+
       // Add the target variable to the assignment set
       if (isIdentifierExpression(target)) {
         const idExpr = target as IdentifierExpression;
@@ -379,7 +379,7 @@ export class DefiniteAssignmentAnalyzer {
           outputSet.add(symbol.name);
         }
       }
-      
+
       // Recursively check the value for nested assignments
       // e.g., y = (x = 10) has an assignment to x inside the value
       const value = assignExpr.getValue();
@@ -612,9 +612,9 @@ class UninitializedUseChecker extends ASTWalker {
    * @param diagnostics - Diagnostics array to append to
    */
   constructor(
-    private readonly symbolTable: SymbolTable,
-    private readonly assignedVars: AssignmentSet,
-    private readonly diagnostics: Diagnostic[]
+    protected readonly symbolTable: SymbolTable,
+    protected readonly assignedVars: AssignmentSet,
+    protected readonly diagnostics: Diagnostic[]
   ) {
     super();
   }
@@ -685,7 +685,7 @@ class DefiniteAssignmentWalker extends ASTWalker {
    *
    * @param alwaysInitialized - Set of variables always initialized
    */
-  constructor(private readonly alwaysInitialized: Set<string>) {
+  constructor(protected readonly alwaysInitialized: Set<string>) {
     super();
   }
 
@@ -724,7 +724,7 @@ class DefiniteAssignmentWalker extends ASTWalker {
    * @param node - Expression to check
    * @returns True if constant
    */
-  private isConstantExpression(node: Expression): boolean {
+  protected isConstantExpression(node: Expression): boolean {
     // Simple constant detection (literals only for now)
     return node.getNodeType() === 'LiteralExpression';
   }
@@ -735,7 +735,7 @@ class DefiniteAssignmentWalker extends ASTWalker {
    * @param node - Constant expression
    * @returns Evaluated value
    */
-  private evaluateConstant(node: Expression): number | string | boolean | undefined {
+  protected evaluateConstant(node: Expression): number | string | boolean | undefined {
     const nodeType = node.getNodeType();
 
     if (nodeType === 'LiteralExpression') {
@@ -760,8 +760,8 @@ class AssignmentCollector extends ASTWalker {
    * @param outputSet - Set to add assigned variable names to
    */
   constructor(
-    private readonly symbolTable: SymbolTable,
-    private readonly outputSet: AssignmentSet
+    protected readonly symbolTable: SymbolTable,
+    protected readonly outputSet: AssignmentSet
   ) {
     super();
   }

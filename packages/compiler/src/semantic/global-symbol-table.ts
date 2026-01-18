@@ -135,7 +135,7 @@ export class GlobalSymbolTable {
    */
   public lookup(identifier: string, fromModule: string): GlobalSymbol | undefined {
     // Search all modules for an exported symbol with this name
-    // TODO: In future, respect module visibility rules (public/private modules)
+    // TODO: In future, respect module visibility rules (public/protected modules)
 
     for (const [moduleName, exports] of this.moduleExports) {
       // Skip the requesting module (imports must be from other modules)

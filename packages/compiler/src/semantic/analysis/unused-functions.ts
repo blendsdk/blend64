@@ -222,8 +222,8 @@ class FunctionCollector extends ASTWalker {
    * @param usageMap - Map to populate with function info
    */
   constructor(
-    private readonly symbolTable: SymbolTable,
-    private readonly usageMap: Map<string, FunctionUsageInfo>
+    protected readonly symbolTable: SymbolTable,
+    protected readonly usageMap: Map<string, FunctionUsageInfo>
   ) {
     super();
   }
@@ -283,8 +283,8 @@ class FunctionCallTracker extends ASTWalker {
    * @param usageMap - Map to update with call counts
    */
   constructor(
-    private readonly symbolTable: SymbolTable,
-    private readonly usageMap: Map<string, FunctionUsageInfo>
+    protected readonly symbolTable: SymbolTable,
+    protected readonly usageMap: Map<string, FunctionUsageInfo>
   ) {
     super();
   }

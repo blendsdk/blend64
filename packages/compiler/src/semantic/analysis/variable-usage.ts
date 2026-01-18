@@ -205,10 +205,8 @@ export class VariableUsageAnalyzer {
    * @param ast - Program AST
    */
   protected trackWrites(ast: Program): void {
-    const tracker = new WriteTracker(
-      this.symbolTable,
-      this.usageMap,
-      () => this.getCurrentLoopDepth()
+    const tracker = new WriteTracker(this.symbolTable, this.usageMap, () =>
+      this.getCurrentLoopDepth()
     );
     tracker.walk(ast);
   }
@@ -222,10 +220,8 @@ export class VariableUsageAnalyzer {
    * @param ast - Program AST
    */
   protected trackReads(ast: Program): void {
-    const tracker = new ReadTracker(
-      this.symbolTable,
-      this.usageMap,
-      () => this.getCurrentLoopDepth()
+    const tracker = new ReadTracker(this.symbolTable, this.usageMap, () =>
+      this.getCurrentLoopDepth()
     );
     tracker.walk(ast);
   }
@@ -295,8 +291,8 @@ class VariableCollector extends ASTWalker {
    * @param usageMap - Map to populate with variable info
    */
   constructor(
-    private readonly symbolTable: SymbolTable,
-    private readonly usageMap: Map<string, VariableUsageInfo>
+    protected readonly symbolTable: SymbolTable,
+    protected readonly usageMap: Map<string, VariableUsageInfo>
   ) {
     super();
   }
@@ -343,9 +339,9 @@ class WriteTracker extends ASTWalker {
    * @param getCurrentLoopDepth - Function to get current loop depth
    */
   constructor(
-    private readonly symbolTable: SymbolTable,
-    private readonly usageMap: Map<string, VariableUsageInfo>,
-    private readonly getCurrentLoopDepth: () => number
+    protected readonly symbolTable: SymbolTable,
+    protected readonly usageMap: Map<string, VariableUsageInfo>,
+    protected readonly getCurrentLoopDepth: () => number
   ) {
     super();
   }
@@ -438,9 +434,9 @@ class ReadTracker extends ASTWalker {
    * @param getCurrentLoopDepth - Function to get current loop depth
    */
   constructor(
-    private readonly symbolTable: SymbolTable,
-    private readonly usageMap: Map<string, VariableUsageInfo>,
-    private readonly getCurrentLoopDepth: () => number
+    protected readonly symbolTable: SymbolTable,
+    protected readonly usageMap: Map<string, VariableUsageInfo>,
+    protected readonly getCurrentLoopDepth: () => number
   ) {
     super();
   }
@@ -453,7 +449,7 @@ class ReadTracker extends ASTWalker {
    */
   public visitAssignmentExpression(node: any): void {
     // Don't use default behavior - we need custom traversal
-    
+
     // Only walk the value (right side) - this contains the reads
     const value = node.getValue();
     if (value) {

@@ -235,7 +235,7 @@ export class NodeFinder extends ASTCollector<ASTNode> {
   /**
    * Predicate function to test nodes
    */
-  private predicate: (node: ASTNode) => boolean;
+  protected predicate: (node: ASTNode) => boolean;
 
   /**
    * Create node finder with predicate
@@ -312,7 +312,7 @@ export class NodeCounter extends ASTWalker {
   /**
    * Map of node type to count
    */
-  private counts: Map<string, number> = new Map();
+  protected counts: Map<string, number> = new Map();
 
   /**
    * Run counter on AST and return count map

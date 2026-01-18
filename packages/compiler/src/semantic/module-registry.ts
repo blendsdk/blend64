@@ -55,7 +55,7 @@ export interface ModuleInfo {
  */
 export class ModuleRegistry {
   /** Map of module name → module info */
-  private modules: Map<string, ModuleInfo> = new Map();
+  protected modules: Map<string, ModuleInfo> = new Map();
 
   /**
    * Register a module in the registry
